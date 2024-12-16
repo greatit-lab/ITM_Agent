@@ -1,5 +1,9 @@
+// Program.cs
+using ITM_Agent.Services;
+using ITM_Agent;
 using System;
 using System.Windows.Forms;
+using System.IO;
 
 namespace ITM_Agent
 {
@@ -14,6 +18,13 @@ namespace ITM_Agent
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
+            
+            // SettingsManager 인스턴스 생성
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            var settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
+            
+            // MainForm 실행
+            Application.Run(new MainForm(settingsManager));
         }
     }
 }
