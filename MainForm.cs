@@ -286,6 +286,26 @@ namespace ITM_Agent
             MessageBox.Show("Settings 초기화 완료 (Eqpid 제외)", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
         
+        private void OpenMenuItem_Click(object sender, EventArgs e)
+        {
+            using (OpenFileDialog openFileDialog = new OpenFileDialog())
+            {
+                openFileDialog.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
+                if (openFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    try
+                    {
+                        settingsManager.LoadFromFile(openFileDialog.FileName);
+                        MessageBox.Show("새로운 Settings.ini 파일이 로드되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"파일 로드 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
+                }
+            }
+        }
+        
         private void SaveAsMenuItem_Click(object sender, EventArgs e)
         {
             using (SaveFileDialog saveFileDialog = new SaveFileDialog())
@@ -293,8 +313,15 @@ namespace ITM_Agent
                 saveFileDialog.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
                 if (saveFileDialog.ShowDialog() == DialogResult.OK)
                 {
-                    settingsManager.SaveToFile(saveFileDialog.FileName);
-                    MessageBox.Show("설정을 저장했습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    try
+                    {
+                        settingsManager.SaveToFile(saveFileDialog.FileName);
+                        MessageBox.Show("Settings.ini가 저장되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"파일 저장 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    }
                 }
             }
         }
