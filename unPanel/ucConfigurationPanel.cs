@@ -208,21 +208,38 @@ namespace ITM_Agent.ucPanel
                 }
             }
         }
-
+        
+        private void ShowRegexConfigFormCentered(RegexConfigForm regexForm)
+        {
+            // RegexConfigForm을 정중앙에 위치시키기 위한 로직
+            var parentPanel = this.Parent as Panel;
+            if (parentPanel != null)
+            {
+                Point centerLocation = new Point(
+                    parentPanel.Location.X + (parentPanel.Width - regexForm.Width) / 2,
+                    parentPanel.Location.Y + (parentPanel.Height - regexForm.Height) / 2
+                );
+        
+                regexForm.StartPosition = FormStartPosition.Manual;
+                regexForm.Location = this.PointToScreen(centerLocation);
+            }
+        }
+        
         private void btn_RegAdd_Click(object sender, EventArgs e)
         {
             using (var regexForm = new RegexConfigForm(BaseFolder))
             {
+                ShowRegexConfigFormCentered(regexForm);
                 if (regexForm.ShowDialog() == DialogResult.OK)
                 {
                     string regex = regexForm.RegexPattern;
                     string targetFolder = regexForm.TargetFolder;
-
+        
                     AddOrUpdateRegex(regex, targetFolder, null);
                 }
             }
         }
-
+        
         private void btn_RegEdit_Click(object sender, EventArgs e)
         {
             if (lb_RegexList.SelectedItem == null)
@@ -230,13 +247,15 @@ namespace ITM_Agent.ucPanel
                 MessageBox.Show("수정할 항목을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-
+        
             var (regex, targetFolder) = ParseSelectedRegexItem(lb_RegexList.SelectedItem.ToString());
             using (var regexForm = new RegexConfigForm(BaseFolder))
             {
                 regexForm.RegexPattern = regex;
                 regexForm.TargetFolder = targetFolder;
-
+        
+                ShowRegexConfigFormCentered(regexForm);
+        
                 if (regexForm.ShowDialog() == DialogResult.OK)
                 {
                     AddOrUpdateRegex(regexForm.RegexPattern, regexForm.TargetFolder, regex);
