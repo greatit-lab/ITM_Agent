@@ -136,7 +136,9 @@ namespace ITM_Agent
         {
             ts_Status.Text = status;
             ts_Status.ForeColor = color;
-
+            
+            bool isRunning = status == "Running...";
+            
             switch (status)
             {
                 case "Ready to Run":
@@ -156,8 +158,29 @@ namespace ITM_Agent
                     break;
             }
             UpdateTrayMenuStatus();
+            UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
         }
-
+        
+        private void UpdateMenuItemsState(bool isRunning)
+        {
+            if (menuStrip1 != null)
+            {
+                foreach (ToolStripMenuItem item in menuStrip1.Items)
+                {
+                    if (item.Text == "File")
+                    {
+                        foreach (ToolStripItem subItem in item.DropDownItems)
+                        {
+                            if (subItem.Text == "New" || subItem.Text == "Open" || subItem.Text == "Quit")
+                            {
+                                subItem.Enabled = !isRunning; // Running 상태에서 비활성화
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
         private void btn_Run_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Run button clicked.");
