@@ -138,6 +138,7 @@ namespace ITM_Agent
             ts_Status.ForeColor = color;
             
             bool isRunning = status == "Running...";
+            ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
             
             switch (status)
             {
