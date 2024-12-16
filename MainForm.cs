@@ -145,7 +145,7 @@ namespace ITM_Agent
                     btn_Quit.Enabled = true;
                     break;
                 case "Stopped!":
-                    btn_Run.Enabled = true;
+                    btn_Run.Enabled = false;
                     btn_Stop.Enabled = false;
                     btn_Quit.Enabled = true;
                     break;
