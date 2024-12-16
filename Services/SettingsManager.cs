@@ -262,5 +262,29 @@ namespace ITM_Agent.Services
 
             File.WriteAllLines(settingsFilePath, lines);
         }
+        
+        public void ResetExceptEqpid()
+        {
+            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+            var eqpidLines = lines.Where(line => line.StartsWith("[Eqpid]") || line.StartsWith("Eqpid =")).ToList();
+        
+            // Settings 파일 초기화
+            File.WriteAllText(settingsFilePath, string.Empty);
+        
+            // Eqpid 섹션 복원
+            File.AppendAllLines(settingsFilePath, eqpidLines);
+        }
+        
+        public void LoadFromFile(string filePath)
+        {
+            if (!File.Exists(filePath)) throw new FileNotFoundException("File not found.", filePath);
+        
+            File.Copy(filePath, settingsFilePath, overwrite: true);
+        }
+        
+        public void SaveToFile(string filePath)
+        {
+            File.Copy(settingsFilePath, filePath, overwrite: true);
+        }
     }
 }
