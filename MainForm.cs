@@ -279,11 +279,26 @@ namespace ITM_Agent
             this.MainMenuStrip = menuStrip1;
         }
         
+        private void RefreshUI()
+        {
+            // Eqpid 상태 갱신
+            string eqpid = settingsManager.GetEqpid();
+            lb_eqpid.Text = $"Eqpid: {eqpid}";
+        
+            // TargetFolders, Regex 리스트 갱신
+            ucSc1.RefreshUI(); // UserControl의 UI 갱신 호출
+        
+            // MainForm 상태 업데이트
+            UpdateUIBasedOnSettings();
+        }
+        
         private void NewMenuItem_Click(object sender, EventArgs e)
         {
-            // Settings.ini 초기화 (Eqpid 섹션 제외)
+            // Settings 초기화 (Eqpid 제외)
             settingsManager.ResetExceptEqpid();
             MessageBox.Show("Settings 초기화 완료 (Eqpid 제외)", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        
+            RefreshUI(); // 초기화 후 UI 갱신
         }
         
         private void OpenMenuItem_Click(object sender, EventArgs e)
@@ -297,6 +312,8 @@ namespace ITM_Agent
                     {
                         settingsManager.LoadFromFile(openFileDialog.FileName);
                         MessageBox.Show("새로운 Settings.ini 파일이 로드되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        
+                        RefreshUI(); // 파일 로드 후 UI 갱신
                     }
                     catch (Exception ex)
                     {
