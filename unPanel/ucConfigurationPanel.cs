@@ -347,5 +347,9 @@ namespace ITM_Agent.ucPanel
         {
             get => (lb_BaseFolder.Text != "폴더가 미선택되었습니다") ? lb_BaseFolder.Text : null;
         }
+        public void RefreshUI()
+        {
+            LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
+        }
     }
 }
