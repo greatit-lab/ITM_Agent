@@ -250,6 +250,64 @@ namespace ITM_Agent
             // 폼 로드시 실행할 로직
             pMain.Controls.Add(ucSc1);
         }
-
+        
+        private void InitializeMenu()
+        {
+            menuStrip1 = new MenuStrip();
+        
+            ToolStripMenuItem fileMenu = new ToolStripMenuItem("File");
+        
+            ToolStripMenuItem newMenuItem = new ToolStripMenuItem("New");
+            newMenuItem.Click += NewMenuItem_Click;
+            fileMenu.DropDownItems.Add(newMenuItem);
+        
+            ToolStripMenuItem openMenuItem = new ToolStripMenuItem("Open");
+            openMenuItem.Click += OpenMenuItem_Click;
+            fileMenu.DropDownItems.Add(openMenuItem);
+        
+            ToolStripMenuItem saveAsMenuItem = new ToolStripMenuItem("Save As");
+            saveAsMenuItem.Click += SaveAsMenuItem_Click;
+            fileMenu.DropDownItems.Add(saveAsMenuItem);
+        
+            ToolStripMenuItem quitMenuItem = new ToolStripMenuItem("Quit");
+            quitMenuItem.Click += QuitMenuItem_Click;
+            fileMenu.DropDownItems.Add(quitMenuItem);
+        
+            menuStrip1.Items.Add(fileMenu);
+        
+            this.Controls.Add(menuStrip1);
+            this.MainMenuStrip = menuStrip1;
+        }
+        
+        private void NewMenuItem_Click(object sender, EventArgs e)
+        {
+            // Settings.ini 초기화 (Eqpid 섹션 제외)
+            settingsManager.ResetExceptEqpid();
+            MessageBox.Show("Settings 초기화 완료 (Eqpid 제외)", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+        
+        private void SaveAsMenuItem_Click(object sender, EventArgs e)
+        {
+            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
+            {
+                saveFileDialog.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
+                if (saveFileDialog.ShowDialog() == DialogResult.OK)
+                {
+                    settingsManager.SaveToFile(saveFileDialog.FileName);
+                    MessageBox.Show("설정을 저장했습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                }
+            }
+        }
+        
+        private void QuitMenuItem_Click(object sender, EventArgs e)
+        {
+            if (ts_Status.Text == "Running...")
+            {
+                MessageBox.Show("실행 중에는 종료할 수 없습니다. 작업을 중지하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+        
+            Application.Exit();
+        }
     }
 }
