@@ -318,19 +318,22 @@ namespace ITM_Agent.ucPanel
                 StatusUpdated?.Invoke("Stopped!", Color.Red);
             }
         }
-
+        
         public void UpdateStatusOnRun(bool isRunning)
         {
             if (isRunning)
             {
+                // 상태 업데이트
                 StatusUpdated?.Invoke("Running...", Color.Blue);
+                SetButtonsEnabled(false); // 모든 버튼 비활성화
             }
             else
             {
-                ValidateRunButtonState();
+                SetButtonsEnabled(true); // 다시 활성화
+                ValidateRunButtonState(); // 상태 검증
             }
         }
-
+        
         public void SetButtonsEnabled(bool isEnabled)
         {
             btn_TargetFolder.Enabled = isEnabled;
@@ -347,6 +350,7 @@ namespace ITM_Agent.ucPanel
         {
             get => (lb_BaseFolder.Text != "폴더가 미선택되었습니다") ? lb_BaseFolder.Text : null;
         }
+        
         public void RefreshUI()
         {
             LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
