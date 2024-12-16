@@ -25,9 +25,10 @@ namespace ITM_Agent
         
         ucPanel.ucConfigurationPanel ucSc1;
 
-        public MainForm()
+        public MainForm(SettingsManager settingsManager)
         {
-            InitializeComponent(); 
+            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            InitializeComponent();
         
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         
