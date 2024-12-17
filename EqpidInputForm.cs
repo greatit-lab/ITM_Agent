@@ -74,7 +74,7 @@ namespace ITM_Agent
             // 흐림 처리된 이미지 생성
             pictureBox = new PictureBox()
             {
-                Image = CreateTransparentImage("Resources\\icon.png", 128), // 투명도 적용 (128은 50% 알파)
+                Image = CreateTransparentImage("Resources\\Icons\\icon.png", 128), // 투명도 적용 (128은 50% 알파)
                 Location = new Point(250, 20),
                 Size = new Size(100, 100),
                 SizeMode = PictureBoxSizeMode.StretchImage
