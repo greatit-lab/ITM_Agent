@@ -36,7 +36,8 @@ namespace ITM_Agent
                 Text = "신규로 등록 필요한 장비명을 입력하세요.",
                 Top = 20,
                 Left = 25,
-                Width = 300
+                Width = 300,
+                BackColor = Color.Transparent   // Label 배경을 투명하게 설정
             };
 
             textBox = new TextBox()
@@ -76,11 +77,21 @@ namespace ITM_Agent
             pictureBox = new PictureBox()
             {
                 Image = CreateTransparentImage("Resources\\Icons\\icon.png", 128), // 투명도 적용 (128은 50% 알파)
-                Location = new Point(20, 30),
+                Location = new Point(22, 36),
                 Size = new Size(75, 75),
                 SizeMode = PictureBoxSizeMode.StretchImage
             };
-
+            
+            // TextBox에서 Enter 키로 Submit
+            textBox.KeyDown += (sender, e) =>
+            {
+                if (e.KeyCode == Keys.Enter) // Enter 키 확인
+                {
+                    e.SuppressKeyPress = true; // Enter 키 소리 제거
+                    submitButton.PerformClick(); // Submit 버튼 클릭
+                }
+            };
+            
             submitButton.Click += (sender, e) =>
             {
                 string trimmedInput = textBox.Text.TrimStart(); // 앞쪽 공백 제거
@@ -106,6 +117,10 @@ namespace ITM_Agent
             this.Controls.Add(submitButton);
             this.Controls.Add(cancelButton);
             this.Controls.Add(pictureBox); // PictureBox 추가
+            
+            // Control 그리기 순서 조정 (Controls.Add 이후에 실행)
+            this.Controls.SetChildIndex(pictureBox, 0);       // PictureBox를 가장 먼저 배치
+            this.Controls.SetChildIndex(instructionLabel, 1); // instructionLabel을 PictureBox 위로 배치
         }
         
         /// <summary>
