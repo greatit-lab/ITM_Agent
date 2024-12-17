@@ -27,24 +27,28 @@ namespace ITM_Agent.Services
 
         private void PromptForEqpid()
         {
-            using (var form = new EqpidInputForm())
+            bool isValidInput = false;
+
+            while (!isValidInput)
             {
-                if (form.ShowDialog() == DialogResult.OK)
+                using (var form = new EqpidInputForm())
                 {
-                    if (!string.IsNullOrEmpty(form.Eqpid))
+                    if (form.ShowDialog() == DialogResult.OK)
                     {
-                        settingsManager.SetEqpid(form.Eqpid.ToUpper());
+                        if (!string.IsNullOrEmpty(form.Eqpid))
+                        {
+                            settingsManager.SetEqpid(form.Eqpid.ToUpper());
+                            isValidInput = true;
+                        }
+                        else
+                        {
+                            MessageBox.Show("Eqpid input is required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        }
                     }
                     else
                     {
-                        MessageBox.Show("Eqpid input is required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                        PromptForEqpid();
+                        Application.Exit();
                     }
-                }
-                else
-                {
-                    // 사용자가 취소하면 애플리케이션 종료
-                    Application.Exit();
                 }
             }
         }
