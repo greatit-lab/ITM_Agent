@@ -21,7 +21,7 @@ namespace ITM_Agent
         private Button cancelButton;
         private Label instructionLabel;
         private Label warningLabel;
-        private PictureBox PictureBox;  // 이미지 표시를 위한 PictureBox
+        private PictureBox pictureBox;  // 이미지 표시를 위한 PictureBox
 
         public EqpidInputForm()
         {
@@ -76,8 +76,8 @@ namespace ITM_Agent
             pictureBox = new PictureBox()
             {
                 Image = CreateTransparentImage("Resources\\Icons\\icon.png", 128), // 투명도 적용 (128은 50% 알파)
-                Location = new Point(250, 20),
-                Size = new Size(100, 100),
+                Location = new Point(20, 30),
+                Size = new Size(75, 75),
                 SizeMode = PictureBoxSizeMode.StretchImage
             };
 
