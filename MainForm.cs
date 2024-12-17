@@ -30,6 +30,8 @@ namespace ITM_Agent
         private ucScreen2 ucOverrideNamesPanel;
         private ucScreen3 ucImageTransPanel;
         private ucScreen4 ucUploadDataPanel;
+        
+        private bool isRunning = false; // 현재 상태 플래그
 
         public MainForm(SettingsManager settingsManager)
         {
@@ -217,6 +219,7 @@ namespace ITM_Agent
             logManager.LogEvent("Run button clicked.");
             try
             {
+                isRunning = true; // 상태 플래그 업데이트
                 UpdateMainStatus("Running...", Color.Blue);
                 fileWatcherManager.StartWatching();
             }
@@ -224,16 +227,18 @@ namespace ITM_Agent
             {
                 logManager.LogEvent($"Error starting monitoring: {ex.Message}", true);
                 UpdateMainStatus("Stopped!", Color.Red);
+                isRunning = false;
             }
         }
-
+        
         private void btn_Stop_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Stop button clicked.");
             fileWatcherManager.StopWatchers();
             UpdateMainStatus("Stopped!", Color.Red);
+            isRunning = false; // 상태 플래그 업데이트
         }
-
+        
         private void btn_Quit_Click(object sender, EventArgs e)
         {
             if (ts_Status.Text == "Ready to Run" || ts_Status.Text == "Stopped!")
@@ -363,10 +368,15 @@ namespace ITM_Agent
 
         private void ShowUserControl(UserControl control)
         {
-            // 메인 패널에 UserControl을 표시
-            pMain.Controls.Clear();   // pMain: MainForm [디자인]에 이미 존재하는 Panel
+            pMain.Controls.Clear();
             pMain.Controls.Add(control);
             control.Dock = DockStyle.Fill;
+        
+            // 상태 전달
+            if (control is ucConfigurationPanel configPanel)
+            {
+                configPanel.UpdateStatusOnRun(isRunning);
+            }
         }
     }
 }
