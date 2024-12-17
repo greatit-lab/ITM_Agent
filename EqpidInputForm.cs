@@ -1,5 +1,6 @@
 // EqpidInputForm.cs
 using System;
+using System.IO;
 using System.Drawing;
 using System.Windows.Forms;
 
@@ -19,6 +20,7 @@ namespace ITM_Agent
         private Button cancelButton;
         private Label instructionLabel;
         private Label warningLabel;
+        private PictureBox PictureBox;  // 이미지 표시를 위한 PictureBox
 
         public EqpidInputForm()
         {
@@ -38,16 +40,16 @@ namespace ITM_Agent
 
             textBox = new TextBox()
             {
-                Top = 50,
-                Left = 90,
+                Top = 60,
+                Left = 125,
                 Width = 110
             };
-
+            
             warningLabel = new Label()
             {
                 Text = "장비명을 입력해주세요.",
-                Top = 80,
-                Left = 80,
+                Top = 90,
+                Left = 115,
                 ForeColor = Color.Red,
                 AutoSize = true,
                 Visible = false
@@ -68,22 +70,33 @@ namespace ITM_Agent
                 Left = 150,
                 Width = 90
             };
+            
+            // 흐림 처리된 이미지 생성
+            pictureBox = new PictureBox()
+            {
+                Image = CreateTransparentImage("Resources\\icon.png", 128), // 투명도 적용 (128은 50% 알파)
+                Location = new Point(250, 20),
+                Size = new Size(100, 100),
+                SizeMode = PictureBoxSizeMode.StretchImage
+            };
 
             submitButton.Click += (sender, e) =>
             {
-                if (string.IsNullOrWhiteSpace(textBox.Text))
+                string trimmedInput = textBox.Text.TrimStart(); // 앞쪽 공백 제거
+                if (string.IsNullOrWhiteSpace(trimmedInput))
                 {
                     warningLabel.Visible = true;
                     return; // 빈 값이면 폼 닫지 않음
                 }
-                this.Eqpid = textBox.Text;
+                this.Eqpid = trimmedInput;  // Eqpid 에 공백 제거된 값 저장
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             };
 
             cancelButton.Click += (sender, e) =>
             {
-                Application.Exit();
+                this.DialogResult = DialogResult.Cancel;    // Cancel 반환
+                this.Close();
             };
 
             this.Controls.Add(instructionLabel);
@@ -91,6 +104,34 @@ namespace ITM_Agent
             this.Controls.Add(warningLabel);
             this.Controls.Add(submitButton);
             this.Controls.Add(cancelButton);
+            this.Controls.Add(pictureBox); // PictureBox 추가
+        }
+        
+        /// <summary>
+        /// 이미지에 Alpha(투명도) 값을 적용하는 메서드
+        /// </summary>
+        private Image CreateTransparentImage(string filePath, int alpha)
+        {
+            if (!File.Exists(filePath))
+                return null;
+
+            Bitmap original = new Bitmap(filePath);
+            Bitmap transparentImage = new Bitmap(original.Width, original.Height);
+
+            using (Graphics g = Graphics.FromImage(transparentImage))
+            {
+                ColorMatrix colorMatrix = new ColorMatrix
+                {
+                    Matrix33 = alpha / 255f // Alpha 값 (0~255 사이의 값)
+                };
+                ImageAttributes attributes = new ImageAttributes();
+                attributes.SetColorMatrix(colorMatrix, ColorMatrixFlag.Default, ColorAdjustType.Bitmap);
+
+                g.DrawImage(original, new Rectangle(0, 0, original.Width, original.Height),
+                            0, 0, original.Width, original.Height, GraphicsUnit.Pixel, attributes);
+            }
+
+            return transparentImage;
         }
     }
 }
