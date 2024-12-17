@@ -292,5 +292,39 @@ namespace ITM_Agent.Services
         {
             File.Copy(settingsFilePath, filePath, overwrite: true);
         }
+        
+        public void SetType(string type)
+        {
+            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+            int sectionIndex = lines.FindIndex(l => l.Trim() == "[Eqpid]");
+            if (sectionIndex == -1)
+            {
+                lines.Add("[Eqpid]");
+                lines.Add($"Type = {type}");
+            }
+            else
+            {
+                int typeIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("Type ="));
+                if (typeIndex != -1)
+                    lines[typeIndex] = $"Type = {type}";
+                else
+                    lines.Insert(sectionIndex + 1, $"Type = {type}");
+            }
+            WriteToFileSafely(lines.ToArray());
+        }
+        
+        public string GetType()
+        {
+            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+            int sectionIndex = lines.FindIndex(l => l.Trim() == "[Eqpid]");
+            if (sectionIndex != -1)
+            {
+                var typeLine = lines.Skip(sectionIndex + 1).FirstOrDefault(l => l.StartsWith("Type ="));
+                if (!string.IsNullOrEmpty(typeLine))
+                    return typeLine.Split('=')[1].Trim();
+            }
+            return null;
+        }
+
     }
 }
