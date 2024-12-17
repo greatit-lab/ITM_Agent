@@ -1,9 +1,10 @@
 // MainForm.cs
-using ITM_Agent.Services;
 using System;
 using System.Drawing;
 using System.IO;
 using System.Windows.Forms;
+using ITM_Agent.Services;
+using ITM_Agent.ucPanel;
 
 namespace ITM_Agent
 {
@@ -24,11 +25,19 @@ namespace ITM_Agent
         private const string AppVersion = "v1.0.0";
         
         ucPanel.ucConfigurationPanel ucSc1;
+        
+        private ucConfigurationPanel ucConfigPanel;
+        private ucScreen2 ucOverrideNamesPanel;
+        private ucScreen3 ucImageTransPanel;
+        private ucScreen3 ucUploadDataPanel;
 
         public MainForm(SettingsManager settingsManager)
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             InitializeComponent();
+            
+            InitializeUserControls();
+            RegisterMenuEvents();
         
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
         
@@ -247,81 +256,10 @@ namespace ITM_Agent
             Environment.Exit(0);
         }
         
-        private void categorizeToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // 이벤트 발생 시 처리할 코드 작성
-            MessageBox.Show("Categorize 메뉴 클릭!");
-        }
-        
-        private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
-        {
-            // Debug 모드 체크박스 상태 변경 시 처리할 로직을 추가
-            if (cb_DebugMode.Checked)
-            {
-                // Debug 모드 활성화 로직
-            }
-            else
-            {
-                // Debug 모드 비활성화 로직
-            }
-        }
-        
-        private void imageTransToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            // 이 메뉴 클릭 시 처리할 로직 추가
-            // 예: MessageBox.Show("Image Trans 메뉴 클릭됨!");
-        }
-        
-        private void optionToolStripMenuItem_Click(object sender, EventArgs e)
-        {
-            // option 메뉴 클릭 시 처리할 로직
-            // 예: MessageBox.Show("Option 메뉴를 클릭했습니다!");
-        }
-        
-        private void uploadDataToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            // uploadData 메뉴 클릭 시 처리할 로직
-            // 예: MessageBox.Show("Upload Data 메뉴를 클릭했습니다!");
-        }
-        
-        private void overrideNamesToolStripMenuItem1_Click(object sender, EventArgs e)
-        {
-            // overrideNames 메뉴 클릭 시 처리할 로직
-            // 예: MessageBox.Show("Override Names 메뉴를 클릭했습니다!");
-        }
-        
         private void MainForm_Load(object sender, EventArgs e)
         {
             // 폼 로드시 실행할 로직
             pMain.Controls.Add(ucSc1);
-        }
-        
-        private void InitializeMenu()
-        {
-            menuStrip1 = new MenuStrip();
-        
-            ToolStripMenuItem fileMenu = new ToolStripMenuItem("File");
-        
-            ToolStripMenuItem newMenuItem = new ToolStripMenuItem("New");
-            newMenuItem.Click += NewMenuItem_Click;
-            fileMenu.DropDownItems.Add(newMenuItem);
-        
-            ToolStripMenuItem openMenuItem = new ToolStripMenuItem("Open");
-            openMenuItem.Click += OpenMenuItem_Click;
-            fileMenu.DropDownItems.Add(openMenuItem);
-        
-            ToolStripMenuItem saveAsMenuItem = new ToolStripMenuItem("Save As");
-            saveAsMenuItem.Click += SaveAsMenuItem_Click;
-            fileMenu.DropDownItems.Add(saveAsMenuItem);
-        
-            ToolStripMenuItem quitMenuItem = new ToolStripMenuItem("Quit");
-            quitMenuItem.Click += QuitMenuItem_Click;
-            fileMenu.DropDownItems.Add(quitMenuItem);
-        
-            menuStrip1.Items.Add(fileMenu);
-        
-            this.Controls.Add(menuStrip1);
-            this.MainMenuStrip = menuStrip1;
         }
         
         private void RefreshUI()
@@ -397,6 +335,38 @@ namespace ITM_Agent
             }
         
             Application.Exit();
+        }
+        
+        private void InitializeUserControls()
+        {
+            // UserControl 초기화
+            ucConfigPanel = new ucConfigurationPanel(new Services.SettingsManager("Settings.ini"));
+            ucOverrideNamesPanel = new ucScreen2();  // ucScreen2.cs 구현
+            ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
+            ucUploadDataPanel = new ucScreen3();     // ucScreen3.cs 공유
+        }
+
+        private void RegisterMenuEvents()
+        {
+            // Common -> Categorize
+            categorizeToolStripMenuItem.Click += (s, e) => ShowUserControl(ucConfigPanel);
+
+            // ONTO -> Override Names
+            overrideNamesToolStripMenuItem.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
+
+            // ONTO -> Image Trans
+            imageTransToolStripMenuItem.Click += (s, e) => ShowUserControl(ucImageTransPanel);
+
+            // ONTO -> Upload Data
+            uploadDataToolStripMenuItem.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
+        }
+
+        private void ShowUserControl(UserControl control)
+        {
+            // 메인 패널에 UserControl을 표시
+            pMain.Controls.Clear();   // pMain: MainForm [디자인]에 이미 존재하는 Panel
+            pMain.Controls.Add(control);
+            control.Dock = DockStyle.Fill;
         }
     }
 }
