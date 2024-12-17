@@ -29,7 +29,7 @@ namespace ITM_Agent
         private ucConfigurationPanel ucConfigPanel;
         private ucScreen2 ucOverrideNamesPanel;
         private ucScreen3 ucImageTransPanel;
-        private ucScreen3 ucUploadDataPanel;
+        private ucScreen4 ucUploadDataPanel;
 
         public MainForm(SettingsManager settingsManager)
         {
@@ -349,16 +349,16 @@ namespace ITM_Agent
         private void RegisterMenuEvents()
         {
             // Common -> Categorize
-            categorizeToolStripMenuItem.Click += (s, e) => ShowUserControl(ucConfigPanel);
+            tsm_Categorize.Click += (s, e) => ShowUserControl(ucConfigPanel);
 
             // ONTO -> Override Names
-            overrideNamesToolStripMenuItem.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
+            tsm_OverrideNames.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
 
             // ONTO -> Image Trans
-            imageTransToolStripMenuItem.Click += (s, e) => ShowUserControl(ucImageTransPanel);
+            tsm_ImageTrans.Click += (s, e) => ShowUserControl(ucImageTransPanel);
 
             // ONTO -> Upload Data
-            uploadDataToolStripMenuItem.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
+            tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
         }
 
         private void ShowUserControl(UserControl control)
