@@ -343,7 +343,7 @@ namespace ITM_Agent
             ucConfigPanel = new ucConfigurationPanel(new Services.SettingsManager("Settings.ini"));
             ucOverrideNamesPanel = new ucScreen2();  // ucScreen2.cs 구현
             ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
-            ucUploadDataPanel = new ucScreen3();     // ucScreen3.cs 공유
+            ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
         }
 
         private void RegisterMenuEvents()
