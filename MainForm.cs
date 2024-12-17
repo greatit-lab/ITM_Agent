@@ -112,7 +112,7 @@ namespace ITM_Agent
             this.Show();
             this.WindowState = FormWindowState.Normal;
             this.Activate();
-            titleItem.Enabled = false;
+            titleItem.Enabled = false;  // 트레이 메뉴 비활성화
         }
 
         private void UpdateTrayMenuStatus()
@@ -124,11 +124,23 @@ namespace ITM_Agent
 
         private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
         {
-            fileWatcherManager.StopWatchers();
-            trayIcon?.Dispose();
-            Environment.Exit(0);
+            if (e.CloseReason == CloseReason.UserClosing) // X 버튼 클릭 시
+            {
+                e.Cancel = true; // 종료 방지
+                this.Hide(); // 폼을 숨김
+                trayIcon.BalloonTipTitle = "ITM Agent";
+                trayIcon.BalloonTipText = "ITM Agent가 백그라운드에서 실행 중입니다.";
+                trayIcon.ShowBalloonTip(3000); // 3초 동안 풍선 도움말 표시
+            }
+            else
+            {
+                // 강제 종료 등 다른 이유로 닫힐 때 처리
+                fileWatcherManager.StopWatchers();
+                trayIcon?.Dispose();
+                Environment.Exit(0);
+            }
         }
-
+        
         private void UpdateUIBasedOnSettings()
         {
             if (settingsManager.IsReadyToRun())
