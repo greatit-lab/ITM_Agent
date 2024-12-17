@@ -22,7 +22,12 @@ namespace ITM_Agent
         private Label instructionLabel;
         private Label warningLabel;
         private PictureBox pictureBox;  // 이미지 표시를 위한 PictureBox
-
+        
+        private RadioButton rdo_Onto;
+        private RadioButton rdo_Nova;
+        
+        public string Type { get; private set; }  // 선택된 Type 값을 저장
+        
         public EqpidInputForm()
         {
             this.Text = "New EQPID Registry";
@@ -42,7 +47,7 @@ namespace ITM_Agent
 
             textBox = new TextBox()
             {
-                Top = 60,
+                Top = 70,
                 Left = 125,
                 Width = 110
             };
@@ -50,7 +55,7 @@ namespace ITM_Agent
             warningLabel = new Label()
             {
                 Text = "장비명을 입력해주세요.",
-                Top = 90,
+                Top = 100,
                 Left = 115,
                 ForeColor = Color.Red,
                 AutoSize = true,
@@ -92,19 +97,43 @@ namespace ITM_Agent
                 }
             };
             
+            // 라디오 버튼 초기화
+            rdo_Onto = new RadioButton()
+            {
+                Text = "ONTO",
+                Top = 45,
+                Left = 115,
+                AutoSize = true, // 텍스트 길이에 맞게 Width 자동 조정
+                Checked = true // 기본값
+            };
+            
+            rdo_Nova = new RadioButton()
+            {
+                Text = "NOVA",
+                Top = 45, // rdo_Onto와 동일한 높이
+                Left = rdo_Onto.Left + 75, // rdo_Onto 우측에 10px 간격으로 배치
+                AutoSize = true // 텍스트 길이에 맞게 Width 자동 조정
+            };
+
+            // 이벤트 핸들러 설정
             submitButton.Click += (sender, e) =>
             {
-                string trimmedInput = textBox.Text.TrimStart(); // 앞쪽 공백 제거
-                if (string.IsNullOrWhiteSpace(trimmedInput))
+                if (string.IsNullOrWhiteSpace(textBox.Text))
                 {
                     warningLabel.Visible = true;
-                    return; // 빈 값이면 폼 닫지 않음
+                    return;
                 }
-                this.Eqpid = trimmedInput;  // Eqpid 에 공백 제거된 값 저장
+        
+                Eqpid = textBox.Text.Trim();
+                Type = rdo_Onto.Checked ? "ONTO" : "NOVA"; // Type 값 설정
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             };
-
+            
+            // 컨트롤 추가
+            this.Controls.Add(rdo_Onto);
+            this.Controls.Add(rdo_Nova);
+            
             cancelButton.Click += (sender, e) =>
             {
                 this.DialogResult = DialogResult.Cancel;    // Cancel 반환
