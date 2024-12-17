@@ -1,4 +1,5 @@
 // Services\EqpidManager.cs
+using System;
 using System.Windows.Forms;
 
 namespace ITM_Agent.Services
@@ -33,21 +34,22 @@ namespace ITM_Agent.Services
             {
                 using (var form = new EqpidInputForm())
                 {
-                    if (form.ShowDialog() == DialogResult.OK)
+                    var result = form.ShowDialog();
+                    if (result == DialogResult.OK && !string.IsNullOrEmpty(form.Eqpid))
                     {
-                        if (!string.IsNullOrEmpty(form.Eqpid))
-                        {
-                            settingsManager.SetEqpid(form.Eqpid.ToUpper());
-                            isValidInput = true;
+                        settingsManager.SetEqpid(form.Eqpid.ToUpper());
+                        isValidInput = true;
                         }
-                        else
+                        else if (result == DialogResult.Cancel)
                         {
-                            MessageBox.Show("Eqpid input is required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                            MessageBox.Show("Eqpid 입력이 취소되었습니다. 애플리케이션을 종료합니다.",
+                                            "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                            Environment.Exit(0);    // 안전하게 애플리케이션 종료
                         }
                     }
                     else
                     {
-                        Application.Exit();
+                        MessageBox.Show("Eqpid input is required.", "Error", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     }
                 }
             }
