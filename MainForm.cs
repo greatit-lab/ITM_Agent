@@ -172,24 +172,14 @@ namespace ITM_Agent
             bool isRunning = status == "Running...";
             ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
             
-            switch (status)
-            {
-                case "Ready to Run":
-                    btn_Run.Enabled = true;
-                    btn_Stop.Enabled = false;
-                    btn_Quit.Enabled = true;
-                    break;
-                case "Stopped!":
-                    btn_Run.Enabled = true;
-                    btn_Stop.Enabled = false;
-                    btn_Quit.Enabled = true;
-                    break;
-                case "Running...":
-                    btn_Run.Enabled = false;
-                    btn_Stop.Enabled = true;
-                    btn_Quit.Enabled = false;
-                    break;
-            }
+            btn_Run.Enabled = !isRunning;   // 'Run' 버튼: Stopped 상태에서 활성화
+            btn_Stop.Enabled = isRunning;   // 'Stop' 버튼: Running 상태에서 활성화
+            btn_Quit.Enabled = !isRunning;   // 'Quit' 버튼: Stopped 상태에서 활성화
+            
+            // 각 패널에도 상태 전달
+            ucSC1?.UpdateStatusOnRun(isRunning);
+            ucConfigPanel?.UpdateStatusOnRun(isRunning);
+            
             UpdateTrayMenuStatus();
             UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
         }
@@ -265,6 +255,7 @@ namespace ITM_Agent
         {
             // 폼 로드시 실행할 로직
             pMain.Controls.Add(ucSc1);
+            UpdateMenusBasedOnType();   // 메뉴 상태 업데이트
         }
         
         private void RefreshUI()
@@ -377,6 +368,44 @@ namespace ITM_Agent
             {
                 configPanel.UpdateStatusOnRun(isRunning);
             }
+        }
+        
+        // MainForm.cs
+        private void UpdateMenusBasedOnType()
+        {
+            string type = settingsManager.GetType();
+            if (type == "ONTO")
+            {
+                tsm_Nova.Visible = false;
+                tsm_Onto.Visible = true;
+            }
+            else if (type == "NOVA")
+            {
+                tsm_Onto.Visible = false;
+                tsm_Nova.Visible = true;
+            }
+            else
+            {
+                tsm_Onto.Visible = false;
+                tsm_Nova.Visible = false;
+                return;
+            }
+            
+            // Type 값에 따라 메뉴 표시/숨김 처리
+            tsm_Onto.Visible = type.Equals("ONTO", StringComparison.OrdinalIgnoreCase);
+            tsm_Nova.Visible = type.Equals("NOVA", StringComparison.OrdinalIgnoreCase);
+        }
+        
+        private void InitializeMainMenu()
+        {
+            // 기존 메뉴 초기화 코드...
+            UpdateMenusBasedOnType();
+        }
+        // 기본 생성자 추가
+        public MainForm() 
+            : this(new SettingsManager(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini")))
+        {
+            // 추가 동작 없음
         }
     }
 }
