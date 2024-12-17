@@ -13,6 +13,7 @@ namespace ITM_Agent.Services
     public class SettingsManager
     {
         private readonly string settingsFilePath;
+        private readonly object fileLock = new object();
 
         public SettingsManager(string settingsFilePath)
         {
@@ -49,25 +50,30 @@ namespace ITM_Agent.Services
             return null;
         }
 
+        private void WriteToFileSafely(string[] lines)
+        {
+            lock (fileLock)
+            {
+                File.WriteAllLines(settingsFilePath, lines);
+            }
+        }
+        
         public void SetEqpid(string eqpid)
         {
             var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
             int eqpidIndex = lines.FindIndex(l => l.Trim() == "[Eqpid]");
-
+        
             if (eqpidIndex == -1)
             {
-                if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines.Last())) lines.Add("");
                 lines.Add("[Eqpid]");
                 lines.Add("Eqpid = " + eqpid);
             }
             else
             {
-                int endIndex = lines.FindIndex(eqpidIndex + 1, line => line.StartsWith("[") || string.IsNullOrWhiteSpace(line));
-                if (endIndex == -1) endIndex = lines.Count;
-                var newSection = new List<string> { "[Eqpid]", "Eqpid = " + eqpid };
-                lines = lines.Take(eqpidIndex).Concat(newSection).Concat(lines.Skip(endIndex)).ToList();
+                lines[eqpidIndex + 1] = "Eqpid = " + eqpid;
             }
-            File.WriteAllLines(settingsFilePath, lines);
+        
+            WriteToFileSafely(lines.ToArray());
         }
 
         public bool IsReadyToRun()
