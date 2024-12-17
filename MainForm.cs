@@ -40,7 +40,10 @@ namespace ITM_Agent
             logManager = new LogManager(baseDir);
             fileWatcherManager = new FileWatcherManager(settingsManager, logManager);
             eqpidManager = new EqpidManager(settingsManager);
-        
+            
+            // icon 설정
+            SetFormIcon();
+            
             this.Text = $"ITM Agent - {AppVersion}";
             this.MaximizeBox = false;
         
@@ -62,6 +65,12 @@ namespace ITM_Agent
             btn_Quit.Click += btn_Quit_Click;
         
             UpdateUIBasedOnSettings();
+        }
+        
+        private void SetFormIcon()
+        {
+            // 제목줄 아이콘 설정
+            this.Icon = new Icon(@"Resources\Icons\icon.ico");
         }
         
         private void ProceedWithMainFunctionality(string eqpid)
@@ -90,7 +99,7 @@ namespace ITM_Agent
 
             trayIcon = new NotifyIcon
             {
-                Icon = SystemIcons.Application,
+                Icon = new Icon(@"Resources\Icons\icon.ico"), // TrayIcon에 사용할 아이콘
                 ContextMenuStrip = trayMenu,
                 Visible = true,
                 Text = this.Text
