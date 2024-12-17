@@ -80,11 +80,10 @@ namespace ITM_Agent.Services
                 logManager.LogEvent("File event ignored because the status is not Running.", true);
                 return;
             }
-
+        
             logManager.LogEvent($"File event detected: {e.ChangeType} - {e.FullPath}");
             var regexList = settingsManager.GetRegexList();
-            bool copied = false;
-
+        
             foreach (var kvp in regexList)
             {
                 if (Regex.IsMatch(e.Name, kvp.Key))
@@ -94,21 +93,17 @@ namespace ITM_Agent.Services
                     {
                         Directory.CreateDirectory(kvp.Value);
                         File.Copy(e.FullPath, destination, true);
-                        logManager.LogEvent($"File copied: {e.Name} -> {destination}");
-                        copied = true;
+                        logManager.LogEvent($"File successfully copied: {e.Name} -> {destination}");
+                        return;
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogEvent($"Error copying file: {e.FullPath}. {ex.Message}", true);
+                        logManager.LogError($"Error copying file: {e.FullPath}. Exception: {ex.Message}");
                     }
-                    break;
                 }
             }
-
-            if (!copied)
-            {
-                logManager.LogEvent($"No matching regex for file: {e.FullPath}");
-            }
+        
+            logManager.LogEvent($"No matching regex for file: {e.FullPath}");
         }
     }
 }
