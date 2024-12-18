@@ -1,3 +1,4 @@
+using ITM_Agent.Services;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
@@ -9,19 +10,18 @@ namespace ITM_Agent.ucPanel
 {
     public partial class ucOverrideNamesPanel : UserControl
     {
+        private readonly SettingsManager settingsManager;
         private List<string> regexFolders; // 정규표현식과 폴더 정보 저장
         private string baseFolder; // BaseFolder 저장
         
         public event Action<string, Color> StatusUpdated;
 
-        public ucOverrideNamesPanel()
+        public ucOverrideNamesPanel(SettingsManager settingsManager)
         {
+            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             InitializeComponent();
             
-            // 이벤트 핸들러 등록
-            btn_BaseClear.Click += Btn_BaseClear_Click;
-            btn_SelectFolder.Click += Btn_SelectFolder_Click;
-            btn_Remove.Click += Btn_Remove_Click;
+            InitializeCustomEvents();
             
             // 정규식과 폴더 정보 로드
             LoadRegexFolders();
@@ -40,12 +40,9 @@ namespace ITM_Agent.ucPanel
         /// </summary>
         private void LoadRegexFolders()
         {
-            var parentPanel = this.ParentForm?.Controls.OfType<ucConfigurationPanel>().FirstOrDefault();
-            if (parentPanel != null)
-            {
-                regexFolders = parentPanel.GetRegexList();
-                baseFolder = parentPanel.GetBaseFolder();
-            }
+            var regexFolders = settingsManager.GetFoldersFromSection("[Regex]");
+            cb_BaseDatePath.Items.Clear();
+            cb_BaseDatePath.Items.AddRange(regexFolders.ToArray());
         }
 
         /// <summary>
@@ -53,11 +50,7 @@ namespace ITM_Agent.ucPanel
         /// </summary>
         private void PopulateComboBox()
         {
-            cb_BaseDatePath.Items.Clear();
-            if (regexFolders != null && regexFolders.Any())
-            {
-                cb_BaseDatePath.Items.AddRange(regexFolders.ToArray());
-            }
+            cb_BaseDatePath.SelectedIndex = -1; // 초기화
         }
 
         /// <summary>
@@ -73,15 +66,20 @@ namespace ITM_Agent.ucPanel
         /// </summary>
         private void Btn_SelectFolder_Click(object sender, EventArgs e)
         {
+            var baseFolder = settingsManager.GetFoldersFromSection("[BaseFolder]").FirstOrDefault() ?? AppDomain.CurrentDomain.BaseDirectory;
+            
             using (var folderDialog = new FolderBrowserDialog())
             {
-                folderDialog.SelectedPath = baseFolder ?? AppDomain.CurrentDomain.BaseDirectory;
+                folderDialog.SelectedPath = baseFolder;
 
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
                     if (!lb_TargetComparePath.Items.Contains(folderDialog.SelectedPath))
                     {
                         lb_TargetComparePath.Items.Add(folderDialog.SelectedPath);
+                        
+                        // Settings.ini 에 추가
+                        UpdateTargetComparePathInSettings();
                     }
                     else
                     {
@@ -102,7 +100,7 @@ namespace ITM_Agent.ucPanel
 
                 if (confirmResult == DialogResult.Yes)
                 {
-                    var selectedItems = lb_TargetComparePath.SelectedItems.Cast<object>().ToList();
+                    var selectedItems = lb_TargetComparePath.SelectedItems.Cast<string>().ToList();
                     foreach (var item in selectedItems)
                     {
                         lb_TargetComparePath.Items.Remove(item);
@@ -113,6 +111,12 @@ namespace ITM_Agent.ucPanel
             {
                 MessageBox.Show("삭제할 항목을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
+        }
+        
+        private void UpdateTargetComparePathInSettings()
+        {
+            var folders = lb_TargetComparePath.Items.Cast<string>().ToList();
+            settingsManager.SetFoldersToSection("[TargetComparePath]", folders);
         }
         
         public void UpdateStatusOnRun(bool isRunning)
