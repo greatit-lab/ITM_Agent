@@ -374,5 +374,23 @@ namespace ITM_Agent.ucPanel
         {
             LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
         }
+        
+        public string GetBaseFolder()
+        {
+            return lb_BaseFolder.Text;
+        }
+        
+        public List<string> GetRegexList()
+        {
+            return lb_RegexList.Items
+                .Cast<string>()
+                .Select(Item => 
+                {
+                    var parts = item.Split(new[] { "->" }, StringSplitOptions.None);
+                    return parts.Length == 2 ? parts[1].Trim() : null;
+                })
+                .Where(folder => !string.IsNullOrWhiteSpace(folder))
+                .ToList();
+        }
     }
 }
