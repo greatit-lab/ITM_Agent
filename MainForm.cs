@@ -27,7 +27,7 @@ namespace ITM_Agent
         ucPanel.ucConfigurationPanel ucSc1;
         
         private ucConfigurationPanel ucConfigPanel;
-        private ucScreen2 ucOverrideNamesPanel;
+        private ucOverrideNamesPanel ucOverrideNamesPanel;
         private ucScreen3 ucImageTransPanel;
         private ucScreen4 ucUploadDataPanel;
         
@@ -170,15 +170,13 @@ namespace ITM_Agent
             ts_Status.ForeColor = color;
             
             bool isRunning = status == "Running...";
-            ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
+            // ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
+            ucConfigPanel?.UpdateStatusOnRun(isRunning);
+            ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
             
             btn_Run.Enabled = !isRunning;   // 'Run' 버튼: Stopped 상태에서 활성화
             btn_Stop.Enabled = isRunning;   // 'Stop' 버튼: Running 상태에서 활성화
             btn_Quit.Enabled = !isRunning;   // 'Quit' 버튼: Stopped 상태에서 활성화
-            
-            // 각 패널에도 상태 전달
-            ucSC1?.UpdateStatusOnRun(isRunning);
-            ucConfigPanel?.UpdateStatusOnRun(isRunning);
             
             UpdateTrayMenuStatus();
             UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
@@ -336,8 +334,8 @@ namespace ITM_Agent
         private void InitializeUserControls()
         {
             // UserControl 초기화
-            ucConfigPanel = new ucConfigurationPanel(new Services.SettingsManager("Settings.ini"));
-            ucOverrideNamesPanel = new ucScreen2();  // ucScreen2.cs 구현
+            ucConfigPanel = new ucConfigurationPanel(settingsManager);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel();
             ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
             ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
         }
@@ -362,12 +360,6 @@ namespace ITM_Agent
             pMain.Controls.Clear();
             pMain.Controls.Add(control);
             control.Dock = DockStyle.Fill;
-        
-            // 상태 전달
-            if (control is ucConfigurationPanel configPanel)
-            {
-                configPanel.UpdateStatusOnRun(isRunning);
-            }
         }
         
         // MainForm.cs
