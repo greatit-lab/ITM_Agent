@@ -47,6 +47,7 @@ namespace ITM_Agent
             
             // settingsManager 인스턴스를 생성자 인자로 전달
             ucSc1 = new ucPanel.ucConfigurationPanel(settingsManager);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager);
             
             logManager = new LogManager(baseDir);
             fileWatcherManager = new FileWatcherManager(settingsManager, logManager);
@@ -335,7 +336,7 @@ namespace ITM_Agent
         {
             // UserControl 초기화
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel();
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager);
             ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
             ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
         }
