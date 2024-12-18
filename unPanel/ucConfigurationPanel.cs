@@ -384,7 +384,7 @@ namespace ITM_Agent.ucPanel
         {
             return lb_RegexList.Items
                 .Cast<string>()
-                .Select(Item => 
+                .Select(item => 
                 {
                     var parts = item.Split(new[] { "->" }, StringSplitOptions.None);
                     return parts.Length == 2 ? parts[1].Trim() : null;
