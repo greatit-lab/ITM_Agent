@@ -210,9 +210,9 @@ namespace ITM_Agent
                 this.tsm_Categorize,
                 this.toolStripSeparator9,
                 this.tsm_Option
-            )};
+            });
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
-            this.toolStripMenuItem8.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(70, 20);
             this.toolStripMenuItem8.Text = "Common";
             //
             // tsm_Categorize
@@ -269,7 +269,7 @@ namespace ITM_Agent
                 this.toolStripMenuItem4,
                 this.toolStripMenuItem5,
                 this.toolStripMenuItem6
-            )};
+            });
             this.tsm_Nova.Name = "tsm_Nova";
             this.tsm_Nova.Size = new System.Drawing.Size(53, 20);
             this.tsm_Nova.Text = "NOVA";
@@ -304,20 +304,12 @@ namespace ITM_Agent
             //
             // 내용ToolStripMenuItem1
             //
-            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
-            {
-                this.내용ToolStripMenuItem1
-            });
             this.내용ToolStripMenuItem1.Name = "내용ToolStripMenuItem1";
             this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
             this.내용ToolStripMenuItem1.Text = "Information...";
             //
             // newConfigurationToolStripMenuItem
             //
-            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
-            {
-                this.내용ToolStripMenuItem1
-            });
             this.newConfigurationToolStripMenuItem.Name = "newConfigurationToolStripMenuItem";
             this.newConfigurationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.newConfigurationToolStripMenuItem.Text = "New";
@@ -380,7 +372,7 @@ namespace ITM_Agent
             this.lb_eqpid.Name = "lb_eqpid";
             this.lb_eqpid.Size = new System.Drawing.Size(37, 12);
             this.lb_eqpid.TabIndex = 17;
-            this.lb_eqpid.Text = "Eqpid";
+            this.lb_eqpid.Text = "EqpId";
             //
             // pMain
             //
@@ -422,7 +414,7 @@ namespace ITM_Agent
             //
             this.ts_Status.Name = "ts_Status";
             this.ts_Status.Size = new System.Drawing.Size(121, 17);
-            this.ts_Status.Text = "ToolStripStatusLabel";
+            this.ts_Status.Text = "ToolStripStatusLabel1";
             //
             // statusStrip1 
             //
@@ -491,7 +483,7 @@ namespace ITM_Agent
             //
             // MainForm
             //
-            this.AutoScaleDimensions = new System.Drawing.Size(7F, 12F);
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(676, 431);
             this.Controls.Add(this.splitContainer3);
