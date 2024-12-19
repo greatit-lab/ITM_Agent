@@ -340,18 +340,10 @@ namespace ITM_Agent.ucPanel
         
         public void UpdateStatusOnRun(bool isRunning)
         {
-            if (isRunning)
-            {
-                // 상태 업데이트
-                StatusUpdated?.Invoke("Running...", Color.Blue);
-                SetButtonsEnabled(false); // 모든 버튼 비활성화
-            }
-            else
-            {
-                SetButtonsEnabled(true); // 다시 활성화
-                ValidateRunButtonState(); // 상태 검증
-            }
+            SetButtonsEnabled(!isRunning);
+            StatusUpdated?.Invoke(isRunning ? "Running..." : "Stopped!", isRunning ? Color.Blue : Color.Red);
         }
+
         
         public void SetButtonsEnabled(bool isEnabled)
         {
@@ -391,6 +383,11 @@ namespace ITM_Agent.ucPanel
                 })
                 .Where(folder => !string.IsNullOrWhiteSpace(folder))
                 .ToList();
+        }
+        
+        public void InitializePanel(bool isRunning)
+        {
+            UpdateStatusOnRun(isRunning); // 초기화 시 상태 동기화
         }
     }
 }
