@@ -130,7 +130,7 @@ namespace ITM_Agent.ucPanel
             // splitContainer1
             //
             this.splitContainer1.Dock = System.Windows.Forms.DockStyle.Fill;
-            this.splitContainer1.Location = new System.Drawing.Ponit(3, 17);
+            this.splitContainer1.Location = new System.Drawing.Point(3, 17);
             this.splitContainer1.Name = "splitContainer1";
             //
             // splitContainer1.Panel1
@@ -149,10 +149,46 @@ namespace ITM_Agent.ucPanel
             this.splitContainer1.Size = new System.Drawing.Size(618, 167);
             this.splitContainer1.SplitterDistance = 307;
             this.splitContainer1.TabIndex = 0;
+            //
+            // btn_TargetRemove
+            //
+            this.btn_TargetRemove.Location = new System.Drawing.Point(160, 140);
+            this.btn_TargetRemove.Name = "btn_TargetRemove";
+            this.btn_TargetRemove.Size = new System.Drawing.Size(133, 23);
+            this.btn_TargetRemove.TabIndex = 3;
+            this.btn_TargetRemove.Text = "Remove";
+            this.btn_TargetRemove.UseVisualStyleBackColor = true;
+            //
+            // btn_TargetFolder
+            //
+            this.btn_TargetFolder.Location = new System.Drawing.Point(15, 140);
+            this.btn_TargetFolder.Name = "btn_TargetFolder";
+            this.btn_TargetFolder.Size = new System.Drawing.Size(133, 23);
+            this.btn_TargetFolder.TabIndex = 2;
+            this.btn_TargetFolder.Text = "Select Folders";
+            this.btn_TargetFolder.UseVisualStyleBackColor = true;
+            //
+            // lb_TargetList
+            //
+            this.lb_TargetList.FormattingEnabled = true;
+            this.lb_TargetList.ItemHeight = 12;
+            this.lb_TargetList.Location = new System.Drawing.Point(15, 24);
+            this.lb_TargetList.Name = "lb_TargetList";
+            this.lb_TargetList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.lb_TargetList.Size = new System.Drawing.Size(278, 112);
+            this.lb_TargetList.TabIndex = 1;
+            //
+            // label1
+            //
+            this.label1.AutoSize = true;
+            this.label1.Location = new System.Drawing.Point(13, 9);
+            this.label1.Name = "label1";
+            this.label1.Size = new System.Drawing.Size(99, 12);
+            this.label1.TabIndex = 0;
+            this.label1.Text = ">Target Folder"
             
-                   
             
-              
+            
             
             this.splitContainer1.SplitterDistance = 307;//
             // Exclude Folders GroupBox
