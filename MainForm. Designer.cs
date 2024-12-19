@@ -107,7 +107,7 @@ namespace ITM_Agent
             this.btn_Run = new System.Windows.Forms.Button();
             this.ts_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
-            this.lb_regexPatterns = new.System.Windows.Forms.ListBox();
+            this.lb_regexPatterns = new System.Windows.Forms.ListBox();
             this.lb_BaseFolder = new System.Windows.Forms.Label();
             this.lb_TargetList = new System.Windows.Forms.ListBox();
             this.lb_ExcludeList = new System.Windows.Forms.ListBox();
@@ -213,7 +213,13 @@ namespace ITM_Agent
             )};
             this.toolStripMenuItem8.Name = "toolStripMenuItem8";
             this.toolStripMenuItem8.Size = new System.Drawing.Size(180, 22);
-            this.toolStripMenuItem8.Text = "Categorize";
+            this.toolStripMenuItem8.Text = "Common";
+            //
+            // tsm_Categorize
+            //
+            this.tsm_Categorize.Name = "tsm_Categorize";
+            this.tsm_Categorize.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Categorize.Text = "Categorize";
             //
             // toolStripSeparator9
             //
@@ -233,7 +239,7 @@ namespace ITM_Agent
                 this.tsm_OverrideNames,
                 this.tsm_ImageTrans,
                 this.tsm_UploadData
-            )};
+            });
             this.tsm_Onto.Name = "tsm_Onto";
             this.tsm_Onto.Size = new System.Drawing.Size(52, 20);
             this.tsm_Onto.Text = "ONTO";
