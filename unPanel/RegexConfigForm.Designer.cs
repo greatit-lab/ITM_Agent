@@ -1,39 +1,39 @@
 namespace ITM_Agent.ucPanel
 {
-    partial class REgexConfigForm
+    partial class RegexConfigForm
     {
-        private System.ComponentModel.IContainer component = null;
+        private System.ComponentModel.IContainer components = null;
         
         protected override void Dispose(bool disposing)
         {
-            if (disposing && (component != null))
+            if (disposing && (components != null))
             {
-                component.Dispose();
+                components.Dispose();
             }
             base.Dispose(disposing);
         }
         
-        private System.Windowns.Forms.Button btn_RegSelectFolder;
-        private System.Windowns.Forms.Button btn_RegApply;
-        private System.Windowns.Forms.Label label1;
-        private System.Windowns.Forms.TextBox tb_RegInput;
-        private System.Windowns.Forms.TextBox tb_RegFolder;
-        private System.Windowns.Forms.Button btn_RegCancel;
-        private System.Windowns.Forms.Label label2;
-        private System.Windowns.Forms.Label label3;
+        private System.Windows.Forms.Button btn_RegSelectFolder;
+        private System.Windows.Forms.Button btn_RegApply;
+        private System.Windows.Forms.Label label1;
+        private System.Windows.Forms.TextBox tb_RegInput;
+        private System.Windows.Forms.TextBox tb_RegFolder;
+        private System.Windows.Forms.Button btn_RegCancel;
+        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label label3;
         
         #region 구성 요소 디자이너에서 생성한 코드
         
         private void InitializeComponent()
         {
-            this.btn_RegSelectFolder = new System.Windowns.Forms.Button();
-            this.btn_RegApply = new System.Windowns.Forms.Button();
-            this.label1 = new System.Windowns.Forms.Label();
-            this.tb_RegInput = new System.Windowns.Forms.TextBox();
-            this.tb_RegFolder = new System.Windowns.Forms.TextBox();
-            this.btn_RegCancel = new System.Windowns.Forms.Button();
-            this.label2 = new System.Windowns.Forms.Label();
-            this.label3 = new System.Windowns.Forms.Label();
+            this.btn_RegSelectFolder = new System.Windows.Forms.Button();
+            this.btn_RegApply = new System.Windows.Forms.Button();
+            this.label1 = new System.Windows.Forms.Label();
+            this.tb_RegInput = new System.Windows.Forms.TextBox();
+            this.tb_RegFolder = new System.Windows.Forms.TextBox();
+            this.btn_RegCancel = new System.Windows.Forms.Button();
+            this.label2 = new System.Windows.Forms.Label();
+            this.label3 = new System.Windows.Forms.Label();
             this.SuspendLayout();
             //
             // btn_RegSelectFolder
@@ -107,7 +107,7 @@ namespace ITM_Agent.ucPanel
             // ucScreen1_Reg
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
-            this.AutoScaleMode = System.Windowns.Forms.AutoScaleMode.Font;
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(346, 154);
             this.Controls.Add(this.label3);
             this.Controls.Add(this.label2);
