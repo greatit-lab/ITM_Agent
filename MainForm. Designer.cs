@@ -108,11 +108,11 @@ namespace ITM_Agent
             this.ts_Status = new System.Windows.Forms.ToolStripStatusLabel();
             this.statusStrip1 = new System.Windows.Forms.StatusStrip();
             this.lb_regexPatterns = new.System.Windows.Forms.ListBox();
-            this.lb_BaseFolder = new.System.Windows.Forms.ListBox();
-            this.lb_TargetList = new.System.Windows.Forms.ListBox();
-            this.lb_ExcludeList = new.System.Windows.Forms.ListBox();
-            this.lb_RegexList = new.System.Windows.Forms.ListBox();
-            this.lb_TargetFolders = new.System.Windows.Forms.ListBox();
+            this.lb_BaseFolder = new System.Windows.Forms.Label();
+            this.lb_TargetList = new System.Windows.Forms.ListBox();
+            this.lb_ExcludeList = new System.Windows.Forms.ListBox();
+            this.lb_RegexList = new System.Windows.Forms.ListBox();
+            this.lb_TargetFolders = new System.Windows.Forms.ListBox();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
@@ -164,7 +164,7 @@ namespace ITM_Agent
             //
             // newToolStripMenuItem
             //
-            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Megenta;
+            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
             this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.newToolStripMenuItem.Text = "New";
@@ -172,7 +172,7 @@ namespace ITM_Agent
             //
             // openToolStripMenuItem
             //
-            this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Megenta;
+            this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
             this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.openToolStripMenuItem.Text = "Open";
@@ -183,88 +183,336 @@ namespace ITM_Agent
             this.toolStripSeparator7.Name = "toolStripSeparator7";
             this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
             //
-            // Onto Menu
+            // saveAsToolStripMenuItem
+            //
+            this.saveAsToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveAsToolStripMenuItem.Text = "Save as";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsMenuItem_Click);
+            //
+            // toolStripSeparator8
+            //
+            this.toolStripSeparator8.Name = "toolStripSeparator8";
+            this.toolStripSeparator8.Size = new System.Drawing.Size(177, 6);
+            //
+            // quitToolStripMenuItem
+            //
+            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.quitToolStripMenuItem.Text = "Quit";
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitMenuItem_Click);            
+            //
+            // toolStripMenuItem8
+            //
+            this.toolStripMenuItem8.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                this.tsm_Categorize,
+                this.toolStripSeparator9,
+                this.tsm_Option
+            )};
+            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem8.Text = "Categorize";
+            //
+            // toolStripSeparator9
+            //
+            this.toolStripSeparator9.Name = "toolStripSeparator9";
+            this.toolStripSeparator9.Size = new System.Drawing.Size(177, 6);
+            //
+            // tsm_Option
+            //
+            this.tsm_Option.Name = "tsm_Option";
+            this.tsm_Option.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Option.Text = "Option";
+            //
+            // tsm_Onto
             //
             this.tsm_Onto.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                this.tsm_Categorize,
                 this.tsm_OverrideNames,
                 this.tsm_ImageTrans,
                 this.tsm_UploadData
-            });
+            )};
             this.tsm_Onto.Name = "tsm_Onto";
+            this.tsm_Onto.Size = new System.Drawing.Size(52, 20);
             this.tsm_Onto.Text = "ONTO";
-
-            this.tsm_Categorize.Name = "tsm_Categorize";
-            this.tsm_Categorize.Text = "Categorize";
-
-            this.tsm_OverrideNames.Name = "tsm_OverrideNames";
-            this.tsm_OverrideNames.Text = "Override Names";
-
+            //
+            // tsm_ImageTrans
+            //
             this.tsm_ImageTrans.Name = "tsm_ImageTrans";
+            this.tsm_ImageTrans.Size = new System.Drawing.Size(180, 22);
             this.tsm_ImageTrans.Text = "Image Trans";
-
+            //
+            // tsm_UploadData
+            //
             this.tsm_UploadData.Name = "tsm_UploadData";
+            this.tsm_UploadData.Size = new System.Drawing.Size(180, 22);
             this.tsm_UploadData.Text = "Upload Data";
-
-            // Nova Menu
+            //
+            // tsm_OverrideNames
+            //
+            this.tsm_OverrideNames.Name = "tsm_OverrideNames";
+            this.tsm_OverrideNames.Size = new System.Drawing.Size(180, 22);
+            this.tsm_OverrideNames.Text = "Override Names";
+            //
+            // tsm_Nova
+            //
+            this.tsm_Nova.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                this.toolStripMenuItem4,
+                this.toolStripMenuItem5,
+                this.toolStripMenuItem6
+            )};
             this.tsm_Nova.Name = "tsm_Nova";
+            this.tsm_Nova.Size = new System.Drawing.Size(53, 20);
             this.tsm_Nova.Text = "NOVA";
-
-            // Main Panel
-            this.pMain.Location = new System.Drawing.Point(10, 50);
-            this.pMain.Name = "pMain";
-            this.pMain.Size = new System.Drawing.Size(780, 400);
-
-            // Eqpid Label
+            //
+            // toolStripMenuItem4
+            //
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem4.Text = "Override Names";
+            //
+            // toolStripMenuItem5
+            //
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem5.Text = "Image Trans";
+            //
+            // toolStripMenuItem6
+            //
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem6.Text = "Upload Data";
+            //
+            // 도움말ToolStripMenuItem1
+            //
+            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                this.내용ToolStripMenuItem1
+            });
+            this.도움말ToolStripMenuItem1.Name = "도움말ToolStripMenuItem1";
+            this.도움말ToolStripMenuItem1.Size = new System.Drawing.Size(52, 20);
+            this.도움말ToolStripMenuItem1.Text = "About";
+            //
+            // 내용ToolStripMenuItem1
+            //
+            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                this.내용ToolStripMenuItem1
+            });
+            this.내용ToolStripMenuItem1.Name = "내용ToolStripMenuItem1";
+            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
+            this.내용ToolStripMenuItem1.Text = "Information...";
+            //
+            // newConfigurationToolStripMenuItem
+            //
+            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            {
+                this.내용ToolStripMenuItem1
+            });
+            this.newConfigurationToolStripMenuItem.Name = "newConfigurationToolStripMenuItem";
+            this.newConfigurationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newConfigurationToolStripMenuItem.Text = "New";
+            //
+            // toolStripSeparator1
+            //
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            //
+            // settingsToolStripMenuItem
+            //
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.settingsToolStripMenuItem.Text = "Categorize";
+            //
+            // overrideNamesToolStripMenuItem
+            //
+            this.overrideNamesToolStripMenuItem.Name = "overrideNamesToolStripMenuItem";
+            this.overrideNamesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.overrideNamesToolStripMenuItem.Text = "Override Names";
+            //
+            // imageTransToolStripMenuItem
+            //
+            this.imageTransToolStripMenuItem.Name = "imageTransToolStripMenuItem";
+            this.imageTransToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.imageTransToolStripMenuItem.Text = "Image Trans";
+            //
+            // uploadDataToolStripMenuItem
+            //
+            this.uploadDataToolStripMenuItem.Name = "uploadDataToolStripMenuItem";
+            this.uploadDataToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.uploadDataToolStripMenuItem.Text = "Upload Data";
+            //
+            // splitContainer3
+            //
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 24);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            //
+            // splitContainer3.Panel1
+            //
+            this.splitContainer3.Panel1.Controls.Add(this.lb_eqpid);
+            this.splitContainer3.Panel1.Controls.Add(this.pMain);
+            //
+            // splitContainer3.Panel2
+            //
+            this.splitContainer3.Panel2.Controls.Add(this.cb_DebugMode);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Quit);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Stop);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Run);
+            this.splitContainer3.Size = new System.Drawing.Size(676, 385);
+            this.splitContainer3.SplitterDistance = 303;
+            this.splitContainer3.TabIndex = 10;
+            //
+            // lb_eqpid
+            //
             this.lb_eqpid.AutoSize = true;
-            this.lb_eqpid.Location = new System.Drawing.Point(10, 30);
+            this.lb_eqpid.Location = new System.Drawing.Point(554, 7);
             this.lb_eqpid.Name = "lb_eqpid";
-            this.lb_eqpid.Text = "Eqpid: ";
-
-            // Run Button
-            this.btn_Run.Location = new System.Drawing.Point(10, 470);
-            this.btn_Run.Name = "btn_Run";
-            this.btn_Run.Size = new System.Drawing.Size(100, 30);
-            this.btn_Run.Text = "Run";
-
-            // Stop Button
-            this.btn_Stop.Location = new System.Drawing.Point(120, 470);
-            this.btn_Stop.Name = "btn_Stop";
-            this.btn_Stop.Size = new System.Drawing.Size(100, 30);
-            this.btn_Stop.Text = "Stop";
-
-            // Quit Button
-            this.btn_Quit.Location = new System.Drawing.Point(230, 470);
+            this.lb_eqpid.Size = new System.Drawing.Size(37, 12);
+            this.lb_eqpid.TabIndex = 17;
+            this.lb_eqpid.Text = "Eqpid";
+            //
+            // pMain
+            //
+            this.pMain.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pMain.Location = new System.Drawing.Point(0, 0);
+            this.pMain.Name = "pMain";
+            this.pMain.Size = new System.Drawing.Size(676, 303);
+            this.pMain.TabIndex = 0;
+            //
+            // btn_Quit
+            //
+            this.btn_Quit.Location = new System.Drawing.Point(457, 34);
             this.btn_Quit.Name = "btn_Quit";
-            this.btn_Quit.Size = new System.Drawing.Size(100, 30);
+            this.btn_Quit.Size = new System.Drawing.Size(208, 39);
+            this.btn_Quit.TabIndex = 11;
             this.btn_Quit.Text = "Quit";
-
-            // StatusStrip
-            this.statusStrip.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
+            this.btn_Quit.UseVisualStyleBackColor = true;
+            this.btn_Quit.Click += new System.EventHandler(this.btn_Quit_Click);
+            //
+            // btn_Stop
+            //
+            this.btn_Stop.Location = new System.Drawing.Point(235, 34);
+            this.btn_Stop.Name = "btn_Stop";
+            this.btn_Stop.Size = new System.Drawing.Size(208, 39);
+            this.btn_Stop.TabIndex = 10;
+            this.btn_Stop.Text = "Stop";
+            this.btn_Stop.UseVisualStyleBackColor = true;
+            //
+            // btn_Run
+            //
+            this.btn_Run.Location = new System.Drawing.Point(12, 34);
+            this.btn_Run.Name = "btn_Run";
+            this.btn_Run.Size = new System.Drawing.Size(208, 39);
+            this.btn_Run.TabIndex = 9;
+            this.btn_Run.Text = "Run";
+            this.btn_Run.UseVisualStyleBackColor = true;
+            //
+            // ts_Status
+            //
+            this.ts_Status.Name = "ts_Status";
+            this.ts_Status.Size = new System.Drawing.Size(121, 17);
+            this.ts_Status.Text = "ToolStripStatusLabel";
+            //
+            // statusStrip1 
+            //
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
                 this.ts_Status
             });
-            this.statusStrip.Location = new System.Drawing.Point(0, 510);
-            this.statusStrip.Name = "statusStrip";
-            this.statusStrip.Size = new System.Drawing.Size(800, 22);
-
-            this.ts_Status.Name = "ts_Status";
-            this.ts_Status.Size = new System.Drawing.Size(39, 17);
-            this.ts_Status.Text = "Ready";
-
+            this.statusStrip1.Location = new System.Drawing.Point(0, 409);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(676, 22);
+            this.statusStrip1.TabIndex = 2;
+            this.statusStrip1.Text = "statusStrip1"
+            //
+            // lb_regexPatterns 
+            //
+            this.lb_regexPatterns.FormattingEnabled = true;
+            this.lb_regexPatterns.ItemHeight = 12;
+            this.lb_regexPatterns.Location = new System.Drawing.Point(20, 200);
+            this.lb_regexPatterns.Name = "lb_regexPatterns";
+            this.lb_regexPatterns.Size = new System.Drawing.Size(300, 100);
+            this.lb_regexPatterns.TabIndex = 3;
+            //
+            // lb_BaseFolder 
+            //
+            this.lb_BaseFolder.AutoSize = true;
+            this.lb_BaseFolder.Location = new System.Drawing.Point(20, 100);
+            this.lb_BaseFolder.Name = "lb_BaseFolder";
+            this.lb_BaseFolder.Size = new System.Drawing.Size(56, 12);
+            this.lb_BaseFolder.TabIndex = 0;
+            this.lb_BaseFolder.Text = "(Not Set)";
+            //
+            // lb_TargetList 
+            //
+            this.lb_TargetList.FormattingEnabled = true;
+            this.lb_TargetList.ItemHeight = 12;
+            this.lb_TargetList.Location = new System.Drawing.Point(20, 50);
+            this.lb_TargetList.Name = "lb_TargetList";
+            this.lb_TargetList.Size = new System.Drawing.Size(200, 148);
+            this.lb_TargetList.TabIndex = 1;
+            //
+            // lb_ExcludeList 
+            //
+            this.lb_ExcludeList.FormattingEnabled = true;
+            this.lb_ExcludeList.ItemHeight = 12;
+            this.lb_ExcludeList.Location = new System.Drawing.Point(250, 50);
+            this.lb_ExcludeList.Name = "lb_ExcludeList";
+            this.lb_ExcludeList.Size = new System.Drawing.Size(200, 148);
+            this.lb_ExcludeList.TabIndex = 2;
+            //
+            // lb_RegexList 
+            //
+            this.lb_RegexList.FormattingEnabled = true;
+            this.lb_RegexList.ItemHeight = 12;
+            this.lb_RegexList.Location = new System.Drawing.Point(500, 50);
+            this.lb_RegexList.Name = "lb_RegexList";
+            this.lb_RegexList.Size = new System.Drawing.Size(200, 148);
+            this.lb_RegexList.TabIndex = 3;
+            //
+            // lb_TargetFolders 
+            //
+            this.lb_TargetFolders.ItemHeight = 12;
+            this.lb_TargetFolders.Location = new System.Drawing.Point(0, 0);
+            this.lb_TargetFolders.Name = "lb_TargetFolders";
+            this.lb_TargetFolders.Size = new System.Drawing.Size(120, 88);
+            this.lb_TargetFolders.TabIndex = 11;
+            //
             // MainForm
-            this.ClientSize = new System.Drawing.Size(800, 550);
+            //
+            this.AutoScaleDimensions = new System.Drawing.Size(7F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(676, 431);
+            this.Controls.Add(this.splitContainer3);
+            this.Controls.Add(this.statusStrip1);
             this.Controls.Add(this.menuStrip1);
-            this.Controls.Add(this.pMain);
-            this.Controls.Add(this.lb_eqpid);
-            this.Controls.Add(this.btn_Run);
-            this.Controls.Add(this.btn_Stop);
-            this.Controls.Add(this.btn_Quit);
-            this.Controls.Add(this.statusStrip);
+            this.Controls.Add(this.lb_BaseFolder);
+            this.Controls.Add(this.lb_TargetList);
+            this.Controls.Add(this.lb_ExcludeList);
+            this.Controls.Add(this.lb_RegexList);
+            this.Controls.Add(this.lb_TargetFolders);
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
             this.Text = "ITM Agent";
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel1.PerformLayout();
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            this.splitContainer3.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
+        #endregion
     }
 }
