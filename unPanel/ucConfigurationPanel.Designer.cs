@@ -185,7 +185,7 @@ namespace ITM_Agent.ucPanel
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(99, 12);
             this.label1.TabIndex = 0;
-            this.label1.Text = ">Target Folders"
+            this.label1.Text = ">Target Folders";
             //
             // btn_ExcludeRemove
             //
@@ -257,7 +257,7 @@ namespace ITM_Agent.ucPanel
             //
             this.tabPage2.Controls.Add(this.groupBox3);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
-            this.tabPage2.Name = "tabPage2"
+            this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
             this.tabPage2.Size = new System.Drawing.Size(645, 273);
             this.tabPage2.TabIndex = 1;
@@ -341,7 +341,7 @@ namespace ITM_Agent.ucPanel
             this.splitContainer1.Panel2.ResumeLayout(false);
             this.splitContainer1.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer1)).EndInit();
-            this.splitContainer1ResumeLayout(false);
+            this.splitContainer1.ResumeLayout(false);
             this.groupBox2.ResumeLayout(false);
             this.tabPage2.ResumeLayout(false);
             this.groupBox3.ResumeLayout(false);
