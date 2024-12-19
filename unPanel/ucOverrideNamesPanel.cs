@@ -105,6 +105,9 @@ namespace ITM_Agent.ucPanel
                     {
                         lb_TargetComparePath.Items.Remove(item);
                     }
+                    
+                    // Settings.ini 갱신
+                    UpdateTargetComparePathInSettings();
                 }
             }
             else
@@ -125,6 +128,11 @@ namespace ITM_Agent.ucPanel
             Color statusColor = isRunning ? Color.Green : Color.Red;
             
             StatusUpdated?.Invoke($"Status: {status}", statusColor);
+        }
+        
+        public void InitializePanel(bool isRunning)
+        {
+            UpdateStatusOnRun(isRunning); // 초기화 시 상태 동기화
         }
     }
 }
