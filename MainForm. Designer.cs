@@ -18,18 +18,18 @@ namespace ITM_Agent
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsm_Onto;
         private System.Windows.Forms.ToolStripMenuItem newConfigurationToolStripMenuItem;
-        private System.Windows.Forms.ToolStripSeparator ToolStripSeparator1;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
         private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem overrideNamesToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem imageTransToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem uploadDataToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem 파일ToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem1;
-        private System.Windows.Forms.ToolStripSeparator ToolStripSeparator7;
-        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem
-        private System.Windows.Forms.ToolStripSeparator ToolStripSeparator8;
-        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem
+        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tsm_OverrideNames;
         private System.Windows.Forms.ToolStripMenuItem tsm_ImageTrans;
         private System.Windows.Forms.ToolStripMenuItem tsm_UploadData;
@@ -49,8 +49,9 @@ namespace ITM_Agent
         private System.Windows.Forms.ListBox lb_TargetList;
         private System.Windows.Forms.ListBox lb_ExcludeList;
         private System.Windows.Forms.Label lb_BaseFolder;
+        private System.Windows.Forms.ListBox lb_RegexList;
         private System.Windows.Forms.Button btn_TargetFolder;
-        private System.Windows.Forms.Button btn_TargerRemove;
+        private System.Windows.Forms.Button btn_TargetRemove;
         private System.Windows.Forms.Button btn_ExcludeFolder;
         private System.Windows.Forms.Button btn_ExcludeRemove;
         private System.Windows.Forms.Button btn_RegAdd;
@@ -61,72 +62,129 @@ namespace ITM_Agent
         private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
         private System.Windows.Forms.ToolStripMenuItem tsm_Option;
         private System.Windows.Forms.ToolStripMenuItem tsm_Nova;
-        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem4;
-        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem5;
-        private System.Windows.Forms.ToolStripMenuItem ToolStripMenuItem6;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
         
-        #region Windows From 디자이너에서 생성한 코드
+        #region Windows Form 디자이너에서 생성한 코드
         
         private void InitializeComponent()
         {
+            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
-            this.fileMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.newMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.openMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.saveAsMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-            this.quitMenuItem = new System.Windows.Forms.ToolStripMenuItem();
-
-            this.tsm_Onto = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsm_Nova = new System.Windows.Forms.ToolStripMenuItem();
+            this.파일ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_Categorize = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsm_Option = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Onto = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_ImageTrans = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_UploadData = new System.Windows.Forms.ToolStripMenuItem();
-
-            this.pMain = new System.Windows.Forms.Panel();
+            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Nova = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.도움말ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.내용ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.newConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.overrideNamesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.imageTransToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uploadDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
             this.lb_eqpid = new System.Windows.Forms.Label();
-            this.btn_Run = new System.Windows.Forms.Button();
-            this.btn_Stop = new System.Windows.Forms.Button();
+            this.pMain = new System.Windows.Forms.Panel();
             this.btn_Quit = new System.Windows.Forms.Button();
-
-            this.statusStrip = new System.Windows.Forms.StatusStrip();
+            this.btn_Stop = new System.Windows.Forms.Button();
+            this.btn_Run = new System.Windows.Forms.Button();
             this.ts_Status = new System.Windows.Forms.ToolStripStatusLabel();
-
-            // MenuStrip
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.lb_regexPatterns = new.System.Windows.Forms.ListBox();
+            this.lb_BaseFolder = new.System.Windows.Forms.ListBox();
+            this.lb_TargetList = new.System.Windows.Forms.ListBox();
+            this.lb_ExcludeList = new.System.Windows.Forms.ListBox();
+            this.lb_RegexList = new.System.Windows.Forms.ListBox();
+            this.lb_TargetFolders = new.System.Windows.Forms.ListBox();
+            this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
+            this.SuspendLayout();
+            //
+            // cb_DebugMode
+            //
+            this.cb_DebugMode.AutoSize = true;
+            this.cb_DebugMode.Location = new System.Drawing.Point(569, 12);
+            this.cb_DebugMode.Name = "cb_DebugMode";
+            this.cb_DebugMode.Size = new System.Drawing.Size(96, 16);
+            this.cb_DebugMode.TabIndex = 0;
+            this.cb_DebugMode.Text = "Debug Mode";
+            this.cb_DebugMode.UseVisualStyleBackColor = true;
+            //
+            // menuStrip11
+            //
             this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                this.fileMenuItem,
+                this.파일ToolStripMenuItem1,
+                this.toolStripMenuItem8,
                 this.tsm_Onto,
-                this.tsm_Nova
+                this.tsm_Nova,
+                this.도움말ToolStripMenuItem1
             });
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
             this.menuStrip1.Name = "menuStrip1";
-            this.menuStrip1.Size = new System.Drawing.Size(800, 24);
-
-            // File Menu
-            this.fileMenuItem.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
+            this.menuStrip1.Size = new System.Drawing.Size(676, 24);
+            this.menuStrip1.TabIndex = 1;
+            this.menuStrip1.Text = "menuStrip1";
+            //
+            // 파일ToolStripMenuItem1
+            //
+            this.파일ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                this.newMenuItem,
-                this.openMenuItem,
-                this.saveAsMenuItem,
-                this.quitMenuItem
+                this.newToolStripMenuItem,
+                this.openToolStripMenuItem,
+                this.toolStripSeparator7,
+                this.saveAsToolStripMenuItem,
+                this.toolStripSeparator8,
+                this.quitToolStripMenuItem
             });
-            this.fileMenuItem.Name = "fileMenuItem";
-            this.fileMenuItem.Text = "File";
-
-            this.newMenuItem.Name = "newMenuItem";
-            this.newMenuItem.Text = "New";
-
-            this.openMenuItem.Name = "openMenuItem";
-            this.openMenuItem.Text = "Open";
-
-            this.saveAsMenuItem.Name = "saveAsMenuItem";
-            this.saveAsMenuItem.Text = "Save As";
-
-            this.quitMenuItem.Name = "quitMenuItem";
-            this.quitMenuItem.Text = "Quit";
-
+            this.파일ToolStripMenuItem1.Name = "파일ToolStripMenuItem1";
+            this.파일ToolStripMenuItem1.Size = new System.Drawing.Size(37, 20);
+            this.파일ToolStripMenuItem1.Text = "File";
+            //
+            // newToolStripMenuItem
+            //
+            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Megenta;
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newToolStripMenuItem.Text = "New";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.NewMenuItem_Click);
+            //
+            // openToolStripMenuItem
+            //
+            this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Megenta;
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenMenuItem_Click);
+            //
+            // toolStripSeparator7
+            //
+            this.toolStripSeparator7.Name = "toolStripSeparator7";
+            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            //
             // Onto Menu
+            //
             this.tsm_Onto.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
                 this.tsm_Categorize,
