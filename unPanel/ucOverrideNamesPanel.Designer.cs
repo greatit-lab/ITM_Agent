@@ -26,20 +26,20 @@ namespace ITM_Agent.ucPanel
         
         private void InitializeComponent()
         {
-            this.splitContainer2 = new System.Windows.Forms.Button();
-            this.groupBox1 = new System.Windows.Forms.Button();
-            this.btn_BaseClear = new System.Windows.Forms.Label();
-            this.cb_BaseDatePath = new System.Windows.Forms.TextBox();
-            this.groupBox2 = new System.Windows.Forms.TextBox();
+            this.splitContainer2 = new System.Windows.Forms.SplitContainer();
+            this.groupBox1 = new System.Windows.Forms.GroupBox();
+            this.btn_BaseClear = new System.Windows.Forms.Button();
+            this.cb_BaseDatePath = new System.Windows.Forms.ComboBox();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.btn_Remove = new System.Windows.Forms.Button();
-            this.lb_TargetComparePath = new System.Windows.Forms.Label();
-            this.btn_SelectFolder = new System.Windows.Forms.Label();
+            this.lb_TargetComparePath = new System.Windows.Forms.ListBox();
+            this.btn_SelectFolder = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
             this.splitContainer2.Panel2.SuspendLayout();
             this.splitContainer2.SuspendLayout();
             this.groupBox1.SuspendLayout();
-            this.groupBox1.SuspendLayout();
+            this.groupBox2.SuspendLayout();
             this.SuspendLayout();
             //
             // splitContainer2
@@ -78,6 +78,14 @@ namespace ITM_Agent.ucPanel
             this.btn_BaseClear.TabIndex = 6;
             this.btn_BaseClear.Text = "Clear";
             this.btn_BaseClear.UseVisualStyleBackColor = true;
+            //
+            // cb_BaseDatePath
+            //
+            this.cb_BaseDatePath.FormattingEnabled = true;
+            this.cb_BaseDatePath.Location = new System.Drawing.Point(20, 20);
+            this.cb_BaseDatePath.Name = "cb_BaseDatePath";
+            this.cb_BaseDatePath.Size = new System.Drawing.Size(450, 20);
+            this.cb_BaseDatePath.TabIndex = 0;
             //
             // groupBox2
             //
