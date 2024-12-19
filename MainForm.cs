@@ -210,22 +210,54 @@ namespace ITM_Agent
             {
                 isRunning = true; // 상태 플래그 업데이트
                 UpdateMainStatus("Running...", Color.Blue);
+        
+                // 패널 상태 강제 동기화
+                foreach (Control control in pMain.Controls)
+                {
+                    if (control is ucConfigurationPanel configPanel)
+                    {
+                        configPanel.UpdateStatusOnRun(isRunning);
+                    }
+                    else if (control is ucOverrideNamesPanel overridePanel)
+                    {
+                        overridePanel.UpdateStatusOnRun(isRunning);
+                    }
+                }
+        
                 fileWatcherManager.StartWatching();
+                UpdateButtonsState();
             }
             catch (Exception ex)
             {
                 logManager.LogEvent($"Error starting monitoring: {ex.Message}", true);
                 UpdateMainStatus("Stopped!", Color.Red);
                 isRunning = false;
+                UpdateButtonsState();
             }
         }
+
         
         private void btn_Stop_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Stop button clicked.");
             fileWatcherManager.StopWatchers();
-            UpdateMainStatus("Stopped!", Color.Red);
             isRunning = false; // 상태 플래그 업데이트
+            UpdateMainStatus("Stopped!", Color.Red);
+        
+            // 모든 패널 상태 동기화
+            ucConfigPanel?.UpdateStatusOnRun(isRunning);
+            ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
+        
+            UpdateButtonsState();
+        }
+        
+        private void UpdateButtonsState()
+        {
+            btn_Run.Enabled = !isRunning;
+            btn_Stop.Enabled = isRunning;
+            btn_Quit.Enabled = !isRunning;
+        
+            UpdateTrayMenuStatus(); // Tray 아이콘 상태 업데이트
         }
         
         private void btn_Quit_Click(object sender, EventArgs e)
@@ -255,6 +287,10 @@ namespace ITM_Agent
             // 폼 로드시 실행할 로직
             pMain.Controls.Add(ucSc1);
             UpdateMenusBasedOnType();   // 메뉴 상태 업데이트
+            
+            // 초기 패널 설정 및 상태 동기화
+            ShowUserControl(ucConfigPanel); // 초기 패널 로드
+            ucConfigPanel.UpdateStatusOnRun(isRunning); // 상태 동기화
         }
         
         private void RefreshUI()
@@ -339,6 +375,9 @@ namespace ITM_Agent
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager);
             ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
             ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
+            
+            ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
+            ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
         }
 
         private void RegisterMenuEvents()
@@ -361,6 +400,16 @@ namespace ITM_Agent
             pMain.Controls.Clear();
             pMain.Controls.Add(control);
             control.Dock = DockStyle.Fill;
+            
+            // 상태 동기화
+            if (control is ucConfigurationPanel configPanel)
+            {
+                configPanel.UpdateStatusOnRun(isRunning);
+            }
+            else if (control is ucOverrideNamesPanel overridePanel)
+            {
+                overridePanel.UpdateStatusOnRun(isRunning);
+            }
         }
         
         // MainForm.cs
