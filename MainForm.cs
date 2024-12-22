@@ -301,6 +301,8 @@ namespace ITM_Agent
         
             // TargetFolders, Regex 리스트 갱신
             ucSc1.RefreshUI(); // UserControl의 UI 갱신 호출
+            ucConfigPanel?.RefreshUI();
+            ucOverrideNamesPanel?.RefreshUI();
         
             // MainForm 상태 업데이트
             UpdateUIBasedOnSettings();
