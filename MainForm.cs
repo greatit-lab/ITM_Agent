@@ -155,16 +155,21 @@ namespace ITM_Agent
         
         private void UpdateUIBasedOnSettings()
         {
+            // SettingsManager의 IsReadyToRun 결과에 따라 상태 업데이트
             if (settingsManager.IsReadyToRun())
             {
                 UpdateMainStatus("Ready to Run", Color.Green);
+                btn_Run.Enabled = true; // Run 버튼 활성화
             }
             else
             {
                 UpdateMainStatus("Stopped!", Color.Red);
+                btn_Run.Enabled = false; // Run 버튼 비활성화
             }
+            btn_Stop.Enabled = false; // 초기 상태에서 Stop 버튼 비활성화
+            btn_Quit.Enabled = true;  // Quit 버튼 활성화
         }
-
+        
         private void UpdateMainStatus(string status, Color color)
         {
             ts_Status.Text = status;
