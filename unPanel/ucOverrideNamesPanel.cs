@@ -26,6 +26,9 @@ namespace ITM_Agent.ucPanel
             // 정규식과 폴더 정보 로드
             LoadRegexFolders();
             PopulateComboBox();
+            
+            // 데이터 로드
+            LoadDataFromSettings();
         }
 
         private void InitializeCustomEvents()
@@ -133,6 +136,27 @@ namespace ITM_Agent.ucPanel
         public void InitializePanel(bool isRunning)
         {
             UpdateStatusOnRun(isRunning); // 초기화 시 상태 동기화
+        }
+        
+        public void LoadDataFromSettings()
+        {
+            // [BaseFolder] 섹션에서 데이터를 로드하여 ComboBox에 반영
+            var baseFolders = settingsManager.GetFoldersFromSection("[BaseFolder]");
+            cb_BaseDatePath.Items.Clear();
+            cb_BaseDatePath.Items.AddRange(baseFolders.ToArray());
+        
+            // [TargetComparePath] 섹션에서 데이터를 로드하여 ListBox에 반영
+            var comparePaths = settingsManager.GetFoldersFromSection("[TargetComparePath]");
+            lb_TargetComparePath.Items.Clear();
+            foreach (var path in comparePaths)
+            {
+                lb_TargetComparePath.Items.Add(path);
+            }
+        }
+        
+        public void RefreshUI()
+        {
+            LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
         }
     }
 }
