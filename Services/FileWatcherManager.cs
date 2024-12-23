@@ -25,7 +25,7 @@ namespace ITM_Agent.Services
 
         public void InitializeWatchers()
         {
-            StopWatchers(); // 기존 감시자 정리
+            StopWatchers();
             var targetFolders = settingsManager.GetFoldersFromSection("[TargetFolders]");
             foreach (var folder in targetFolders)
             {
@@ -80,30 +80,32 @@ namespace ITM_Agent.Services
                 logManager.LogEvent("File event ignored because the status is not Running.", true);
                 return;
             }
-        
-            logManager.LogEvent($"File event detected: {e.ChangeType} - {e.FullPath}");
+
+            string fileName = Path.GetFileName(e.FullPath); // 파일명과 확장자만 추출
+            logManager.LogEvent($"File event detected: {e.ChangeType} - {fileName}");
             var regexList = settingsManager.GetRegexList();
-        
+
             foreach (var kvp in regexList)
             {
-                if (Regex.IsMatch(e.Name, kvp.Key))
+                // 파일명과 확장자만 매칭
+                if (Regex.IsMatch(fileName, kvp.Key))
                 {
-                    string destination = Path.Combine(kvp.Value, e.Name);
+                    string destination = Path.Combine(kvp.Value, fileName);
                     try
                     {
                         Directory.CreateDirectory(kvp.Value);
                         File.Copy(e.FullPath, destination, true);
-                        logManager.LogEvent($"File successfully copied: {e.Name} -> {destination}");
+                        logManager.LogEvent($"File successfully copied: {fileName} -> {destination}");
                         return;
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogError($"Error copying file: {e.FullPath}. Exception: {ex.Message}");
+                        logManager.LogError($"Error copying file: {fileName}. Exception: {ex.Message}");
                     }
                 }
             }
-        
-            logManager.LogEvent($"No matching regex for file: {e.FullPath}");
+
+            logManager.LogEvent($"No matching regex for file: {fileName}");
         }
     }
 }
