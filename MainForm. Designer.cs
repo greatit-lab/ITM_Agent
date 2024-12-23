@@ -132,6 +132,7 @@ namespace ITM_Agent
             this.cb_DebugMode.TabIndex = 0;
             this.cb_DebugMode.Text = "Debug Mode";
             this.cb_DebugMode.UseVisualStyleBackColor = true;
+            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);  // 이벤트 연결
             //
             // menuStrip11
             //
