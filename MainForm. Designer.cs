@@ -429,7 +429,7 @@ namespace ITM_Agent
             this.statusStrip1.Name = "statusStrip1";
             this.statusStrip1.Size = new System.Drawing.Size(676, 22);
             this.statusStrip1.TabIndex = 2;
-            this.statusStrip1.Text = "statusStrip1"
+            this.statusStrip1.Text = "statusStrip1";
             //
             // lb_regexPatterns 
             //
