@@ -12,9 +12,11 @@ namespace ITM_Agent.Services
     /// </summary>
     public class FileWatcherManager
     {
-        private List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
+        private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
         private readonly SettingsManager settingsManager;
         private readonly LogManager logManager;
+        private readonly HashSet<string> processedFiles = new HashSet<string>(); // 처리된 파일 추적
+        private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
         private bool isRunning = false;
 
         public FileWatcherManager(SettingsManager settings, LogManager logger)
@@ -72,7 +74,7 @@ namespace ITM_Agent.Services
             isRunning = false;
             logManager.LogEvent("File monitoring stopped.");
         }
-
+        
         private void OnFileChanged(object sender, FileSystemEventArgs e)
         {
             if (!isRunning)
@@ -81,20 +83,55 @@ namespace ITM_Agent.Services
                 return;
             }
 
-            string fileName = Path.GetFileName(e.FullPath); // 파일명과 확장자만 추출
-            logManager.LogEvent($"File event detected: {e.ChangeType} - {fileName}");
+            string eventType = e.ChangeType switch
+            {
+                WatcherChangeTypes.Created => "File Created:",
+                WatcherChangeTypes.Changed => "File Modified:",
+                WatcherChangeTypes.Deleted => "File Deleted:",
+                _ => "Unknown Event:"
+            };
+
+            if (e.ChangeType == WatcherChangeTypes.Created)
+            {
+                if (File.Exists(e.FullPath) && !processedFiles.Contains(e.FullPath))
+                {
+                    logManager.LogEvent($"{eventType} {e.FullPath}");
+                    ProcessFile(e.FullPath);
+
+                    recentlyCreatedFiles.Add(e.FullPath); // 최근 생성 파일로 등록
+                    ScheduleFileRemoval(e.FullPath, recentlyCreatedFiles);
+                }
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            {
+                if (File.Exists(e.FullPath) && !recentlyCreatedFiles.Contains(e.FullPath))
+                {
+                    logManager.LogEvent($"{eventType} {e.FullPath}");
+                    ProcessFile(e.FullPath);
+                }
+            }
+            else if (e.ChangeType == WatcherChangeTypes.Deleted)
+            {
+                logManager.LogEvent($"{eventType} {e.FullPath}");
+                processedFiles.Remove(e.FullPath); // 삭제 시 추적 제거
+                recentlyCreatedFiles.Remove(e.FullPath);
+            }
+        }
+
+        private void ProcessFile(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
             var regexList = settingsManager.GetRegexList();
 
             foreach (var kvp in regexList)
             {
-                // 파일명과 확장자만 매칭
                 if (Regex.IsMatch(fileName, kvp.Key))
                 {
                     string destination = Path.Combine(kvp.Value, fileName);
                     try
                     {
                         Directory.CreateDirectory(kvp.Value);
-                        File.Copy(e.FullPath, destination, true);
+                        File.Copy(filePath, destination, true);
                         logManager.LogEvent($"File successfully copied: {fileName} -> {destination}");
                         return;
                     }
@@ -104,8 +141,15 @@ namespace ITM_Agent.Services
                     }
                 }
             }
-
             logManager.LogEvent($"No matching regex for file: {fileName}");
+        }
+
+        private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
+        {
+            Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
+            {
+                fileSet.Remove(filePath);
+            });
         }
     }
 }
