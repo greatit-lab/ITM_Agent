@@ -50,7 +50,9 @@ namespace ITM_Agent
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager);
             
             logManager = new LogManager(baseDir);
-            fileWatcherManager = new FileWatcherManager(settingsManager, logManager);
+            
+            // fileWatcherManager 생성 시 isDebugMode 전달
+            fileWatcherManager = new FileWatcherManager(settingsManager, logManager, isDebugMode);
             eqpidManager = new EqpidManager(settingsManager);
             
             // icon 설정
@@ -181,6 +183,16 @@ namespace ITM_Agent
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
             
+            // 디버그 모드 비활성화 처리
+            cb_DebugMode.Enabled = !isRunning;
+            
+            logManager.LogEvent($"Status updated to: {status}");
+            
+            if (isDebugMode)
+            {
+                logManager.LogDebug($"Status updated to: {status}. Running state: {isRunning}");
+            }
+            
             btn_Run.Enabled = !isRunning;   // 'Run' 버튼: Stopped 상태에서 활성화
             btn_Stop.Enabled = isRunning;   // 'Stop' 버튼: Running 상태에서 활성화
             btn_Quit.Enabled = !isRunning;   // 'Quit' 버튼: Stopped 상태에서 활성화
@@ -212,50 +224,57 @@ namespace ITM_Agent
         private void btn_Run_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Run button clicked.");
+        
+            if (isDebugMode)
+            {
+                logManager.LogDebug("Run operation started. Initializing components.");
+            }
+        
             try
             {
-                isRunning = true; // 상태 플래그 업데이트
-                UpdateMainStatus("Running...", Color.Blue);
+                // Watcher 시작
+                fileWatcherManager.StartWatching();
         
-                // 패널 상태 강제 동기화
-                foreach (Control control in pMain.Controls)
+                if (isDebugMode)
                 {
-                    if (control is ucConfigurationPanel configPanel)
-                    {
-                        configPanel.UpdateStatusOnRun(isRunning);
-                    }
-                    else if (control is ucOverrideNamesPanel overridePanel)
-                    {
-                        overridePanel.UpdateStatusOnRun(isRunning);
-                    }
+                    logManager.LogDebug("File watchers started successfully.");
                 }
         
-                fileWatcherManager.StartWatching();
-                UpdateButtonsState();
+                // 상태 업데이트
+                UpdateMainStatus("Running...", Color.Blue);
             }
             catch (Exception ex)
             {
-                logManager.LogEvent($"Error starting monitoring: {ex.Message}", true);
+                logManager.LogEvent($"Error starting monitoring: {ex.Message}");
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Run operation failed with error: {ex.Message}");
+                }
                 UpdateMainStatus("Stopped!", Color.Red);
-                isRunning = false;
-                UpdateButtonsState();
             }
         }
-
         
         private void btn_Stop_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Stop button clicked.");
+        
+            if (isDebugMode)
+            {
+                logManager.LogDebug("Stop operation started. Shutting down components.");
+            }
+        
+            // Watcher 중지
             fileWatcherManager.StopWatchers();
-            isRunning = false; // 상태 플래그 업데이트
+        
+            if (isDebugMode)
+            {
+                logManager.LogDebug("File watchers stopped successfully.");
+            }
+        
+            // 상태 업데이트
             UpdateMainStatus("Stopped!", Color.Red);
-        
-            // 모든 패널 상태 동기화
-            ucConfigPanel?.UpdateStatusOnRun(isRunning);
-            ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
-        
-            UpdateButtonsState();
         }
+
         
         private void UpdateButtonsState()
         {
@@ -456,6 +475,20 @@ namespace ITM_Agent
             : this(new SettingsManager(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini")))
         {
             // 추가 동작 없음
+        }
+        
+        // Debug Mode 체크박스 변경 시 처리
+        private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
+        {
+            isDebugMode = cb_DebugMode.Checked;
+            if (isDebugMode)
+            {
+                logManager.LogDebug("Debug mode enabled.");
+            }
+            else
+            {
+                logManager.LogDebug("Debug mode disabled.");
+            }
         }
     }
 }
