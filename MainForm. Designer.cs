@@ -483,6 +483,8 @@ namespace ITM_Agent
             //
             // MainForm
             //
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle; // 크기 고정
+            this.StartPosition = FormStartPosition.CenterScreen; // 화면 중앙 정렬
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(676, 431);
