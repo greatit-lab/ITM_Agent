@@ -365,45 +365,48 @@ namespace ITM_Agent.Services
         /// </summary>
         public void SetValueToSection(string section, string key, string value)
         {
-            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
-            int sectionIndex = lines.FindIndex(l => l.Trim() == $"[{section}]");
-
-            if (sectionIndex == -1)
+            lock (fileLock)
             {
-                // 섹션 추가
-                if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines.Last()))
+                var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+                int sectionIndex = lines.FindIndex(l => l.Trim() == $"[{section}]");
+        
+                if (sectionIndex == -1)
                 {
-                    lines.Add("");
-                }
-                lines.Add($"[{section}]");
-                lines.Add($"{key} = {value}");
-                lines.Add("");
-            }
-            else
-            {
-                // 섹션 내 키값 업데이트
-                int endIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("[") || string.IsNullOrWhiteSpace(l));
-                if (endIndex == -1) endIndex = lines.Count;
-
-                bool keyFound = false;
-                for (int i = sectionIndex + 1; i < endIndex; i++)
-                {
-                    if (lines[i].StartsWith($"{key} ="))
+                    // 섹션 추가
+                    if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines.Last()))
                     {
-                        lines[i] = $"{key} = {value}";
-                        keyFound = true;
-                        break;
+                        lines.Add(""); // 섹션 구분 공백
+                    }
+                    lines.Add($"[{section}]");
+                    lines.Add($"{key} = {value}");
+                }
+                else
+                {
+                    // 섹션 내 키값 업데이트
+                    int endIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("[") || string.IsNullOrWhiteSpace(l));
+                    if (endIndex == -1) endIndex = lines.Count;
+        
+                    bool keyFound = false;
+                    for (int i = sectionIndex + 1; i < endIndex; i++)
+                    {
+                        if (lines[i].StartsWith($"{key} ="))
+                        {
+                            lines[i] = $"{key} = {value}";
+                            keyFound = true;
+                            break;
+                        }
+                    }
+        
+                    if (!keyFound)
+                    {
+                        lines.Insert(endIndex, $"{key} = {value}");
                     }
                 }
-
-                if (!keyFound)
-                {
-                    lines.Insert(endIndex, $"{key} = {value}");
-                }
+        
+                File.WriteAllLines(settingsFilePath, lines);
             }
-
-            WriteToFileSafely(lines.ToArray());
         }
+
 
         /// <summary>
         /// 섹션 전체를 삭제합니다.
