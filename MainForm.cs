@@ -177,6 +177,7 @@ namespace ITM_Agent
             
             bool isRunning = status == "Running...";
             // ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
+            ucOverrideNamesPanel?.UpdateStatus(status); // 상태 없데이트 반영
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
             
