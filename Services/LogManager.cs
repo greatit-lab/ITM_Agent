@@ -19,7 +19,8 @@ namespace ITM_Agent.Services
     
         public void LogEvent(string message)
         {
-            WriteLog(message, $"{DateTime.Now:yyyyMMdd}_event.log");
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");    // 날짜와 시간 형식 설정
+            WriteLog($"{timestamp} - {message}", $"{DateTime.Now:yyyyMMdd}_event.log");
         }
     
         public void LogEvent(string message, bool isDebug)
@@ -36,12 +37,14 @@ namespace ITM_Agent.Services
     
         public void LogError(string message)
         {
-            WriteLog($"ERROR: {message}", $"{DateTime.Now:yyyyMMdd}_error.log");
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            WriteLog($"{timestamp} - ERROR: {message}", $"{DateTime.Now:yyyyMMdd}_error.log");
         }
     
         public void LogDebug(string message)
         {
-            WriteLog($"DEBUG: {message}", $"{DateTime.Now:yyyyMMdd}_debug.log");
+            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            WriteLog($"{timestamp} - DEBUG: {message}", $"{DateTime.Now:yyyyMMdd}_debug.log");
         }
     
         private void WriteLog(string message, string fileName)
@@ -52,8 +55,7 @@ namespace ITM_Agent.Services
             {
                 using (var writer = new StreamWriter(filePath, true))
                 {
-                    string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
-                    writer.WriteLine($"{timestamp} - {message}");
+                    writer.WriteLine(message);
                 }
             }
             catch (Exception ex)
