@@ -32,6 +32,7 @@ namespace ITM_Agent
         private ucScreen4 ucUploadDataPanel;
         
         private bool isRunning = false; // 현재 상태 플래그
+        private bool isDebugMode = false;   // 디버그 모드 상태
 
         public MainForm(SettingsManager settingsManager)
         {
@@ -179,7 +180,7 @@ namespace ITM_Agent
             
             bool isRunning = status == "Running...";
             // ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
-            ucOverrideNamesPanel?.UpdateStatus(status); // 상태 없데이트 반영
+            ucOverrideNamesPanel?.UpdateStatus(status); // 상태 업데이트 반영
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
             
@@ -233,6 +234,11 @@ namespace ITM_Agent
             try
             {
                 // Watcher 시작
+                if (isDebugMode)
+                {
+                    logManager.LogDebug("Initializing watchers.");
+                }
+                
                 fileWatcherManager.StartWatching();
         
                 if (isDebugMode)
@@ -242,6 +248,11 @@ namespace ITM_Agent
         
                 // 상태 업데이트
                 UpdateMainStatus("Running...", Color.Blue);
+                
+                if (isDebugMode)
+                {
+                    logManager.LogDebug("Run operation completed successfully.");
+                }
             }
             catch (Exception ex)
             {
@@ -273,6 +284,11 @@ namespace ITM_Agent
         
             // 상태 업데이트
             UpdateMainStatus("Stopped!", Color.Red);
+            
+            if (isDebugMode)
+            {
+                logManager.LogDebug("Stop operation completed successfully.");
+            }
         }
 
         
@@ -481,12 +497,15 @@ namespace ITM_Agent
         private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
         {
             isDebugMode = cb_DebugMode.Checked;
+            fileWatcherManager.UpdateDebugMode(isDebugMode);    // 디버그 모드 업데이트
             if (isDebugMode)
             {
+                logManager.LogEvent("Debug Mode: Enabled");
                 logManager.LogDebug("Debug mode enabled.");
             }
             else
             {
+                logManager.LogEvent("Debug Mode: Disabled");
                 logManager.LogDebug("Debug mode disabled.");
             }
         }
