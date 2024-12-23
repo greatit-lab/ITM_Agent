@@ -62,7 +62,27 @@ namespace ITM_Agent.ucPanel
                 cb_BaseDatePath.SelectedItem = selectedPath;
             }
         }
+        
+        /// <summary>
+        /// 사용자가 콤보 박스에서 값을 선택했을 때 Settings.ini에 저장합니다.
+        /// </summary>
+        private void cb_BaseDatePath_SelectedIndexChanged(object sender, EventArgs e)
+        {
+            if (cb_BaseDatePath.SelectedItem is string selectedPath)
+            {
+                settingsManager.SetValueToSection("SelectedBaseDatePath", "Path", selectedPath);
+            }
+        }
 
+        /// <summary>
+        /// Clear 버튼 클릭 시 ComboBox를 초기화하고 저장된 값을 지웁니다.
+        /// </summary>
+        private void btn_BaseClear_Click(object sender, EventArgs e)
+        {
+            cb_BaseDatePath.SelectedIndex = -1;
+            settingsManager.RemoveSection("SelectedBaseDatePath"); // 저장된 값 삭제
+        }
+        
         /// <summary>
         /// ComboBox를 정규표현식 폴더 정보로 채웁니다.
         /// </summary>
