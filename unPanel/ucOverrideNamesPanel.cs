@@ -22,30 +22,45 @@ namespace ITM_Agent.ucPanel
             InitializeComponent();
             
             InitializeCustomEvents();
-            
-            // 정규식과 폴더 정보 로드
-            LoadRegexFolders();
             PopulateComboBox();
             
             // 데이터 로드
             LoadDataFromSettings();
+            
+            LoadRegexFolderPaths(); // 초기화 시 목록 로드
+            LoadSelectedBaseDatePath(); // 저장된 선택 값 불러오기
         }
 
         private void InitializeCustomEvents()
         {
-            btn_BaseClear.Click += Btn_BaseClear_Click;
+            cb_BaseDatePath.SelectedIndexChanged += cb_BaseDatePath_SelectedIndexChanged;
+            btn_BaseClear.Click += btn_BaseClear_Click;
             btn_SelectFolder.Click += Btn_SelectFolder_Click;
             btn_Remove.Click += Btn_Remove_Click;
         }
 
         /// <summary>
-        /// 정규표현식과 폴더 정보를 로드합니다.
+        /// lb_RegexList에서 '->' 뒤의 폴더 경로 값만 가져와 cb_BaseDatePath를 초기화합니다.
         /// </summary>
-        private void LoadRegexFolders()
+        private void LoadRegexFolderPaths()
         {
-            var regexFolders = settingsManager.GetFoldersFromSection("[Regex]");
             cb_BaseDatePath.Items.Clear();
-            cb_BaseDatePath.Items.AddRange(regexFolders.ToArray());
+            var regexList = settingsManager.GetRegexList();
+            var folderPaths = regexList.Values.ToList();
+            cb_BaseDatePath.Items.AddRange(folderPaths.ToArray());
+            cb_BaseDatePath.SelectedIndex = -1; // 초기화
+        }
+
+        /// <summary>
+        /// Settings.ini 파일에 저장된 [SelectedBaseDatePath] 값을 불러옵니다.
+        /// </summary>
+        private void LoadSelectedBaseDatePath()
+        {
+            string selectedPath = settingsManager.GetValueFromSection("SelectedBaseDatePath", "Path");
+            if (!string.IsNullOrEmpty(selectedPath) && cb_BaseDatePath.Items.Contains(selectedPath))
+            {
+                cb_BaseDatePath.SelectedItem = selectedPath;
+            }
         }
 
         /// <summary>
