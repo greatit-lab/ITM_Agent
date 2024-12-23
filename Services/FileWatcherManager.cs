@@ -19,6 +19,13 @@ namespace ITM_Agent.Services
         private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
         private bool isRunning = false;
         private readonly Dictionary<string, DateTime> lastModifiedFiles = new Dictionary<string, DateTime>(); // 수정 시간 추적
+        private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
+private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
+        private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
+private readonly HashSet<string> deletedFiles = new HashSet<string>(); // 삭제된 파일 추적
+private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
+
+
 
         public FileWatcherManager(SettingsManager settings, LogManager logger)
         {
@@ -96,7 +103,26 @@ namespace ITM_Agent.Services
                 _ => "Unknown Event:"
             };
         
-            // Log 기본 이벤트
+            // 삭제된 파일이 다시 Modified로 감지되는 경우 무시
+            if (e.ChangeType == WatcherChangeTypes.Changed && deletedFiles.Contains(e.FullPath))
+            {
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Ignored File Modified: for deleted file: {e.FullPath}");
+                }
+                return;
+            }
+        
+            // 중복 이벤트 감지 방지
+            if (IsDuplicateEvent(e.FullPath))
+            {
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Duplicate event ignored: {eventType} for file: {e.FullPath}");
+                }
+                return;
+            }
+        
             logManager.LogEvent($"{eventType} {e.FullPath}");
         
             if (isDebugMode)
@@ -110,13 +136,7 @@ namespace ITM_Agent.Services
                 {
                     if (File.Exists(e.FullPath))
                     {
-                        if (isDebugMode)
-                        {
-                            logManager.LogDebug($"Processing file: {e.FullPath} after {eventType}");
-                        }
-        
                         string destinationFolder = ProcessFile(e.FullPath);
-        
                         if (!string.IsNullOrEmpty(destinationFolder))
                         {
                             logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
@@ -125,21 +145,18 @@ namespace ITM_Agent.Services
                                 logManager.LogDebug($"File successfully copied: {e.FullPath} to folder: {destinationFolder}");
                             }
                         }
-                        else
-                        {
-                            if (isDebugMode)
-                            {
-                                logManager.LogDebug($"File processing skipped: {e.FullPath}. No matching regex or other conditions failed.");
-                            }
-                        }
                     }
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
+                    deletedFiles.Add(e.FullPath); // 삭제된 파일 추적
                     if (isDebugMode)
                     {
                         logManager.LogDebug($"File deleted: {e.FullPath}");
                     }
+        
+                    // 삭제된 파일을 일정 시간 후 추적 목록에서 제거
+                    ScheduleDeletedFileCleanup(e.FullPath);
                 }
             }
             catch (Exception ex)
@@ -149,6 +166,38 @@ namespace ITM_Agent.Services
                 {
                     logManager.LogDebug($"Error during file processing: {e.FullPath}. Exception: {ex.Message}");
                 }
+            }
+        }
+        private void ScheduleDeletedFileCleanup(string filePath)
+        {
+            Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
+            {
+                deletedFiles.Remove(filePath);
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Deleted file removed from tracking: {filePath}");
+                }
+            });
+        }
+        
+        private bool IsDuplicateEvent(string filePath)
+        {
+            DateTime now = DateTime.Now;
+        
+            lock (fileProcessTracker)
+            {
+                if (fileProcessTracker.TryGetValue(filePath, out var lastProcessed))
+                {
+                    if (now - lastProcessed < duplicateEventThreshold)
+                    {
+                        // 중복 이벤트
+                        return true;
+                    }
+                }
+        
+                // 마지막 처리 시간 갱신
+                fileProcessTracker[filePath] = now;
+                return false;
             }
         }
 
@@ -165,22 +214,46 @@ namespace ITM_Agent.Services
                     string destinationFolder = kvp.Value; // 지정된 폴더 경로만 사용
                     string destinationFile = Path.Combine(destinationFolder, fileName);
         
+                    if (isDebugMode)
+                    {
+                        logManager.LogDebug($"Regex match found: {kvp.Key} for file: {fileName}. Destination folder: {destinationFolder}");
+                    }
+        
                     try
                     {
                         Directory.CreateDirectory(destinationFolder);
                         File.Copy(filePath, destinationFile, true);
+        
+                        if (isDebugMode)
+                        {
+                            logManager.LogDebug($"File copied successfully: {filePath} to {destinationFolder}");
+                        }
+        
                         return destinationFolder; // 복사된 폴더 경로 반환
                     }
                     catch (Exception ex)
                     {
                         logManager.LogError($"Error copying file: {fileName}. Exception: {ex.Message}");
+                        if (isDebugMode)
+                        {
+                            logManager.LogDebug($"Exception during file copy: {filePath}. Exception: {ex.Message}");
+                        }
                     }
+                }
+                else if (isDebugMode)
+                {
+                    logManager.LogDebug($"Regex did not match: {kvp.Key} for file: {fileName}");
                 }
             }
         
-            logManager.LogEvent($"No matching regex for file: {fileName}");
+            if (isDebugMode)
+            {
+                logManager.LogDebug($"No matching regex for file: {fileName}");
+            }
+        
             return null; // 복사 실패 시 null 반환
         }
+
 
 
 
