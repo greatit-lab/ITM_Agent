@@ -18,6 +18,7 @@ namespace ITM_Agent.Services
         private readonly HashSet<string> processedFiles = new HashSet<string>(); // 처리된 파일 추적
         private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
         private bool isRunning = false;
+        private readonly Dictionary<string, DateTime> lastModifiedFiles = new Dictionary<string, DateTime>(); // 수정 시간 추적
 
         public FileWatcherManager(SettingsManager settings, LogManager logger)
         {
@@ -79,10 +80,14 @@ namespace ITM_Agent.Services
         {
             if (!isRunning)
             {
-                logManager.LogEvent("File event ignored because the status is not Running.", true);
+                logManager.LogEvent("File event ignored because the status is not Running.");
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Ignored event: {e.ChangeType} for file: {e.FullPath} because monitoring is not running.");
+                }
                 return;
             }
-
+        
             string eventType = e.ChangeType switch
             {
                 WatcherChangeTypes.Created => "File Created:",
@@ -90,50 +95,81 @@ namespace ITM_Agent.Services
                 WatcherChangeTypes.Deleted => "File Deleted:",
                 _ => "Unknown Event:"
             };
-
-            if (e.ChangeType == WatcherChangeTypes.Created)
+        
+            // Log 기본 이벤트
+            logManager.LogEvent($"{eventType} {e.FullPath}");
+        
+            if (isDebugMode)
             {
-                if (File.Exists(e.FullPath) && !processedFiles.Contains(e.FullPath))
+                logManager.LogDebug($"Event detected: {eventType} for file: {e.FullPath}");
+            }
+        
+            try
+            {
+                if (e.ChangeType == WatcherChangeTypes.Created || e.ChangeType == WatcherChangeTypes.Changed)
                 {
-                    logManager.LogEvent($"{eventType} {e.FullPath}");
-                    ProcessFile(e.FullPath);
-
-                    recentlyCreatedFiles.Add(e.FullPath); // 최근 생성 파일로 등록
-                    ScheduleFileRemoval(e.FullPath, recentlyCreatedFiles);
+                    if (File.Exists(e.FullPath))
+                    {
+                        if (isDebugMode)
+                        {
+                            logManager.LogDebug($"Processing file: {e.FullPath} after {eventType}");
+                        }
+        
+                        string destinationFolder = ProcessFile(e.FullPath);
+        
+                        if (!string.IsNullOrEmpty(destinationFolder))
+                        {
+                            logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
+                            if (isDebugMode)
+                            {
+                                logManager.LogDebug($"File successfully copied: {e.FullPath} to folder: {destinationFolder}");
+                            }
+                        }
+                        else
+                        {
+                            if (isDebugMode)
+                            {
+                                logManager.LogDebug($"File processing skipped: {e.FullPath}. No matching regex or other conditions failed.");
+                            }
+                        }
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Deleted)
+                {
+                    if (isDebugMode)
+                    {
+                        logManager.LogDebug($"File deleted: {e.FullPath}");
+                    }
                 }
             }
-            else if (e.ChangeType == WatcherChangeTypes.Changed)
+            catch (Exception ex)
             {
-                if (File.Exists(e.FullPath) && !recentlyCreatedFiles.Contains(e.FullPath))
+                logManager.LogEvent($"Error processing file: {e.FullPath}");
+                if (isDebugMode)
                 {
-                    logManager.LogEvent($"{eventType} {e.FullPath}");
-                    ProcessFile(e.FullPath);
+                    logManager.LogDebug($"Error during file processing: {e.FullPath}. Exception: {ex.Message}");
                 }
-            }
-            else if (e.ChangeType == WatcherChangeTypes.Deleted)
-            {
-                logManager.LogEvent($"{eventType} {e.FullPath}");
-                processedFiles.Remove(e.FullPath); // 삭제 시 추적 제거
-                recentlyCreatedFiles.Remove(e.FullPath);
             }
         }
 
-        private void ProcessFile(string filePath)
+
+        private string ProcessFile(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
             var regexList = settingsManager.GetRegexList();
-
+        
             foreach (var kvp in regexList)
             {
                 if (Regex.IsMatch(fileName, kvp.Key))
                 {
-                    string destination = Path.Combine(kvp.Value, fileName);
+                    string destinationFolder = kvp.Value; // 지정된 폴더 경로만 사용
+                    string destinationFile = Path.Combine(destinationFolder, fileName);
+        
                     try
                     {
-                        Directory.CreateDirectory(kvp.Value);
-                        File.Copy(filePath, destination, true);
-                        logManager.LogEvent($"File successfully copied: {fileName} -> {destination}");
-                        return;
+                        Directory.CreateDirectory(destinationFolder);
+                        File.Copy(filePath, destinationFile, true);
+                        return destinationFolder; // 복사된 폴더 경로 반환
                     }
                     catch (Exception ex)
                     {
@@ -141,8 +177,12 @@ namespace ITM_Agent.Services
                     }
                 }
             }
+        
             logManager.LogEvent($"No matching regex for file: {fileName}");
+            return null; // 복사 실패 시 null 반환
         }
+
+
 
         private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
         {
