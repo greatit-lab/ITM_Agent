@@ -92,14 +92,6 @@ namespace ITM_Agent.ucPanel
         }
 
         /// <summary>
-        /// Clear 버튼 클릭 시 ComboBox 선택 초기화
-        /// </summary>
-        private void Btn_BaseClear_Click(object sender, EventArgs e)
-        {
-            cb_BaseDatePath.SelectedIndex = -1;
-        }
-
-        /// <summary>
         /// Select Folder 버튼 클릭 시 폴더 선택 및 ListBox에 추가
         /// </summary>
         private void Btn_SelectFolder_Click(object sender, EventArgs e)
@@ -192,6 +184,28 @@ namespace ITM_Agent.ucPanel
         public void RefreshUI()
         {
             LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
+        }
+        
+        /// <summary>
+        /// 모든 컨트롤을 활성화/비활성화합니다.
+        /// </summary>
+        /// <param name="isEnabled">활성화 여부</param>
+        public void SetControlEnabled(bool isEnabled)
+        {
+            btn_BaseClear.Enabled = isEnabled;
+            btn_SelectFolder.Enabled = isEnabled;
+            btn_Remove.Enabled = isEnabled;
+            cb_BaseDatePath.Enabled = isEnabled;
+        }
+
+        /// <summary>
+        /// 상태 업데이트에 따라 UI 컨트롤을 활성화/비활성화합니다.
+        /// </summary>
+        /// <param name="status">현재 상태</param>
+        public void UpdateStatus(string status)
+        {
+            bool isRunning = status == "Running...";
+            SetControlEnabled(!isRunning); // Running 상태일 때 비활성화
         }
     }
 }
