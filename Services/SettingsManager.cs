@@ -325,6 +325,102 @@ namespace ITM_Agent.Services
             }
             return null;
         }
+        
+        /// <summary>
+        /// 특정 섹션에서 키 값을 읽어옵니다.
+        /// </summary>
+        public string GetValueFromSection(string section, string key)
+        {
+            if (!File.Exists(settingsFilePath)) return null;
 
+            var lines = File.ReadAllLines(settingsFilePath);
+            bool inSection = false;
+
+            foreach (string line in lines)
+            {
+                if (line.Trim() == $"[{section}]")
+                {
+                    inSection = true;
+                    continue;
+                }
+
+                if (inSection)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("["))
+                        break;
+
+                    var keyValue = line.Split('=');
+                    if (keyValue.Length == 2 && keyValue[0].Trim() == key)
+                    {
+                        return keyValue[1].Trim();
+                    }
+                }
+            }
+
+            return null;
+        }
+
+        /// <summary>
+        /// 특정 섹션에 키-값을 설정합니다.
+        /// </summary>
+        public void SetValueToSection(string section, string key, string value)
+        {
+            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+            int sectionIndex = lines.FindIndex(l => l.Trim() == $"[{section}]");
+
+            if (sectionIndex == -1)
+            {
+                // 섹션 추가
+                if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines.Last()))
+                {
+                    lines.Add("");
+                }
+                lines.Add($"[{section}]");
+                lines.Add($"{key} = {value}");
+                lines.Add("");
+            }
+            else
+            {
+                // 섹션 내 키값 업데이트
+                int endIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("[") || string.IsNullOrWhiteSpace(l));
+                if (endIndex == -1) endIndex = lines.Count;
+
+                bool keyFound = false;
+                for (int i = sectionIndex + 1; i < endIndex; i++)
+                {
+                    if (lines[i].StartsWith($"{key} ="))
+                    {
+                        lines[i] = $"{key} = {value}";
+                        keyFound = true;
+                        break;
+                    }
+                }
+
+                if (!keyFound)
+                {
+                    lines.Insert(endIndex, $"{key} = {value}");
+                }
+            }
+
+            WriteToFileSafely(lines.ToArray());
+        }
+
+        /// <summary>
+        /// 섹션 전체를 삭제합니다.
+        /// </summary>
+        public void RemoveSection(string section)
+        {
+            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
+            int sectionIndex = lines.FindIndex(l => l.Trim() == $"[{section}]");
+
+            if (sectionIndex != -1)
+            {
+                int endIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("[") || string.IsNullOrWhiteSpace(l));
+                if (endIndex == -1) endIndex = lines.Count;
+
+                lines.RemoveRange(sectionIndex, endIndex - sectionIndex);
+                WriteToFileSafely(lines.ToArray());
+            }
+        }
     }
 }
