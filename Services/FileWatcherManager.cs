@@ -3,6 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace ITM_Agent.Services
 {
@@ -29,10 +30,10 @@ namespace ITM_Agent.Services
         // Debug Mode 상태 속성
         public bool IsDebugMode { get; set; } = false;
 
-        public FileWatcherManager(SettingsManager settings, LogManager logger, bool isDebugMode)
+        public FileWatcherManager(SettingsManager settingsManager, LogManager logManager, bool isDebugMode)
         {
-            this.settingsManager = settings;
-            this.logManager = logger;
+            this.settingsManager = settingsManager;
+            this.logManager = logManager;
             this.isDebugMode = isDebugMode; // MainForm 에서 전달받은 디버그 모드 상태
         }
         
@@ -230,7 +231,7 @@ namespace ITM_Agent.Services
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogError($"Error copying file: {fileName}. Exception: {ex.Message}");
+                        logManager.LogEvent($"Error copying file: {fileName}. Exception: {ex.Message}");
                     }
                 }
             }
