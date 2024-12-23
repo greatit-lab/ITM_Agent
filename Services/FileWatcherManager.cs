@@ -15,24 +15,32 @@ namespace ITM_Agent.Services
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
         private readonly SettingsManager settingsManager;
         private readonly LogManager logManager;
-        private readonly HashSet<string> processedFiles = new HashSet<string>(); // 처리된 파일 추적
-        private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
-        private bool isRunning = false;
         private readonly Dictionary<string, DateTime> lastModifiedFiles = new Dictionary<string, DateTime>(); // 수정 시간 추적
+        private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
+        private readonly HashSet<string> deletedFiles = new HashSet<string>(); // 삭제된 파일 추적
         private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
-private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
-        private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
-private readonly HashSet<string> deletedFiles = new HashSet<string>(); // 삭제된 파일 추적
-private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
+        private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
+        
+        private bool isDebugMode;
+        
+        private bool isRunning = false;
+        // private readonly bool isDebugMode;
+        
+        // Debug Mode 상태 속성
+        public bool IsDebugMode { get; set; } = false;
 
-
-
-        public FileWatcherManager(SettingsManager settings, LogManager logger)
+        public FileWatcherManager(SettingsManager settings, LogManager logger, bool isDebugMode)
         {
             this.settingsManager = settings;
             this.logManager = logger;
+            this.isDebugMode = isDebugMode; // MainForm 에서 전달받은 디버그 모드 상태
         }
-
+        
+        public void UpdateDebugMode(bool isDebug)
+        {
+            this.isDebugMode = isDebug; // 디버그 모드 상태 업데이트
+        }
+        
         public void InitializeWatchers()
         {
             StopWatchers();
@@ -168,6 +176,7 @@ private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 
                 }
             }
         }
+        
         private void ScheduleDeletedFileCleanup(string filePath)
         {
             Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
@@ -200,8 +209,7 @@ private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 
                 return false;
             }
         }
-
-
+        
         private string ProcessFile(string filePath)
         {
             string fileName = Path.GetFileName(filePath);
@@ -213,50 +221,23 @@ private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 
                 {
                     string destinationFolder = kvp.Value; // 지정된 폴더 경로만 사용
                     string destinationFile = Path.Combine(destinationFolder, fileName);
-        
-                    if (isDebugMode)
-                    {
-                        logManager.LogDebug($"Regex match found: {kvp.Key} for file: {fileName}. Destination folder: {destinationFolder}");
-                    }
-        
+                    
                     try
                     {
                         Directory.CreateDirectory(destinationFolder);
                         File.Copy(filePath, destinationFile, true);
-        
-                        if (isDebugMode)
-                        {
-                            logManager.LogDebug($"File copied successfully: {filePath} to {destinationFolder}");
-                        }
-        
                         return destinationFolder; // 복사된 폴더 경로 반환
                     }
                     catch (Exception ex)
                     {
                         logManager.LogError($"Error copying file: {fileName}. Exception: {ex.Message}");
-                        if (isDebugMode)
-                        {
-                            logManager.LogDebug($"Exception during file copy: {filePath}. Exception: {ex.Message}");
-                        }
                     }
                 }
-                else if (isDebugMode)
-                {
-                    logManager.LogDebug($"Regex did not match: {kvp.Key} for file: {fileName}");
-                }
             }
-        
-            if (isDebugMode)
-            {
-                logManager.LogDebug($"No matching regex for file: {fileName}");
-            }
-        
-            return null; // 복사 실패 시 null 반환
+            logManager.LogEvent($"No matching regex for file: {fileName}");
+            return null;
         }
-
-
-
-
+        
         private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
         {
             Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
