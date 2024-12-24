@@ -104,16 +104,8 @@ namespace ITM_Agent.Services
                 return;
             }
         
-            string eventType = e.ChangeType switch
-            {
-                WatcherChangeTypes.Created => "File Created:",
-                WatcherChangeTypes.Changed => "File Modified:",
-                WatcherChangeTypes.Deleted => "File Deleted:",
-                _ => "Unknown Event:"
-            };
-        
-            // 삭제된 파일이 다시 Modified로 감지되는 경우 무시
-            if (e.ChangeType == WatcherChangeTypes.Changed && deletedFiles.Contains(e.FullPath))
+            // 삭제된 파일에 대한 중복 이벤트 방지
+            if (deletedFiles.Contains(e.FullPath) && e.ChangeType == WatcherChangeTypes.Changed)
             {
                 if (isDebugMode)
                 {
@@ -122,7 +114,15 @@ namespace ITM_Agent.Services
                 return;
             }
         
-            // 중복 이벤트 감지 방지
+            string eventType = e.ChangeType switch
+            {
+                WatcherChangeTypes.Created => "File Created:",
+                WatcherChangeTypes.Changed => "File Modified:",
+                WatcherChangeTypes.Deleted => "File Deleted:",
+                _ => "Unknown Event:"
+            };
+        
+            // 중복 이벤트 방지
             if (IsDuplicateEvent(e.FullPath))
             {
                 if (isDebugMode)
@@ -132,48 +132,44 @@ namespace ITM_Agent.Services
                 return;
             }
         
-            logManager.LogEvent($"{eventType} {e.FullPath}");
-        
-            if (isDebugMode)
-            {
-                logManager.LogDebug($"Event detected: {eventType} for file: {e.FullPath}");
-            }
-        
             try
             {
-                if (e.ChangeType == WatcherChangeTypes.Created || e.ChangeType == WatcherChangeTypes.Changed)
+                switch (e.ChangeType)
                 {
-                    if (File.Exists(e.FullPath))
-                    {
-                        string destinationFolder = ProcessFile(e.FullPath);
-                        if (!string.IsNullOrEmpty(destinationFolder))
+                    case WatcherChangeTypes.Created:
+                    case WatcherChangeTypes.Changed:
+                        if (File.Exists(e.FullPath))
                         {
+                            string destinationFolder = ProcessFile(e.FullPath);
                             logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
                             if (isDebugMode)
                             {
-                                logManager.LogDebug($"File successfully copied: {e.FullPath} to folder: {destinationFolder}");
+                                logManager.LogDebug($"Processed file: {e.FullPath} -> Destination: {destinationFolder}");
                             }
                         }
-                    }
-                }
-                else if (e.ChangeType == WatcherChangeTypes.Deleted)
-                {
-                    deletedFiles.Add(e.FullPath); // 삭제된 파일 추적
-                    if (isDebugMode)
-                    {
-                        logManager.LogDebug($"File deleted: {e.FullPath}");
-                    }
+                        break;
         
-                    // 삭제된 파일을 일정 시간 후 추적 목록에서 제거
-                    ScheduleDeletedFileCleanup(e.FullPath);
+                    case WatcherChangeTypes.Deleted:
+                        logManager.LogEvent($"File Deleted: {e.FullPath}");
+                        if (isDebugMode)
+                        {
+                            logManager.LogDebug($"Deleted file tracked: {e.FullPath}");
+                        }
+                        deletedFiles.Add(e.FullPath); // 삭제된 파일을 목록에 추가
+                        ScheduleDeletedFileCleanup(e.FullPath);
+                        break;
+        
+                    default:
+                        logManager.LogEvent($"Unhandled event: {eventType} {e.FullPath}");
+                        break;
                 }
             }
             catch (Exception ex)
             {
-                logManager.LogEvent($"Error processing file: {e.FullPath}");
+                logManager.LogEvent($"Error processing file: {e.FullPath}. Exception: {ex.Message}");
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Error during file processing: {e.FullPath}. Exception: {ex.Message}");
+                    logManager.LogDebug($"Error: {ex.Message} for file: {e.FullPath}");
                 }
             }
         }
