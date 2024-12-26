@@ -20,7 +20,7 @@ namespace ITM_Agent.Services
         private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
         private readonly HashSet<string> deletedFiles = new HashSet<string>(); // 삭제된 파일 추적
         private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
-        private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(2); // 중복 이벤트 방지 시간
+        private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(5); // 중복 이벤트 방지 시간
         
         private bool isDebugMode;
         
@@ -230,13 +230,35 @@ namespace ITM_Agent.Services
             {
                 if (Regex.IsMatch(fileName, kvp.Key))
                 {
-                    string destinationFolder = kvp.Value; // 지정된 폴더 경로만 사용
+                    string destinationFolder = kvp.Value; // 지정된 폴더 경로
                     string destinationFile = Path.Combine(destinationFolder, fileName);
                     
                     try
                     {
+                        // 복사 대상 폴더 생성
                         Directory.CreateDirectory(destinationFolder);
+        
+                        // 원본 파일 접근 가능 여부 확인
+                        if (!IsFileReady(filePath))
+                        {
+                            logManager.LogEvent($"Warning: File is not ready for copying: {filePath}");
+                            return null;
+                        }
+        
+                        // 파일 복사
                         File.Copy(filePath, destinationFile, true);
+        
+                        // 복사한 파일의 크기를 확인하여 로그
+                        long fileSize = new FileInfo(destinationFile).Length;
+                        if (fileSize == 0)
+                        {
+                            logManager.LogEvent($"Warning: Copied file is empty: {destinationFile}");
+                        }
+                        else
+                        {
+                            logManager.LogDebug($"Successfully copied: {filePath} -> {destinationFile}");
+                        }
+        
                         return destinationFolder; // 복사된 폴더 경로 반환
                     }
                     catch (Exception ex)
@@ -245,8 +267,25 @@ namespace ITM_Agent.Services
                     }
                 }
             }
+        
             logManager.LogEvent($"No matching regex for file: {fileName}");
             return null;
+        }
+        
+        // 파일 접근 가능 여부 확인 메서드
+        private bool IsFileReady(string filePath)
+        {
+            try
+            {
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return true;
+                }
+            }
+            catch (IOException)
+            {
+                return false; // 파일이 잠겨 있거나 접근할 수 없는 상태
+            }
         }
         
         private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
