@@ -457,11 +457,11 @@ namespace ITM_Agent.Services
             }
         }
         
-        public Dictionary<string, string> GetRegexList()
+        public List<string> GetRegexFolders()
         {
-            var regexDict = new Dictionary<string, string>();
+            var folders = new List<string>();
             if (!File.Exists(settingsFilePath))
-                return regexDict;
+                return folders;
     
             var lines = File.ReadAllLines(settingsFilePath);
             bool inRegexSection = false;
@@ -481,10 +481,10 @@ namespace ITM_Agent.Services
     
                     var parts = line.Split(new[] { "->" }, StringSplitOptions.None);
                     if (parts.Length == 2)
-                        regexDict[parts[0].Trim()] = parts[1].Trim();
+                        folders.Add(parts[1].Trim());
                 }
             }
-            return regexDict;
+            return folders;
         }
         
         public void NotifyRegexSettingsUpdated()
