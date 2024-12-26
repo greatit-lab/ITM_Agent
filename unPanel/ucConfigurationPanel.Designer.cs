@@ -313,15 +313,6 @@ namespace ITM_Agent.ucPanel
             this.lb_RegexList.Size = new System.Drawing.Size(479, 220);
             this.lb_RegexList.TabIndex = 8;
             //
-            // ucOverrideNamesPanel
-            //
-            this.ucOverrideNamesPanel = new ITM_Agent.ucPanel.ucOverrideNamesPanel(settingsManager);
-            this.ucOverrideNamesPanel.Location = new System.Drawing.Point(674, 22);
-            this.ucOverrideNamesPanel.Name = "ucOverrideNamesPanel";
-            this.ucOverrideNamesPanel.Size = new System.Drawing.Size(8, 8);
-            this.Controls.Add(this.splitContainer2);
-            this.ucOverrideNamesPanel.TabIndex = 15;
-            //
             // ucScreen1
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
