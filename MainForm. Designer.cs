@@ -487,7 +487,6 @@ namespace ITM_Agent
             // MainForm
             //
             // 창 핸들이 생성된 후 UpdateMainStatus 실행
-            this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped!", Color.Red);
             this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle; // 크기 고정
             this.StartPosition = FormStartPosition.CenterScreen; // 화면 중앙 정렬
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
