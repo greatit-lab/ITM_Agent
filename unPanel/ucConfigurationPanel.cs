@@ -340,21 +340,33 @@ namespace ITM_Agent.ucPanel
         
         public void UpdateStatusOnRun(bool isRunning)
         {
+            // 버튼 상태 업데이트
             SetButtonsEnabled(!isRunning);
-            StatusUpdated?.Invoke(isRunning ? "Running..." : "Stopped!", isRunning ? Color.Blue : Color.Red);
+            
+            // 상태 변경 이벤트 전달
+            string status = isRunning ? "Running..." : "Stopped!";
+            Color statusColor = isRunning ? Color.Blue : Color.Red;
+            StatusUpdated?.Invoke(status, statusColor);
         }
-
         
-        public void SetButtonsEnabled(bool isEnabled)
+        public void SetControlsEnabled(bool isEnabled)
         {
+            // 공통 버튼 활성화/비활성화
             btn_TargetFolder.Enabled = isEnabled;
             btn_TargetRemove.Enabled = isEnabled;
             btn_ExcludeFolder.Enabled = isEnabled;
             btn_ExcludeRemove.Enabled = isEnabled;
             btn_BaseFolder.Enabled = isEnabled;
+            
+            // 정규 표현식 관련 버튼
             btn_RegAdd.Enabled = isEnabled;
             btn_RegEdit.Enabled = isEnabled;
             btn_RegRemove.Enabled = isEnabled;
+            
+            // 목록 선택 활성화 상태 동기화
+            lb_TargetList.Enabled = isEnabled;
+            lb_ExcludeList.Enabled = isEnabled;
+            lb_RegexList.Enabled = isEnabled;
         }
 
         public string BaseFolder
@@ -387,7 +399,19 @@ namespace ITM_Agent.ucPanel
         
         public void InitializePanel(bool isRunning)
         {
-            UpdateStatusOnRun(isRunning); // 초기화 시 상태 동기화
+            SetButtonsEnabled(!isRunning); // Running 상태일 때 버튼 비활성화
+        }
+        
+        public void SetButtonsEnabled(bool isEnabled)
+        {
+            btn_TargetFolder.Enabled = isEnabled;
+            btn_TargetRemove.Enabled = isEnabled;
+            btn_ExcludeFolder.Enabled = isEnabled;
+            btn_ExcludeRemove.Enabled = isEnabled;
+            btn_BaseFolder.Enabled = isEnabled;
+            btn_RegAdd.Enabled = isEnabled;
+            btn_RegEdit.Enabled = isEnabled;
+            btn_RegRemove.Enabled = isEnabled;
         }
     }
 }
