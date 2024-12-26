@@ -45,7 +45,8 @@ namespace ITM_Agent.ucPanel
 
         private void RegexConfigForm_Load(object sender, EventArgs e)
         {
-            // 폼 위치나 초기화 로직 필요 시 추가
+            this.Size = new Size(400, 300);
+            this.StartPosition = FormStartPosition.CenterParent;
         }
 
         private void btn_RegSelectFolder_Click(object sender, EventArgs e)
