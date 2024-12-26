@@ -72,11 +72,20 @@ namespace ITM_Agent.Services
 
         public void StartWatching()
         {
+            if (isRunning)
+            {
+                logManager.LogEvent("File monitoring is already running.");
+                return;
+            }
+        
+            // 새로운 Watcher 초기화
+            InitializeWatchers();
+        
             foreach (var w in watchers)
             {
-                w.EnableRaisingEvents = true;
+                w.EnableRaisingEvents = true; // 이벤트 활성화
             }
-            isRunning = true;
+            isRunning = true; // 상태 업데이트
             logManager.LogEvent("File monitoring started.");
         }
 
@@ -85,10 +94,13 @@ namespace ITM_Agent.Services
             foreach (var w in watchers)
             {
                 w.EnableRaisingEvents = false;
+                w.Created -= OnFileChanged;
+                w.Changed -= OnFileChanged;
+                w.Deleted -= OnFileChanged;
                 w.Dispose();
             }
-            watchers.Clear();
-            isRunning = false;
+            watchers.Clear(); // 리스트 비우기
+            isRunning = false; // 상태 업데이트
             logManager.LogEvent("File monitoring stopped.");
         }
         
@@ -104,39 +116,40 @@ namespace ITM_Agent.Services
                 return;
             }
         
-            // 삭제된 파일에 대한 중복 이벤트 방지
-            if (deletedFiles.Contains(e.FullPath) && e.ChangeType == WatcherChangeTypes.Changed)
-            {
-                if (isDebugMode)
-                {
-                    logManager.LogDebug($"Ignored File Modified: for deleted file: {e.FullPath}");
-                }
-                return;
-            }
-        
-            string eventType = e.ChangeType switch
-            {
-                WatcherChangeTypes.Created => "File Created:",
-                WatcherChangeTypes.Changed => "File Modified:",
-                WatcherChangeTypes.Deleted => "File Deleted:",
-                _ => "Unknown Event:"
-            };
-        
-            // 중복 이벤트 방지
+            // 중복 이벤트 감지
             if (IsDuplicateEvent(e.FullPath))
             {
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Duplicate event ignored: {eventType} for file: {e.FullPath}");
+                    logManager.LogDebug($"Duplicate event ignored: {e.ChangeType} for file: {e.FullPath}");
                 }
                 return;
             }
         
             try
             {
+                string eventType = e.ChangeType switch
+                {
+                    WatcherChangeTypes.Created => "File Created:",
+                    WatcherChangeTypes.Changed => "File Modified:",
+                    WatcherChangeTypes.Deleted => "File Deleted:",
+                    _ => "Unknown Event:"
+                };
+        
                 switch (e.ChangeType)
                 {
                     case WatcherChangeTypes.Created:
+                        if (File.Exists(e.FullPath))
+                        {
+                            string destinationFolder = ProcessFile(e.FullPath);
+                            logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
+                            if (isDebugMode)
+                            {
+                                logManager.LogDebug($"New file created: {e.FullPath} -> Destination: {destinationFolder}");
+                            }
+                        }
+                        break;
+        
                     case WatcherChangeTypes.Changed:
                         if (File.Exists(e.FullPath))
                         {
@@ -144,18 +157,18 @@ namespace ITM_Agent.Services
                             logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
                             if (isDebugMode)
                             {
-                                logManager.LogDebug($"Processed file: {e.FullPath} -> Destination: {destinationFolder}");
+                                logManager.LogDebug($"File modified: {e.FullPath} -> Destination: {destinationFolder}");
                             }
                         }
                         break;
         
                     case WatcherChangeTypes.Deleted:
-                        logManager.LogEvent($"File Deleted: {e.FullPath}");
+                        logManager.LogEvent($"{eventType} {e.FullPath}");
                         if (isDebugMode)
                         {
                             logManager.LogDebug($"Deleted file tracked: {e.FullPath}");
                         }
-                        deletedFiles.Add(e.FullPath); // 삭제된 파일을 목록에 추가
+                        deletedFiles.Add(e.FullPath);
                         ScheduleDeletedFileCleanup(e.FullPath);
                         break;
         
@@ -173,6 +186,7 @@ namespace ITM_Agent.Services
                 }
             }
         }
+
         
         private void ScheduleDeletedFileCleanup(string filePath)
         {
