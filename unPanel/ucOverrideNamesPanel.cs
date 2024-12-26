@@ -196,6 +196,9 @@ namespace ITM_Agent.ucPanel
             btn_SelectFolder.Enabled = isEnabled;
             btn_Remove.Enabled = isEnabled;
             cb_BaseDatePath.Enabled = isEnabled;
+            
+            // 목록 선택 활성화 상태 동기화
+            lb_TargetComparePath.Enabled = isEnabled;
         }
 
         /// <summary>
