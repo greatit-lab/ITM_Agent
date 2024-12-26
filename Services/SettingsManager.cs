@@ -14,6 +14,7 @@ namespace ITM_Agent.Services
     {
         private readonly string settingsFilePath;
         private readonly object fileLock = new object();
+        public event Action RegexSettingsUpdated;
 
         public SettingsManager(string settingsFilePath)
         {
@@ -267,19 +268,49 @@ namespace ITM_Agent.Services
             lines.Add("");
 
             File.WriteAllLines(settingsFilePath, lines);
+            
+            // 기존 설정 파일 갱신 로직
+            File.WriteAllLines(settingsFilePath, ConvertRegexListToLines(regexDict));
+        
+            // 변경 알림 이벤트 호출
+            NotifyRegexSettingsUpdated();
+        }
+        
+        private IEnumerable<string> ConvertRegexListToLines(Dictionary<string, string> regexDict)
+        {
+            var lines = new List<string> { "[Regex]" };
+            lines.AddRange(regexDict.Select(kvp => $"{kvp.Key} -> {kvp.Value}"));
+            return lines;
         }
         
         public void ResetExceptEqpid()
         {
-            var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
-            var eqpidLines = lines.Where(line => line.StartsWith("[Eqpid]") || line.StartsWith("Eqpid =")).ToList();
+            // 설정 파일의 모든 라인을 읽어옴
+            var lines = File.ReadAllLines(settingsFilePath).ToList();
         
-            // Settings 파일 초기화
+            // [Eqpid] 섹션 시작과 끝 라인 찾기
+            int eqpidStartIndex = lines.FindIndex(line => line.Trim().Equals("[Eqpid]", StringComparison.OrdinalIgnoreCase));
+            int eqpidEndIndex = lines.FindIndex(eqpidStartIndex + 1, line => line.StartsWith("[") || string.IsNullOrWhiteSpace(line));
+        
+            if (eqpidStartIndex == -1)
+            {
+                throw new InvalidOperationException("[Eqpid] 섹션이 설정 파일에 존재하지 않습니다.");
+            }
+        
+            // [Eqpid] 섹션의 내용을 보존
+            eqpidEndIndex = (eqpidEndIndex == -1) ? lines.Count : eqpidEndIndex;
+            var eqpidSectionLines = lines.Skip(eqpidStartIndex).Take(eqpidEndIndex - eqpidStartIndex).ToList();
+        
+            // 설정 파일 초기화
             File.WriteAllText(settingsFilePath, string.Empty);
         
-            // Eqpid 섹션 복원
-            File.AppendAllLines(settingsFilePath, eqpidLines);
+            // [Eqpid] 섹션 복원
+            File.AppendAllLines(settingsFilePath, eqpidSectionLines);
+        
+            // 추가 공백 라인 추가
+            File.AppendAllText(settingsFilePath, Environment.NewLine);
         }
+
         
         public void LoadFromFile(string filePath)
         {
@@ -423,6 +454,55 @@ namespace ITM_Agent.Services
 
                 lines.RemoveRange(sectionIndex, endIndex - sectionIndex);
                 WriteToFileSafely(lines.ToArray());
+            }
+        }
+        
+        public Dictionary<string, string> GetRegexList()
+        {
+            var regexDict = new Dictionary<string, string>();
+            if (!File.Exists(settingsFilePath))
+                return regexDict;
+    
+            var lines = File.ReadAllLines(settingsFilePath);
+            bool inRegexSection = false;
+    
+            foreach (var line in lines)
+            {
+                if (line.Trim() == "[Regex]")
+                {
+                    inRegexSection = true;
+                    continue;
+                }
+    
+                if (inRegexSection)
+                {
+                    if (string.IsNullOrWhiteSpace(line) || line.StartsWith("["))
+                        break;
+    
+                    var parts = line.Split(new[] { "->" }, StringSplitOptions.None);
+                    if (parts.Length == 2)
+                        regexDict[parts[0].Trim()] = parts[1].Trim();
+                }
+            }
+            return regexDict;
+        }
+        
+        public void NotifyRegexSettingsUpdated()
+        {
+            // 변경 알림 이벤트 호출
+            RegexSettingsUpdated?.Invoke();
+        
+            // 변경된 내용을 강제로 다시 로드
+            ReloadSettings();
+        }
+        
+        private void ReloadSettings()
+        {
+            // 현재 설정 파일 다시 읽기
+            if (File.Exists(settingsFilePath))
+            {
+                var lines = File.ReadAllLines(settingsFilePath);
+                // 내부 데이터 구조 갱신
             }
         }
     }
