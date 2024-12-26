@@ -38,6 +38,9 @@ namespace ITM_Agent
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             InitializeComponent();
+
+            // 이벤트 핸들러를 생성자에서 설정
+            this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped", Color.Red);
             
             InitializeUserControls();
             RegisterMenuEvents();
