@@ -341,7 +341,7 @@ namespace ITM_Agent.ucPanel
         public void UpdateStatusOnRun(bool isRunning)
         {
             // 버튼 상태 업데이트
-            SetButtonsEnabled(!isRunning);
+            SetControlsEnabled(!isRunning);
             
             // 상태 변경 이벤트 전달
             string status = isRunning ? "Running..." : "Stopped!";
