@@ -38,7 +38,7 @@ namespace ITM_Agent
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             InitializeComponent();
-
+            
             // 이벤트 핸들러를 생성자에서 설정
             this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped", Color.Red);
             
@@ -229,41 +229,18 @@ namespace ITM_Agent
         {
             logManager.LogEvent("Run button clicked.");
         
-            if (isDebugMode)
-            {
-                logManager.LogDebug("Run operation started. Initializing components.");
-            }
-        
             try
             {
-                // Watcher 시작
-                if (isDebugMode)
-                {
-                    logManager.LogDebug("Initializing watchers.");
-                }
-                
-                fileWatcherManager.StartWatching();
-        
-                if (isDebugMode)
-                {
-                    logManager.LogDebug("File watchers started successfully.");
-                }
-        
-                // 상태 업데이트
+                fileWatcherManager.StartWatching(); // StartWatching 호출
+                isRunning = true; // 상태 변경
                 UpdateMainStatus("Running...", Color.Blue);
-                
-                if (isDebugMode)
-                {
-                    logManager.LogDebug("Run operation completed successfully.");
-                }
+        
+                ucConfigPanel.InitializePanel(isRunning); // 패널 동기화
+                ucOverrideNamesPanel.InitializePanel(isRunning);
             }
             catch (Exception ex)
             {
                 logManager.LogEvent($"Error starting monitoring: {ex.Message}");
-                if (isDebugMode)
-                {
-                    logManager.LogDebug($"Run operation failed with error: {ex.Message}");
-                }
                 UpdateMainStatus("Stopped!", Color.Red);
             }
         }
@@ -272,27 +249,15 @@ namespace ITM_Agent
         {
             logManager.LogEvent("Stop button clicked.");
         
-            if (isDebugMode)
-            {
-                logManager.LogDebug("Stop operation started. Shutting down components.");
-            }
-        
-            // Watcher 중지
-            fileWatcherManager.StopWatchers();
-        
-            if (isDebugMode)
-            {
-                logManager.LogDebug("File watchers stopped successfully.");
-            }
-        
-            // 상태 업데이트
+            fileWatcherManager.StopWatchers(); // StopWatchers 호출
+            isRunning = false; // 상태 변경
             UpdateMainStatus("Stopped!", Color.Red);
-            
-            if (isDebugMode)
-            {
-                logManager.LogDebug("Stop operation completed successfully.");
-            }
+        
+            ucConfigPanel.InitializePanel(isRunning); // 패널 동기화
+            ucOverrideNamesPanel.InitializePanel(isRunning);
         }
+
+
 
         
         private void UpdateButtonsState()
@@ -446,15 +411,15 @@ namespace ITM_Agent
             pMain.Controls.Clear();
             pMain.Controls.Add(control);
             control.Dock = DockStyle.Fill;
-            
+        
             // 상태 동기화
             if (control is ucConfigurationPanel configPanel)
             {
-                configPanel.UpdateStatusOnRun(isRunning);
+                configPanel.InitializePanel(isRunning); // Running 상태 동기화
             }
             else if (control is ucOverrideNamesPanel overridePanel)
             {
-                overridePanel.UpdateStatusOnRun(isRunning);
+                overridePanel.InitializePanel(isRunning); // Running 상태 동기화
             }
         }
         
