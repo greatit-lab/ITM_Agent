@@ -26,6 +26,12 @@ namespace ITM_Agent.ucPanel
         private const string ExcludeFoldersSection = "[ExcludeFolders]";
         private const string RegexSection = "[Regex]";
 
+        public string BaseFolderPath
+        {
+            get => lb_BaseFolder.Text; // lb_BaseFolder의 텍스트를 반환
+        }
+
+
         public ucConfigurationPanel(SettingsManager settingsManager)
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
@@ -180,7 +186,7 @@ namespace ITM_Agent.ucPanel
             // SettingsManager가 folders를 해당 section에 다시 쓸 수 있는 메서드가 필요하다면 추가
             // 여기서는 SettingsManager가 폴더 목록을 반영하는 메서드를 가정할 수 있음.
             // 만약 없다면, SettingsManager 개선 필요.
-            
+
             // 예: SettingsManager에 SetFoldersToSection(section, folders) 메서드를 추가했다고 가정
             // folders: 중복 제거, 정렬 등 필요시 처리
             settingsManager.SetFoldersToSection(section, folders);
@@ -195,8 +201,8 @@ namespace ITM_Agent.ucPanel
         {
             using (var folderDialog = new FolderBrowserDialog())
             {
-                folderDialog.SelectedPath = lb_BaseFolder.Text == "폴더가 미선택되었습니다" 
-                    ? AppDomain.CurrentDomain.BaseDirectory 
+                folderDialog.SelectedPath = lb_BaseFolder.Text == "폴더가 미선택되었습니다"
+                    ? AppDomain.CurrentDomain.BaseDirectory
                     : lb_BaseFolder.Text;
 
                 if (folderDialog.ShowDialog() == DialogResult.OK)
@@ -208,7 +214,7 @@ namespace ITM_Agent.ucPanel
                 }
             }
         }
-        
+
         private void ShowRegexConfigFormCentered(RegexConfigForm regexForm)
         {
             // RegexConfigForm을 정중앙에 위치시키기 위한 로직
@@ -219,12 +225,12 @@ namespace ITM_Agent.ucPanel
                     parentPanel.Location.X + (parentPanel.Width - regexForm.Width) / 2,
                     parentPanel.Location.Y + (parentPanel.Height - regexForm.Height) / 2
                 );
-        
+
                 regexForm.StartPosition = FormStartPosition.Manual;
                 regexForm.Location = this.PointToScreen(centerLocation);
             }
         }
-        
+
         private void btn_RegAdd_Click(object sender, EventArgs e)
         {
             using (var regexForm = new RegexConfigForm(BaseFolder))
@@ -234,12 +240,12 @@ namespace ITM_Agent.ucPanel
                 {
                     string regex = regexForm.RegexPattern;
                     string targetFolder = regexForm.TargetFolder;
-        
+
                     AddOrUpdateRegex(regex, targetFolder, null);
                 }
             }
         }
-        
+
         private void btn_RegEdit_Click(object sender, EventArgs e)
         {
             if (lb_RegexList.SelectedItem == null)
@@ -247,15 +253,15 @@ namespace ITM_Agent.ucPanel
                 MessageBox.Show("수정할 항목을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
                 return;
             }
-        
+
             var (regex, targetFolder) = ParseSelectedRegexItem(lb_RegexList.SelectedItem.ToString());
             using (var regexForm = new RegexConfigForm(BaseFolder))
             {
                 regexForm.RegexPattern = regex;
                 regexForm.TargetFolder = targetFolder;
-        
+
                 ShowRegexConfigFormCentered(regexForm);
-        
+
                 if (regexForm.ShowDialog() == DialogResult.OK)
                 {
                     AddOrUpdateRegex(regexForm.RegexPattern, regexForm.TargetFolder, regex);
@@ -337,18 +343,18 @@ namespace ITM_Agent.ucPanel
                 StatusUpdated?.Invoke("Stopped!", Color.Red);
             }
         }
-        
+
         public void UpdateStatusOnRun(bool isRunning)
         {
             // 버튼 상태 업데이트
             SetControlsEnabled(!isRunning);
-            
+
             // 상태 변경 이벤트 전달
             string status = isRunning ? "Running..." : "Stopped!";
             Color statusColor = isRunning ? Color.Blue : Color.Red;
             StatusUpdated?.Invoke(status, statusColor);
         }
-        
+
         public void SetControlsEnabled(bool isEnabled)
         {
             // 공통 버튼 활성화/비활성화
@@ -357,12 +363,12 @@ namespace ITM_Agent.ucPanel
             btn_ExcludeFolder.Enabled = isEnabled;
             btn_ExcludeRemove.Enabled = isEnabled;
             btn_BaseFolder.Enabled = isEnabled;
-            
+
             // 정규 표현식 관련 버튼
             btn_RegAdd.Enabled = isEnabled;
             btn_RegEdit.Enabled = isEnabled;
             btn_RegRemove.Enabled = isEnabled;
-            
+
             // 목록 선택 활성화 상태 동기화
             lb_TargetList.Enabled = isEnabled;
             lb_ExcludeList.Enabled = isEnabled;
@@ -373,22 +379,22 @@ namespace ITM_Agent.ucPanel
         {
             get => (lb_BaseFolder.Text != "폴더가 미선택되었습니다") ? lb_BaseFolder.Text : null;
         }
-        
+
         public void RefreshUI()
         {
             LoadDataFromSettings(); // 설정값을 다시 로드하여 UI 갱신
         }
-        
+
         public string GetBaseFolder()
         {
             return lb_BaseFolder.Text;
         }
-        
+
         public List<string> GetRegexList()
         {
             return lb_RegexList.Items
                 .Cast<string>()
-                .Select(item => 
+                .Select(item =>
                 {
                     var parts = item.Split(new[] { "->" }, StringSplitOptions.None);
                     return parts.Length == 2 ? parts[1].Trim() : null;
@@ -396,12 +402,12 @@ namespace ITM_Agent.ucPanel
                 .Where(folder => !string.IsNullOrWhiteSpace(folder))
                 .ToList();
         }
-        
+
         public void InitializePanel(bool isRunning)
         {
             SetButtonsEnabled(!isRunning); // Running 상태일 때 버튼 비활성화
         }
-        
+
         public void SetButtonsEnabled(bool isEnabled)
         {
             btn_TargetFolder.Enabled = isEnabled;
