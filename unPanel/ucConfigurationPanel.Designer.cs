@@ -319,7 +319,7 @@ namespace ITM_Agent.ucPanel
             this.ucOverrideNamesPanel.Location = new System.Drawing.Point(674, 22);
             this.ucOverrideNamesPanel.Name = "ucOverrideNamesPanel";
             this.ucOverrideNamesPanel.Size = new System.Drawing.Size(8, 8);
-            this.Controls.Add(this.ucOverrideNamesPanel);
+            this.Controls.Add(this.splitContainer2);
             this.ucOverrideNamesPanel.TabIndex = 15;
             //
             // ucScreen1
