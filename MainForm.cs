@@ -271,19 +271,15 @@ namespace ITM_Agent
         
         private void btn_Quit_Click(object sender, EventArgs e)
         {
-            if (ts_Status.Text == "Ready to Run" || ts_Status.Text == "Stopped!")
+            if (ts_Status.Text == "Running...")
             {
-                PerformQuit();
+                // 실행 중인 작업 강제 중지
+                btn_Stop.PerformClick(); // Stop 버튼 동작 호출
             }
-            else
-            {
-                MessageBox.Show("실행 중에는 종료할 수 없습니다. 먼저 작업을 중지하세요.",
-                                "종료 불가",
-                                MessageBoxButtons.OK,
-                                MessageBoxIcon.Warning);
-            }
+        
+            PerformQuit(); // 종료 실행
         }
-
+        
         private void PerformQuit()
         {
             fileWatcherManager.StopWatchers();
