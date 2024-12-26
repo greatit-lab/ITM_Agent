@@ -5,6 +5,7 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
+using System.Threading;
 using System.Windows.Forms;
 
 namespace ITM_Agent.ucPanel
@@ -15,17 +16,21 @@ namespace ITM_Agent.ucPanel
         private FileSystemWatcher folderWatcher; // 폴더 감시기
         private List<string> regexFolders; // 정규표현식과 폴더 정보 저장
         private string baseFolder; // BaseFolder 저장
-        
+
         public event Action<string, Color> StatusUpdated;
 
-        public ucOverrideNamesPanel(SettingsManager settingsManager)
+        private ucConfigurationPanel configPanel;
+
+        public ucOverrideNamesPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel)
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
+
             InitializeComponent();
-            
+
             InitializeCustomEvents();
             //PopulateComboBox();
-            
+
             // 데이터 로드
             LoadDataFromSettings();
             LoadRegexFolderPaths(); // 초기화 시 목록 로드
@@ -97,7 +102,7 @@ namespace ITM_Agent.ucPanel
                     DateTime? dateTimeInfo = ExtractDateTimeFromFile(e.FullPath);
                     if (dateTimeInfo.HasValue)
                     {
-                        RenameFileWithDate(e.FullPath, dateTimeInfo.Value);
+                        CreateBaselineInfoFile(e.FullPath, dateTimeInfo.Value);
                     }
                 }
             }
@@ -107,19 +112,99 @@ namespace ITM_Agent.ucPanel
             }
         }
 
+        private void CreateBaselineInfoFile(string filePath, DateTime dateTime)
+        {
+            string baseFolder = configPanel.BaseFolderPath; // ucConfigurationPanel에서 기준 폴더 경로 가져오기
+            if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            {
+                MessageBox.Show("기준 폴더가 설정되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+
+            string baselineFolder = Path.Combine(baseFolder, "Baseline");
+            if (!Directory.Exists(baselineFolder))
+            {
+                Directory.CreateDirectory(baselineFolder);
+            }
+
+            string originalFileName = Path.GetFileNameWithoutExtension(filePath);
+            string newFileName = $"{dateTime:yyyyMMdd_HHmmss}_{originalFileName}.info";
+            string newFilePath = Path.Combine(baselineFolder, newFileName);
+
+            try
+            {
+                // 파일을 읽기 후 닫기
+                using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                {
+                    // 파일을 단순히 읽고 아무 작업 없이 닫음
+                }
+
+                // 빈 파일 생성
+                using (File.Create(newFilePath))
+                {
+                    // 파일 생성 성공
+                }
+            }
+            catch (Exception ex)
+            {
+                MessageBox.Show($"파일 처리 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
+        }
+
+        private bool IsFileReady(string filePath)
+        {
+            try
+            {
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                {
+                    return true;
+                }
+            }
+            catch (IOException)
+            {
+                return false;
+            }
+        }
+
         private DateTime? ExtractDateTimeFromFile(string filePath)
         {
             string datePattern = @"Date and Time:\s*(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2} (AM|PM))";
-            string fileContent = File.ReadAllText(filePath);
+            const int maxRetries = 5;
+            const int delayMs = 1000;
 
-            Match match = Regex.Match(fileContent, datePattern);
-            if (match.Success && DateTime.TryParse(match.Groups[1].Value, out DateTime result))
+            for (int i = 0; i < maxRetries; i++)
             {
-                return result;
+                if (IsFileReady(filePath))
+                {
+                    try
+                    {
+                        using (var fileStream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        using (var reader = new StreamReader(fileStream))
+                        {
+                            string fileContent = reader.ReadToEnd();
+                            Match match = Regex.Match(fileContent, datePattern);
+                            if (match.Success && DateTime.TryParse(match.Groups[1].Value, out DateTime result))
+                            {
+                                return result;
+                            }
+                        }
+                    }
+                    catch (IOException ex)
+                    {
+                        MessageBox.Show($"파일 읽기 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        return null;
+                    }
+                }
+                else
+                {
+                    Thread.Sleep(delayMs); // 파일이 잠겨있으면 대기
+                }
             }
 
+            MessageBox.Show("파일이 사용 중이어서 처리할 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             return null;
         }
+
 
         private void RenameFileWithDate(string filePath, DateTime dateTime)
         {
@@ -143,7 +228,7 @@ namespace ITM_Agent.ucPanel
         private void Btn_SelectFolder_Click(object sender, EventArgs e)
         {
             var baseFolder = settingsManager.GetFoldersFromSection("[BaseFolder]").FirstOrDefault() ?? AppDomain.CurrentDomain.BaseDirectory;
-            
+
             using (var folderDialog = new FolderBrowserDialog())
             {
                 folderDialog.SelectedPath = baseFolder;
@@ -176,7 +261,7 @@ namespace ITM_Agent.ucPanel
                     {
                         lb_TargetComparePath.Items.Remove(item);
                     }
-                    
+
                     UpdateTargetComparePathInSettings();
                 }
             }
@@ -196,7 +281,7 @@ namespace ITM_Agent.ucPanel
         {
             string status = isRunning ? "Running" : "Stopped";
             Color statusColor = isRunning ? Color.Green : Color.Red;
-            
+
             StatusUpdated?.Invoke($"Status: {status}", statusColor);
         }
 
@@ -210,7 +295,7 @@ namespace ITM_Agent.ucPanel
             var baseFolders = settingsManager.GetFoldersFromSection("[BaseFolder]");
             cb_BaseDatePath.Items.Clear();
             cb_BaseDatePath.Items.AddRange(baseFolders.ToArray());
-        
+
             var comparePaths = settingsManager.GetFoldersFromSection("[TargetComparePath]");
             lb_TargetComparePath.Items.Clear();
             foreach (var path in comparePaths)
