@@ -20,6 +20,7 @@ namespace ITM_Agent.ucPanel
         public event Action<string, Color> StatusUpdated;
 
         private ucConfigurationPanel configPanel;
+        private FileSystemWatcher baselineWatcher;
 
         public ucOverrideNamesPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel)
         {
@@ -27,6 +28,8 @@ namespace ITM_Agent.ucPanel
             this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
 
             InitializeComponent();
+
+            InitializeBaselineWatcher();
 
             InitializeCustomEvents();
             //PopulateComboBox();
@@ -322,6 +325,190 @@ namespace ITM_Agent.ucPanel
         {
             bool isRunning = status == "Running...";
             SetControlEnabled(!isRunning);
+        }
+
+        public void CompareAndRenameFiles()
+        {
+            // Baseline 폴더 경로 가져오기
+            var baseFolder = cb_BaseDatePath.SelectedItem?.ToString();
+            if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            {
+                MessageBox.Show("Baseline 폴더를 선택하거나 유효한 경로를 설정하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            // Baseline 폴더의 파일 처리
+            var baselineFiles = Directory.GetFiles(baseFolder, "*.info");
+            var baselineData = ExtractBaselineData(baselineFiles);
+
+            // Target 폴더의 파일 처리
+            foreach (string targetFolder in lb_TargetComparePath.Items)
+            {
+                if (!Directory.Exists(targetFolder)) continue;
+
+                var targetFiles = Directory.GetFiles(targetFolder);
+                foreach (var targetFile in targetFiles)
+                {
+                    string newFileName = ProcessTargetFile(targetFile, baselineData);
+                    if (!string.IsNullOrEmpty(newFileName))
+                    {
+                        string newFilePath = Path.Combine(targetFolder, newFileName);
+                        File.Move(targetFile, newFilePath);
+                    }
+                }
+            }
+
+            MessageBox.Show("파일 이름 변환 작업이 완료되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+        }
+
+        public void StartProcessing()
+        {
+            while (true) // 상시 가동 상태
+            {
+                if (IsRunning())
+                {
+                    CompareAndRenameFiles();
+                    System.Threading.Thread.Sleep(1000); // 작업 주기 조정
+                }
+            }
+        }
+
+        private bool IsRunning()
+        {
+            // Running 상태 확인 로직 구현
+            return true; // 임시로 항상 true 반환
+        }
+
+        private void InitializeBaselineWatcher()
+        {
+            var baseFolder = settingsManager.GetFoldersFromSection("[BaseFolder]").FirstOrDefault();
+            if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            {
+                MessageBox.Show("BaseFolder를 선택하거나 유효한 경로를 설정하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            var baselineFolder = Path.Combine(baseFolder, "Baseline");
+            if (!Directory.Exists(baselineFolder))
+            {
+                MessageBox.Show("Baseline 폴더가 존재하지 않습니다.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
+
+            baselineWatcher = new FileSystemWatcher(baselineFolder, "*.info")
+            {
+                NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite
+            };
+
+            baselineWatcher.Created += OnBaselineFileChanged;
+            baselineWatcher.Changed += OnBaselineFileChanged;
+            baselineWatcher.EnableRaisingEvents = true;
+        }
+
+        private void OnBaselineFileChanged(object sender, FileSystemEventArgs e)
+        {
+            if (File.Exists(e.FullPath))
+            {
+                var baselineData = ExtractBaselineData(new[] { e.FullPath });
+
+                foreach (string targetFolder in lb_TargetComparePath.Items)
+                {
+                    if (!Directory.Exists(targetFolder)) continue;
+
+                    var targetFiles = Directory.GetFiles(targetFolder);
+                    foreach (var targetFile in targetFiles)
+                    {
+                        string newFileName = ProcessTargetFile(targetFile, baselineData);
+                        if (!string.IsNullOrEmpty(newFileName))
+                        {
+                            string newFilePath = Path.Combine(targetFolder, newFileName);
+
+                            try
+                            {
+                                // 파일 경로 존재 여부 확인
+                                if (!File.Exists(targetFile))
+                                {
+                                    if (settingsManager.IsDebugMode)
+                                    {
+                                        Console.WriteLine($"[DEBUG] 원본 파일을 찾을 수 없습니다: {targetFile}");
+                                    }
+                                    continue;
+                                }
+
+                                File.Move(targetFile, newFilePath);
+
+                                // 변경 내용 로그 기록
+                                LogFileRename(targetFile, newFilePath);
+                            }
+                            catch (IOException ioEx)
+                            {
+                                Console.WriteLine($"파일 이동 중 오류 발생: {ioEx.Message}");
+                            }
+                            catch (Exception ex)
+                            {
+                                Console.WriteLine($"예기치 않은 오류가 발생했습니다: {ex.Message}");
+                            }
+                        }
+                    }
+                }
+            }
+        }
+
+        private void LogFileRename(string oldPath, string newPath)
+        {
+            string logMessage = $"[INFO] 파일 이름 변경: {oldPath} -> {newPath}";
+            Console.WriteLine(logMessage);
+
+            if (settingsManager.IsDebugMode)
+            {
+                Console.WriteLine($"[DEBUG] 파일 변경 상세 로그 기록 완료: {logMessage}");
+            }
+        }
+
+        private Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> ExtractBaselineData(string[] files)
+        {
+            var baselineData = new Dictionary<string, (string, string, string)>();
+            var regex = new Regex(@"(\d{8}_\d{6})_([^_]+?)_([0-9]+W\d+)");
+
+            foreach (var file in files)
+            {
+                string fileName = Path.GetFileNameWithoutExtension(file);
+                var match = regex.Match(fileName);
+                if (match.Success)
+                {
+                    string timeInfo = match.Groups[1].Value;
+                    string prefix = match.Groups[2].Value;
+                    string cInfo = match.Groups[3].Value;
+
+                    baselineData[fileName] = (timeInfo, prefix, cInfo);
+                }
+            }
+
+            return baselineData;
+        }
+
+        private string ProcessTargetFile(string targetFile, Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> baselineData)
+        {
+            string fileName = Path.GetFileName(targetFile);
+            foreach (var data in baselineData.Values)
+            {
+                if (fileName.Contains(data.TimeInfo) && fileName.Contains(data.Prefix))
+                {
+                    var regex = new Regex(@"_#1_");
+                    return regex.Replace(fileName, $"_{data.CInfo}_");
+                }
+            }
+
+            return null;
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                baselineWatcher?.Dispose();
+            }
+            base.Dispose(disposing);
         }
     }
 }
