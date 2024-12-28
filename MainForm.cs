@@ -228,22 +228,24 @@ namespace ITM_Agent
         private void btn_Run_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Run button clicked.");
-
             try
             {
-                fileWatcherManager.StartWatching(); // StartWatching 호출
-                isRunning = true; // 상태 변경
+                fileWatcherManager.StartWatching(); // FileWatcher 시작
+                isRunning = true; // 상태 업데이트
                 UpdateMainStatus("Running...", Color.Blue);
 
-                ucConfigPanel.InitializePanel(isRunning); // 패널 동기화
-                ucOverrideNamesPanel.InitializePanel(isRunning);
+                if (isDebugMode)
+                {
+                    logManager.LogDebug("FileWatcherManager started successfully.");
+                }
             }
             catch (Exception ex)
             {
-                logManager.LogEvent($"Error starting monitoring: {ex.Message}");
+                logManager.LogError($"Error starting monitoring: {ex.Message}");
                 UpdateMainStatus("Stopped!", Color.Red);
             }
         }
+
 
         private void btn_Stop_Click(object sender, EventArgs e)
         {
