@@ -2,6 +2,7 @@
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
@@ -45,8 +46,14 @@ namespace ITM_Agent.Services
 
         public void InitializeWatchers()
         {
-            StopWatchers();
+            StopWatchers(); // 기존 Watcher 중지
             var targetFolders = settingsManager.GetFoldersFromSection("[TargetFolders]");
+            if (targetFolders.Count == 0)
+            {
+                logManager.LogEvent("No target folders configured for monitoring.");
+                return;
+            }
+
             foreach (var folder in targetFolders)
             {
                 if (!Directory.Exists(folder))
@@ -67,9 +74,16 @@ namespace ITM_Agent.Services
                 watcher.Deleted += OnFileChanged;
 
                 watchers.Add(watcher);
+
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Initialized watcher for folder: {folder}");
+                }
             }
-            logManager.LogEvent($"{watchers.Count} watchers initialized.");
+
+            logManager.LogEvent($"{watchers.Count} watcher(s) initialized.");
         }
+
 
         public void StartWatching()
         {
@@ -79,16 +93,18 @@ namespace ITM_Agent.Services
                 return;
             }
 
-            // 새로운 Watcher 초기화
-            InitializeWatchers();
+            InitializeWatchers(); // 새로 초기화
 
-            foreach (var w in watchers)
+            foreach (var watcher in watchers)
             {
-                w.EnableRaisingEvents = true; // 이벤트 활성화
+                watcher.EnableRaisingEvents = true; // 이벤트 활성화
             }
+
             isRunning = true; // 상태 업데이트
             logManager.LogEvent("File monitoring started.");
+            logManager.LogDebug($"Monitoring {watchers.Count} folder(s): {string.Join(", ", watchers.Select(w => w.Path))}");
         }
+
 
         public void StopWatchers()
         {
@@ -105,77 +121,53 @@ namespace ITM_Agent.Services
             logManager.LogEvent("File monitoring stopped.");
         }
 
-        private void OnFileChanged(object sender, FileSystemEventArgs e)
+        private async Task<bool> WaitForFileReadyAsync(string filePath, int maxRetries, int delayMilliseconds)
+        {
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+                if (IsFileReady(filePath))
+                {
+                    logManager.LogEvent($"File is ready: {filePath}");
+                    return true;
+                }
+
+                logManager.LogEvent($"Retrying... File not ready: {filePath}, Attempt: {attempt + 1}");
+                await Task.Delay(delayMilliseconds);
+            }
+
+            logManager.LogEvent($"File not ready after {maxRetries} attempts: {filePath}");
+            return false;
+        }
+
+        private async void OnFileChanged(object sender, FileSystemEventArgs e)
         {
             if (!isRunning)
             {
-                logManager.LogEvent("File event ignored because the status is not Running.");
                 if (isDebugMode)
-                {
-                    logManager.LogDebug($"Ignored event: {e.ChangeType} for file: {e.FullPath} because monitoring is not running.");
-                }
+                    logManager.LogDebug($"File event ignored (not running): {e.FullPath}");
                 return;
             }
 
-            // 중복 이벤트 감지
+            // 중복 이벤트 방지
             if (IsDuplicateEvent(e.FullPath))
             {
                 if (isDebugMode)
-                {
-                    logManager.LogDebug($"Duplicate event ignored: {e.ChangeType} for file: {e.FullPath}");
-                }
+                    logManager.LogDebug($"Duplicate event ignored: {e.ChangeType} - {e.FullPath}");
                 return;
             }
 
             try
             {
-                string eventType = e.ChangeType switch
+                if (e.ChangeType == WatcherChangeTypes.Created)
                 {
-                    WatcherChangeTypes.Created => "File Created:",
-                    WatcherChangeTypes.Changed => "File Modified:",
-                    WatcherChangeTypes.Deleted => "File Deleted:",
-                    _ => "Unknown Event:"
-                };
-
-                switch (e.ChangeType)
+                    if (File.Exists(e.FullPath))
+                    {
+                        await Task.Run(() => ProcessFile(e.FullPath));
+                    }
+                }
+                else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    case WatcherChangeTypes.Created:
-                        if (File.Exists(e.FullPath))
-                        {
-                            string destinationFolder = ProcessFile(e.FullPath);
-                            logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
-                            if (isDebugMode)
-                            {
-                                logManager.LogDebug($"New file created: {e.FullPath} -> Destination: {destinationFolder}");
-                            }
-                        }
-                        break;
-
-                    case WatcherChangeTypes.Changed:
-                        if (File.Exists(e.FullPath))
-                        {
-                            string destinationFolder = ProcessFile(e.FullPath);
-                            logManager.LogEvent($"{eventType} {e.FullPath} -> copied to: {destinationFolder}");
-                            if (isDebugMode)
-                            {
-                                logManager.LogDebug($"File modified: {e.FullPath} -> Destination: {destinationFolder}");
-                            }
-                        }
-                        break;
-
-                    case WatcherChangeTypes.Deleted:
-                        logManager.LogEvent($"{eventType} {e.FullPath}");
-                        if (isDebugMode)
-                        {
-                            logManager.LogDebug($"Deleted file tracked: {e.FullPath}");
-                        }
-                        deletedFiles.Add(e.FullPath);
-                        ScheduleDeletedFileCleanup(e.FullPath);
-                        break;
-
-                    default:
-                        logManager.LogEvent($"Unhandled event: {eventType} {e.FullPath}");
-                        break;
+                    logManager.LogEvent($"File Deleted: {e.FullPath}");
                 }
             }
             catch (Exception ex)
@@ -183,11 +175,76 @@ namespace ITM_Agent.Services
                 logManager.LogEvent($"Error processing file: {e.FullPath}. Exception: {ex.Message}");
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Error: {ex.Message} for file: {e.FullPath}");
+                    logManager.LogDebug($"Exception details: {ex.Message}");
                 }
             }
         }
 
+        private async Task<string> ProcessFile(string filePath)
+        {
+            string fileName = Path.GetFileName(filePath);
+            var regexList = settingsManager.GetRegexList();
+
+            foreach (var kvp in regexList)
+            {
+                if (Regex.IsMatch(fileName, kvp.Key))
+                {
+                    string destinationFolder = kvp.Value;
+                    string destinationFile = Path.Combine(destinationFolder, fileName);
+
+                    try
+                    {
+                        Directory.CreateDirectory(destinationFolder);
+
+                        // 파일 준비 상태 확인
+                        if (!await WaitForFileReady(filePath))
+                        {
+                            logManager.LogEvent($"File skipped (not ready): {filePath}");
+                            return null;
+                        }
+
+                        // 파일 복사
+                        File.Copy(filePath, destinationFile, true);
+                        logManager.LogEvent($"File Created: {filePath} -> copied {destinationFolder}");
+                        return destinationFolder;
+                    }
+                    catch (Exception ex)
+                    {
+                        logManager.LogEvent($"Error copying file: {filePath}. Exception: {ex.Message}");
+                        if (isDebugMode)
+                        {
+                            logManager.LogDebug($"Error details: {ex.Message}");
+                        }
+                    }
+                }
+            }
+
+            logManager.LogEvent($"No matching regex for file: {fileName}");
+            return null;
+        }
+
+        private async Task<bool> WaitForFileReady(string filePath, int maxRetries = 10, int delayMilliseconds = 500)
+        {
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+                if (IsFileReady(filePath))
+                {
+                    return true;
+                }
+
+                // 디버그 모드일 경우 재시도 로그 기록
+                if (isDebugMode)
+                {
+                    logManager.LogDebug($"Retrying access to file: {filePath}, Attempt: {attempt + 1}/{maxRetries}");
+                }
+
+                await Task.Delay(delayMilliseconds); // 대기
+            }
+
+            // 파일 준비되지 않음
+            logManager.LogEvent($"File not ready after {maxRetries} retries: {filePath}");
+            return false;
+        }
 
         private void ScheduleDeletedFileCleanup(string filePath)
         {
@@ -209,77 +266,16 @@ namespace ITM_Agent.Services
             {
                 if (fileProcessTracker.TryGetValue(filePath, out var lastProcessed))
                 {
-                    if (now - lastProcessed < duplicateEventThreshold)
+                    if ((now - lastProcessed).TotalMilliseconds < 500) // 500ms 이내 중복 처리 방지
                     {
-                        // 중복 이벤트
                         return true;
                     }
                 }
 
-                // 마지막 처리 시간 갱신
+                // 이벤트 처리 시간 갱신
                 fileProcessTracker[filePath] = now;
                 return false;
             }
-        }
-
-        private string ProcessFile(string filePath)
-        {
-            string fileName = Path.GetFileName(filePath);
-            var regexList = settingsManager.GetRegexList();
-
-            foreach (var kvp in regexList)
-            {
-                if (Regex.IsMatch(fileName, kvp.Key))
-                {
-                    string destinationFolder = kvp.Value; // 지정된 폴더 경로
-                    string destinationFile = Path.Combine(destinationFolder, fileName);
-
-                    try
-                    {
-                        // 복사 대상 폴더 생성
-                        Directory.CreateDirectory(destinationFolder);
-
-                        // 파일 접근 가능 여부 확인 및 재시도 로직
-                        int retryCount = 0;
-                        const int maxRetries = 5;
-                        while (!IsFileReady(filePath) && retryCount < maxRetries)
-                        {
-                            logManager.LogEvent($"Retrying... File not ready: {filePath}, Attempt: {retryCount + 1}");
-                            Thread.Sleep(1000); // 1초 대기
-                            retryCount++;
-                        }
-
-                        if (!IsFileReady(filePath))
-                        {
-                            logManager.LogEvent($"Warning: File is still not ready for copying after retries: {filePath}");
-                            return null;
-                        }
-
-                        // 파일 복사
-                        File.Copy(filePath, destinationFile, true);
-
-                        // 복사한 파일의 크기를 확인하여 로그
-                        long fileSize = new FileInfo(destinationFile).Length;
-                        if (fileSize == 0)
-                        {
-                            logManager.LogEvent($"Warning: Copied file is empty: {destinationFile}");
-                        }
-                        else
-                        {
-                            logManager.LogDebug($"Successfully copied: {filePath} -> {destinationFile}");
-                        }
-
-                        return destinationFolder; // 복사된 폴더 경로 반환
-                    }
-                    catch (Exception ex)
-                    {
-                        logManager.LogEvent($"Error copying file: {fileName}. Exception: {ex.Message}");
-                    }
-                }
-            }
-
-            logManager.LogEvent($"No matching regex for file: {fileName}");
-            return null;
         }
 
         private bool IsFileReady(string filePath)
@@ -288,16 +284,14 @@ namespace ITM_Agent.Services
             {
                 using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
                 {
-                    return true;
+                    return true; // 파일이 준비됨
                 }
             }
-            catch (IOException ex)
+            catch (IOException)
             {
-                logManager.LogDebug($"File is not ready: {filePath}. Reason: {ex.Message}");
-                return false; // 파일이 잠겨 있거나 접근할 수 없는 상태
+                return false; // 파일이 잠겨 있음
             }
         }
-
 
         private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
         {
