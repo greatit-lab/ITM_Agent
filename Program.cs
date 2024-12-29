@@ -18,11 +18,11 @@ namespace ITM_Agent
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
             Application.Run(new MainForm());
-            
+
             // SettingsManager 인스턴스 생성
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
-            
+
             // MainForm 실행
             Application.Run(new MainForm(settingsManager));
         }
