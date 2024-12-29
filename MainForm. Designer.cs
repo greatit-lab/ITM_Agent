@@ -7,7 +7,7 @@ namespace ITM_Agent
     partial class MainForm
     {
         private System.ComponentModel.IContainer components = null;
-        
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -16,7 +16,7 @@ namespace ITM_Agent
             }
             base.Dispose(disposing);
         }
-        
+
         private System.Windows.Forms.MenuStrip menuStrip1;
         private System.Windows.Forms.ToolStripMenuItem tsm_Onto;
         private System.Windows.Forms.ToolStripMenuItem newConfigurationToolStripMenuItem;
@@ -67,9 +67,9 @@ namespace ITM_Agent
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
-        
+
         #region Windows Form 디자이너에서 생성한 코드
-        
+
         private void InitializeComponent()
         {
             this.cb_DebugMode = new System.Windows.Forms.CheckBox();
@@ -204,7 +204,7 @@ namespace ITM_Agent
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
             this.quitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
             this.quitToolStripMenuItem.Text = "Quit";
-            this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitMenuItem_Click);            
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitMenuItem_Click);
             //
             // toolStripMenuItem8
             //
