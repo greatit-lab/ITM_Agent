@@ -22,12 +22,12 @@ namespace ITM_Agent
         private Label instructionLabel;
         private Label warningLabel;
         private PictureBox pictureBox;  // 이미지 표시를 위한 PictureBox
-        
+
         private RadioButton rdo_Onto;
         private RadioButton rdo_Nova;
-        
+
         public string Type { get; private set; }  // 선택된 Type 값을 저장
-        
+
         public EqpidInputForm()
         {
             this.Text = "New EQPID Registry";
@@ -51,7 +51,7 @@ namespace ITM_Agent
                 Left = 125,
                 Width = 110
             };
-            
+
             warningLabel = new Label()
             {
                 Text = "장비명을 입력해주세요.",
@@ -77,7 +77,7 @@ namespace ITM_Agent
                 Left = 150,
                 Width = 90
             };
-            
+
             // 흐림 처리된 이미지 생성
             pictureBox = new PictureBox()
             {
@@ -86,7 +86,7 @@ namespace ITM_Agent
                 Size = new Size(75, 75),
                 SizeMode = PictureBoxSizeMode.StretchImage
             };
-            
+
             // TextBox에서 Enter 키로 Submit
             textBox.KeyDown += (sender, e) =>
             {
@@ -96,7 +96,7 @@ namespace ITM_Agent
                     submitButton.PerformClick(); // Submit 버튼 클릭
                 }
             };
-            
+
             // 라디오 버튼 초기화
             rdo_Onto = new RadioButton()
             {
@@ -106,7 +106,7 @@ namespace ITM_Agent
                 AutoSize = true, // 텍스트 길이에 맞게 Width 자동 조정
                 Checked = true // 기본값
             };
-            
+
             rdo_Nova = new RadioButton()
             {
                 Text = "NOVA",
@@ -123,17 +123,17 @@ namespace ITM_Agent
                     warningLabel.Visible = true;
                     return;
                 }
-        
+
                 Eqpid = textBox.Text.Trim();
                 Type = rdo_Onto.Checked ? "ONTO" : "NOVA"; // Type 값 설정
                 this.DialogResult = DialogResult.OK;
                 this.Close();
             };
-            
+
             // 컨트롤 추가
             this.Controls.Add(rdo_Onto);
             this.Controls.Add(rdo_Nova);
-            
+
             cancelButton.Click += (sender, e) =>
             {
                 this.DialogResult = DialogResult.Cancel;    // Cancel 반환
@@ -146,12 +146,12 @@ namespace ITM_Agent
             this.Controls.Add(submitButton);
             this.Controls.Add(cancelButton);
             this.Controls.Add(pictureBox); // PictureBox 추가
-            
+
             // Control 그리기 순서 조정 (Controls.Add 이후에 실행)
             this.Controls.SetChildIndex(pictureBox, 0);       // PictureBox를 가장 먼저 배치
             this.Controls.SetChildIndex(instructionLabel, 1); // instructionLabel을 PictureBox 위로 배치
         }
-        
+
         /// <summary>
         /// 이미지에 Alpha(투명도) 값을 적용하는 메서드
         /// </summary>
