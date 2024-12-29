@@ -3,7 +3,7 @@ namespace ITM_Agent.ucPanel
     partial class ucConfigurationPanel
     {
         private System.ComponentModel.IContainer components = null;
-        
+
         protected override void Dispose(bool disposing)
         {
             if (disposing && (components != null))
@@ -12,7 +12,7 @@ namespace ITM_Agent.ucPanel
             }
             base.Dispose(disposing);
         }
-        
+
         private System.Windows.Forms.TabControl tabControl1;
         private System.Windows.Forms.TabPage tabPage1;
         private System.Windows.Forms.SplitContainer splitContainer2;
@@ -36,7 +36,7 @@ namespace ITM_Agent.ucPanel
         private System.Windows.Forms.Button btn_RegAdd;
         private ucOverrideNamesPanel ucOverrideNamesPanel;
         private System.Windows.Forms.ListBox lb_RegexList;
-        
+
         #region 구성 요소 디자이너에서 생성한 코드
 
         private void InitializeComponent()
