@@ -16,10 +16,23 @@ namespace ITM_Agent.Services
         private readonly object fileLock = new object();
         public event Action RegexSettingsUpdated;
 
+        private bool isDebugMode; // DebugMode 상태 저장
+
         public SettingsManager(string settingsFilePath)
         {
             this.settingsFilePath = settingsFilePath;
             EnsureSettingsFileExists();
+        }
+
+        // DebugMode 속성 추가
+        public bool IsDebugMode
+        {
+            get => isDebugMode;
+            set
+            {
+                isDebugMode = value;
+                // 필요시 설정 파일에 저장하거나 관련 작업 수행 가능
+            }
         }
 
         private void EnsureSettingsFileExists()
