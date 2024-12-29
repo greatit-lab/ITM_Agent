@@ -58,12 +58,12 @@ namespace ITM_Agent.Services
                 File.WriteAllLines(settingsFilePath, lines);
             }
         }
-        
+
         public void SetEqpid(string eqpid)
         {
             var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
             int eqpidIndex = lines.FindIndex(l => l.Trim() == "[Eqpid]");
-        
+
             if (eqpidIndex == -1)
             {
                 lines.Add("[Eqpid]");
@@ -73,7 +73,7 @@ namespace ITM_Agent.Services
             {
                 lines[eqpidIndex + 1] = "Eqpid = " + eqpid;
             }
-        
+
             WriteToFileSafely(lines.ToArray());
         }
 
@@ -268,62 +268,62 @@ namespace ITM_Agent.Services
             lines.Add("");
 
             File.WriteAllLines(settingsFilePath, lines);
-            
+
             // 기존 설정 파일 갱신 로직
             File.WriteAllLines(settingsFilePath, ConvertRegexListToLines(regexDict));
-        
+
             // 변경 알림 이벤트 호출
             NotifyRegexSettingsUpdated();
         }
-        
+
         private IEnumerable<string> ConvertRegexListToLines(Dictionary<string, string> regexDict)
         {
             var lines = new List<string> { "[Regex]" };
             lines.AddRange(regexDict.Select(kvp => $"{kvp.Key} -> {kvp.Value}"));
             return lines;
         }
-        
+
         public void ResetExceptEqpid()
         {
             // 설정 파일의 모든 라인을 읽어옴
             var lines = File.ReadAllLines(settingsFilePath).ToList();
-        
+
             // [Eqpid] 섹션 시작과 끝 라인 찾기
             int eqpidStartIndex = lines.FindIndex(line => line.Trim().Equals("[Eqpid]", StringComparison.OrdinalIgnoreCase));
             int eqpidEndIndex = lines.FindIndex(eqpidStartIndex + 1, line => line.StartsWith("[") || string.IsNullOrWhiteSpace(line));
-        
+
             if (eqpidStartIndex == -1)
             {
                 throw new InvalidOperationException("[Eqpid] 섹션이 설정 파일에 존재하지 않습니다.");
             }
-        
+
             // [Eqpid] 섹션의 내용을 보존
             eqpidEndIndex = (eqpidEndIndex == -1) ? lines.Count : eqpidEndIndex;
             var eqpidSectionLines = lines.Skip(eqpidStartIndex).Take(eqpidEndIndex - eqpidStartIndex).ToList();
-        
+
             // 설정 파일 초기화
             File.WriteAllText(settingsFilePath, string.Empty);
-        
+
             // [Eqpid] 섹션 복원
             File.AppendAllLines(settingsFilePath, eqpidSectionLines);
-        
+
             // 추가 공백 라인 추가
             File.AppendAllText(settingsFilePath, Environment.NewLine);
         }
 
-        
+
         public void LoadFromFile(string filePath)
         {
             if (!File.Exists(filePath)) throw new FileNotFoundException("File not found.", filePath);
-        
+
             File.Copy(filePath, settingsFilePath, overwrite: true);
         }
-        
+
         public void SaveToFile(string filePath)
         {
             File.Copy(settingsFilePath, filePath, overwrite: true);
         }
-        
+
         public void SetType(string type)
         {
             var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
@@ -343,7 +343,7 @@ namespace ITM_Agent.Services
             }
             WriteToFileSafely(lines.ToArray());
         }
-        
+
         public string GetType()
         {
             var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
@@ -356,7 +356,7 @@ namespace ITM_Agent.Services
             }
             return null;
         }
-        
+
         /// <summary>
         /// 특정 섹션에서 키 값을 읽어옵니다.
         /// </summary>
@@ -400,7 +400,7 @@ namespace ITM_Agent.Services
             {
                 var lines = File.Exists(settingsFilePath) ? File.ReadAllLines(settingsFilePath).ToList() : new List<string>();
                 int sectionIndex = lines.FindIndex(l => l.Trim() == $"[{section}]");
-        
+
                 if (sectionIndex == -1)
                 {
                     // 섹션 추가
@@ -416,7 +416,7 @@ namespace ITM_Agent.Services
                     // 섹션 내 키값 업데이트
                     int endIndex = lines.FindIndex(sectionIndex + 1, l => l.StartsWith("[") || string.IsNullOrWhiteSpace(l));
                     if (endIndex == -1) endIndex = lines.Count;
-        
+
                     bool keyFound = false;
                     for (int i = sectionIndex + 1; i < endIndex; i++)
                     {
@@ -427,13 +427,13 @@ namespace ITM_Agent.Services
                             break;
                         }
                     }
-        
+
                     if (!keyFound)
                     {
                         lines.Insert(endIndex, $"{key} = {value}");
                     }
                 }
-        
+
                 File.WriteAllLines(settingsFilePath, lines);
             }
         }
@@ -456,16 +456,16 @@ namespace ITM_Agent.Services
                 WriteToFileSafely(lines.ToArray());
             }
         }
-        
+
         public List<string> GetRegexFolders()
         {
             var folders = new List<string>();
             if (!File.Exists(settingsFilePath))
                 return folders;
-    
+
             var lines = File.ReadAllLines(settingsFilePath);
             bool inRegexSection = false;
-    
+
             foreach (var line in lines)
             {
                 if (line.Trim() == "[Regex]")
@@ -473,12 +473,12 @@ namespace ITM_Agent.Services
                     inRegexSection = true;
                     continue;
                 }
-    
+
                 if (inRegexSection)
                 {
                     if (string.IsNullOrWhiteSpace(line) || line.StartsWith("["))
                         break;
-    
+
                     var parts = line.Split(new[] { "->" }, StringSplitOptions.None);
                     if (parts.Length == 2)
                         folders.Add(parts[1].Trim());
@@ -486,16 +486,16 @@ namespace ITM_Agent.Services
             }
             return folders;
         }
-        
+
         public void NotifyRegexSettingsUpdated()
         {
             // 변경 알림 이벤트 호출
             RegexSettingsUpdated?.Invoke();
-        
+
             // 변경된 내용을 강제로 다시 로드
             ReloadSettings();
         }
-        
+
         private void ReloadSettings()
         {
             // 현재 설정 파일 다시 읽기
