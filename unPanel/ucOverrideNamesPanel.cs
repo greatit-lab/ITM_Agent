@@ -100,6 +100,13 @@ namespace ITM_Agent.ucPanel
         {
             try
             {
+                // 파일 준비 상태 확인
+                if (!IsFileReady(e.FullPath))
+                {
+                    MessageBox.Show($"파일이 사용 중이어서 액세스할 수 없습니다: {e.FullPath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    return;
+                }
+
                 if (File.Exists(e.FullPath))
                 {
                     DateTime? dateTimeInfo = ExtractDateTimeFromFile(e.FullPath);
@@ -109,9 +116,13 @@ namespace ITM_Agent.ucPanel
                     }
                 }
             }
+            catch (IOException ioEx)
+            {
+                MessageBox.Show($"파일 처리 중 오류가 발생했습니다: {e.FullPath}\n\n{ioEx.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
             catch (Exception ex)
             {
-                MessageBox.Show($"파일 처리 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                MessageBox.Show($"예기치 않은 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
             }
         }
 
@@ -158,14 +169,14 @@ namespace ITM_Agent.ucPanel
         {
             try
             {
-                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.None))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    return true;
+                    return true; // 파일에 액세스 가능
                 }
             }
             catch (IOException)
             {
-                return false;
+                return false; // 파일이 잠겨 있음
             }
         }
 
@@ -459,11 +470,12 @@ namespace ITM_Agent.ucPanel
             string logMessage = $"[INFO] 파일 이름 변경: {oldPath} -> {newPath}";
             Console.WriteLine(logMessage);
 
-            if (settingsManager.IsDebugMode)
+            if (settingsManager.IsDebugMode) // Debug Mode 상태 확인
             {
                 Console.WriteLine($"[DEBUG] 파일 변경 상세 로그 기록 완료: {logMessage}");
             }
         }
+
 
         private Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> ExtractBaselineData(string[] files)
         {
