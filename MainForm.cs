@@ -459,11 +459,13 @@ namespace ITM_Agent
             // 추가 동작 없음
         }
 
-        // Debug Mode 체크박스 변경 시 처리
         private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
         {
             isDebugMode = cb_DebugMode.Checked;
-            fileWatcherManager.UpdateDebugMode(isDebugMode);    // 디버그 모드 업데이트
+            settingsManager.IsDebugMode = isDebugMode; // SettingsManager에 상태 업데이트
+
+            fileWatcherManager.UpdateDebugMode(isDebugMode);
+
             if (isDebugMode)
             {
                 logManager.LogEvent("Debug Mode: Enabled");
