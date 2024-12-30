@@ -21,14 +21,19 @@ namespace ITM_Agent.ucPanel
 
         private ucConfigurationPanel configPanel;
         private FileSystemWatcher baselineWatcher;
-
+        
+        private readonly LogManager logManager;
+        
         public ucOverrideNamesPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel)
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
 
             InitializeComponent();
-
+            
+            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+            logManager = new LogManager(baseDir);
+            
             InitializeBaselineWatcher();
 
             InitializeCustomEvents();
@@ -103,29 +108,34 @@ namespace ITM_Agent.ucPanel
                 // 파일 준비 상태 확인
                 if (!IsFileReady(e.FullPath))
                 {
-                    MessageBox.Show($"파일이 사용 중이어서 액세스할 수 없습니다: {e.FullPath}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    logManager.LogError($"파일이 사용 중이어서 액세스할 수 없습니다: {e.FullPath}");
                     return;
                 }
-
+        
                 if (File.Exists(e.FullPath))
                 {
                     DateTime? dateTimeInfo = ExtractDateTimeFromFile(e.FullPath);
                     if (dateTimeInfo.HasValue)
                     {
                         CreateBaselineInfoFile(e.FullPath, dateTimeInfo.Value);
+                        logManager.LogEvent($"Baseline 파일 생성 성공: {e.FullPath}");
                     }
                 }
             }
             catch (IOException ioEx)
             {
-                MessageBox.Show($"파일 처리 중 오류가 발생했습니다: {e.FullPath}\n\n{ioEx.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                logManager.LogError($"파일 처리 중 IO 오류 발생: {ioEx.Message}\n파일: {e.FullPath}");
+            }
+            catch (UnauthorizedAccessException uaEx)
+            {
+                logManager.LogError($"파일 접근 권한 오류: {uaEx.Message}\n파일: {e.FullPath}");
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"예기치 않은 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                logManager.LogError($"예기치 않은 오류 발생: {ex.Message}\n파일: {e.FullPath}");
             }
         }
-
+        
         private void CreateBaselineInfoFile(string filePath, DateTime dateTime)
         {
             string baseFolder = configPanel.BaseFolderPath; // ucConfigurationPanel에서 기준 폴더 경로 가져오기
@@ -169,7 +179,7 @@ namespace ITM_Agent.ucPanel
         {
             try
             {
-                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
                 {
                     return true; // 파일에 액세스 가능
                 }
@@ -179,7 +189,24 @@ namespace ITM_Agent.ucPanel
                 return false; // 파일이 잠겨 있음
             }
         }
-
+        
+        private bool WaitForFileReady(string filePath, int maxRetries = 10, int delayMilliseconds = 500)
+        {
+            for (int attempt = 0; attempt < maxRetries; attempt++)
+            {
+                if (IsFileReady(filePath))
+                {
+                    return true; // 파일에 접근 가능
+                }
+        
+                // 파일 잠금 해제를 기다림
+                Thread.Sleep(delayMilliseconds);
+            }
+        
+            logManager.LogError($"파일이 잠겨 있어 접근할 수 없습니다: {filePath}");
+            return false; // 재시도 초과
+        }
+        
         private DateTime? ExtractDateTimeFromFile(string filePath)
         {
             string datePattern = @"Date and Time:\s*(\d{2}/\d{2}/\d{4} \d{2}:\d{2}:\d{2} (AM|PM))";
@@ -205,7 +232,7 @@ namespace ITM_Agent.ucPanel
                     }
                     catch (IOException ex)
                     {
-                        MessageBox.Show($"파일 읽기 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                        logManager.LogError($"파일 읽기 중 오류 발생: {ex.Message}\n파일: {filePath}");
                         return null;
                     }
                 }
@@ -215,7 +242,7 @@ namespace ITM_Agent.ucPanel
                 }
             }
 
-            MessageBox.Show("파일이 사용 중이어서 처리할 수 없습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            logManager.LogError($"파일이 사용 중이어서 처리할 수 없습니다.\n파일: {filePath}");
             return null;
         }
 
@@ -340,38 +367,76 @@ namespace ITM_Agent.ucPanel
 
         public void CompareAndRenameFiles()
         {
-            // Baseline 폴더 경로 가져오기
-            var baseFolder = cb_BaseDatePath.SelectedItem?.ToString();
-            if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            try
             {
-                MessageBox.Show("Baseline 폴더를 선택하거나 유효한 경로를 설정하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            // Baseline 폴더의 파일 처리
-            var baselineFiles = Directory.GetFiles(baseFolder, "*.info");
-            var baselineData = ExtractBaselineData(baselineFiles);
-
-            // Target 폴더의 파일 처리
-            foreach (string targetFolder in lb_TargetComparePath.Items)
-            {
-                if (!Directory.Exists(targetFolder)) continue;
-
-                var targetFiles = Directory.GetFiles(targetFolder);
-                foreach (var targetFile in targetFiles)
+                string baselineFolder = Path.Combine(settingsManager.GetBaseFolder(), "Baseline");
+                if (!Directory.Exists(baselineFolder))
                 {
-                    string newFileName = ProcessTargetFile(targetFile, baselineData);
-                    if (!string.IsNullOrEmpty(newFileName))
+                    logManager.LogError("Baseline 폴더가 존재하지 않습니다.");
+                    return;
+                }
+        
+                // Baseline 파일 데이터 추출
+                var baselineFiles = Directory.GetFiles(baselineFolder, "*.info");
+                var baselineData = ExtractBaselineData(baselineFiles);
+        
+                if (baselineData.Count == 0)
+                {
+                    logManager.LogEvent("Baseline 폴더에 유효한 .info 파일이 없습니다.");
+                    return;
+                }
+        
+                // Target Compare Path에서 파일 처리
+                foreach (string targetFolder in lb_TargetComparePath.Items)
+                {
+                    if (!Directory.Exists(targetFolder)) continue;
+        
+                    var targetFiles = Directory.GetFiles(targetFolder);
+                    foreach (var targetFile in targetFiles)
                     {
-                        string newFilePath = Path.Combine(targetFolder, newFileName);
-                        File.Move(targetFile, newFilePath);
+                        try
+                        {
+                            string newFileName = ProcessTargetFile(targetFile, baselineData);
+                            if (!string.IsNullOrEmpty(newFileName))
+                            {
+                                string newFilePath = Path.Combine(targetFolder, newFileName);
+                                File.Move(targetFile, newFilePath);
+        
+                                // 성공 로그 기록
+                                logManager.LogEvent($"파일 이름 변경 성공: {targetFile} -> {newFilePath}");
+                            }
+                        }
+                        catch (IOException ioEx)
+                        {
+                            // 파일 작업 중 오류를 이벤트 로그에 기록
+                            logManager.LogError($"파일 작업 중 오류 발생: {ioEx.Message}\n파일: {targetFile}");
+        
+                            // 작업 중단 없이 진행 상황 기록
+                            logManager.LogEvent($"작업 진행: {targetFile} 처리 중 오류 발생, 다음 파일로 진행.");
+                        }
+                        catch (UnauthorizedAccessException uaEx)
+                        {
+                            logManager.LogError($"파일 접근 권한 오류: {uaEx.Message}\n파일: {targetFile}");
+                            logManager.LogEvent($"작업 진행: {targetFile} 처리 중 권한 오류 발생, 다음 파일로 진행.");
+                        }
+                        catch (Exception ex)
+                        {
+                            logManager.LogError($"예기치 않은 오류 발생: {ex.Message}\n파일: {targetFile}");
+                            logManager.LogEvent($"작업 진행: {targetFile} 처리 중 예기치 않은 오류 발생, 다음 파일로 진행.");
+                        }
                     }
                 }
+        
+                logManager.LogEvent("파일 이름 변환 작업이 완료되었습니다.");
             }
-
-            MessageBox.Show("파일 이름 변환 작업이 완료되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            catch (Exception ex)
+            {
+                // 최상위 예외 처리 (예외를 놓치지 않도록 최종 방어선)
+                logManager.LogError($"전체 작업 중 예기치 않은 오류 발생: {ex.Message}");
+            }
         }
 
+        
         public void StartProcessing()
         {
             while (true) // 상시 가동 상태
@@ -480,7 +545,7 @@ namespace ITM_Agent.ucPanel
         private Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> ExtractBaselineData(string[] files)
         {
             var baselineData = new Dictionary<string, (string, string, string)>();
-            var regex = new Regex(@"(\d{8}_\d{6})_([^_]+?)_([0-9]+W\d+)");
+            var regex = new Regex(@"(\d{8}_\d{6})_([^_]+?)_(C\dW\d+)");
 
             foreach (var file in files)
             {
@@ -501,6 +566,13 @@ namespace ITM_Agent.ucPanel
 
         private string ProcessTargetFile(string targetFile, Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> baselineData)
         {
+            // 파일이 준비될 때까지 대기
+            if (!WaitForFileReady(targetFile))
+            {
+                logManager.LogError($"파일을 처리할 수 없습니다. 잠긴 상태로 남아 있습니다: {targetFile}");
+                return null;
+            }
+        
             string fileName = Path.GetFileName(targetFile);
             foreach (var data in baselineData.Values)
             {
@@ -510,9 +582,10 @@ namespace ITM_Agent.ucPanel
                     return regex.Replace(fileName, $"_{data.CInfo}_");
                 }
             }
-
+        
             return null;
         }
+
 
         protected override void Dispose(bool disposing)
         {
@@ -521,6 +594,21 @@ namespace ITM_Agent.ucPanel
                 baselineWatcher?.Dispose();
             }
             base.Dispose(disposing);
+        }
+        
+        private bool IsFileReady(string filePath)
+        {
+            try
+            {
+                using (var stream = new FileStream(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
+                {
+                    return true; // 파일 접근 가능
+                }
+            }
+            catch (IOException)
+            {
+                return false; // 파일이 잠겨 있음
+            }
         }
     }
 }
