@@ -519,7 +519,7 @@ namespace ITM_Agent.Services
             }
         }
         
-        public String GetBaseFolder()
+        public string GetBaseFolder()
         {
           var baseFolders = GetFoldersFromSection("[BaseFolder]");
           if (baseFolders.Count > 0)
@@ -527,7 +527,7 @@ namespace ITM_Agent.Services
             return baseFolders[0];  // 첫 번째 BaseFolder 반환
           }
           
-          return  null; // BaseFolder가 없는 경우 null 반환
+          return null; // BaseFolder가 없는 경우 null 반환
         }
     }
 }
