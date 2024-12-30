@@ -518,5 +518,16 @@ namespace ITM_Agent.Services
                 // 내부 데이터 구조 갱신
             }
         }
+        
+        public String GetBaseFolder()
+        {
+          var baseFolders = GetFoldersFromSection("[BaseFolder]");
+          if (baseFolders.Count > 0)
+          {
+            return baseFolders[0];  // 첫 번째 BaseFolder 반환
+          }
+          
+          return  null; // BaseFolder가 없는 경우 null 반환
+        }
     }
 }
