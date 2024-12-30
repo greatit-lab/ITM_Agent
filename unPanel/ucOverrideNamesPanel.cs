@@ -141,7 +141,7 @@ namespace ITM_Agent.ucPanel
             string baseFolder = configPanel.BaseFolderPath; // ucConfigurationPanel에서 기준 폴더 경로 가져오기
             if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
             {
-                MessageBox.Show("기준 폴더가 설정되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                logManager.LogError("기준 폴더가 설정되지 않았습니다.");
                 return;
             }
 
@@ -167,11 +167,12 @@ namespace ITM_Agent.ucPanel
                 using (File.Create(newFilePath))
                 {
                     // 파일 생성 성공
+                    logManager.LogEvent($"Baseline 파일 생성 성공: {newFilePath}");
                 }
             }
             catch (Exception ex)
             {
-                MessageBox.Show($"파일 처리 중 오류가 발생했습니다: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                logManager.LogError($"파일 처리 중 오류가 발생했습니다: {ex.Message}\n파일: {filePath}");
             }
         }
 
@@ -596,7 +597,7 @@ namespace ITM_Agent.ucPanel
             base.Dispose(disposing);
         }
         
-        private bool IsFileReady(string filePath)
+        private bool IsFileAccessible(string filePath)
         {
             try
             {
