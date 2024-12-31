@@ -76,10 +76,10 @@ namespace ITM_Agent.ucPanel
             this.groupBox1.Controls.Add(this.button4);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.button3);
-            this.groupBox1.Controls.Add(this.comboBox2);
+            this.groupBox1.Controls.Add(this.cb_WaitTime);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.button1);
-            this.groupBox1.Controls.Add(this.comboBox1);
+            this.groupBox1.Controls.Add(this.cb_TargetImageFolder);
             this.groupBox1.Location = new System.Drawing.Point(3, 18);
             this.groupBox1.Name = "groupBox1";
             this.groupBox1.Size = new System.Drawing.Size(624, 102);
