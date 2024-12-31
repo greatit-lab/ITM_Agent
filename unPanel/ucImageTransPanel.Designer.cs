@@ -25,7 +25,7 @@ namespace ITM_Agent.ucPanel
         private System.Windows.Forms.ComboBox cb_WaitTime;
         private System.Windows.Forms.Button btn_SetTime;
         private System.Windows.Forms.Button btn_SetFolder;
-        private System.Windows.Forms.Label label2;
+        private System.Windows.Forms.Label lb_ImageSaveFolder;
 
         #region 구성 요소 디자이너에서 생성한 코드
         
@@ -159,7 +159,7 @@ namespace ITM_Agent.ucPanel
             //
             // groupBox2
             //
-            this.groupBox2.Controls.Add(this.label2);
+            this.groupBox2.Controls.Add(this.lb_ImageSaveFolder);
             this.groupBox2.Controls.Add(this.btn_SelectOutputFolder);
             this.groupBox2.Location = new System.Drawing.Point(3, 6);
             this.groupBox2.Name = "groupBox2";
