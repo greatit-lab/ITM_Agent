@@ -59,7 +59,7 @@ namespace ITM_Agent.ucPanel
                     lb_ImageSaveFolder.Text = selectedFolder;
         
                     // Settings.ini의 [ImageTrans] 섹션에 선택된 폴더 저장
-                    settingsManager.SetValueToSection("ImageTrans", "OutputFolder", selectedFolder);
+                    settingsManager.SetValueToSection("ImageTrans", "SaveFolder", selectedFolder);
         
                     MessageBox.Show("출력 폴더가 설정되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
@@ -169,8 +169,8 @@ namespace ITM_Agent.ucPanel
         
         private void LoadOutputFolder()
         {
-            // Settings.ini 파일에서 [ImageTrans] 섹션의 OutputFolder 값을 가져옴
-            string outputFolder = settingsManager.GetValueFromSection("ImageTrans", "OutputFolder");
+            // Settings.ini 파일에서 [ImageTrans] 섹션의 SaveFolder 값을 가져옴
+            string outputFolder = settingsManager.GetValueFromSection("ImageTrans", "SaveFolder");
         
             if (!string.IsNullOrEmpty(outputFolder) && Directory.Exists(outputFolder))
             {
