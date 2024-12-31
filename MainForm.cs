@@ -186,6 +186,7 @@ namespace ITM_Agent
             ucOverrideNamesPanel?.UpdateStatus(status); // 상태 업데이트 반영
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
+            ucImageTransPanel?.UpdateStatusOnRun(isRunning);  // ucImageTransPanel 상태 동기화
 
             // 디버그 모드 비활성화 처리
             cb_DebugMode.Enabled = !isRunning;
@@ -203,6 +204,8 @@ namespace ITM_Agent
 
             UpdateTrayMenuStatus();
             UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
+            
+            UpdateButtonsState();
         }
 
         private void UpdateMenuItemsState(bool isRunning)
@@ -298,6 +301,7 @@ namespace ITM_Agent
             // 초기 패널 설정 및 상태 동기화
             ShowUserControl(ucConfigPanel); // 초기 패널 로드
             ucConfigPanel.UpdateStatusOnRun(isRunning); // 상태 동기화
+            ucImageTransPanel.UpdateStatusOnRun(isRunning); // ucImageTransPanel 초기 상태 동기화
         }
 
         private void RefreshUI()
