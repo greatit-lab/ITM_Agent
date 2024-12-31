@@ -15,16 +15,16 @@ namespace ITM_Agent.ucPanel
         
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.GroupBox groupBox1;
-        private System.Windows.Forms.Button button1;
+        private System.Windows.Forms.Button btn_FolderClear;
         private System.Windows.Forms.ComboBox cb_TargetImageFolder;
         private System.Windows.Forms.GroupBox groupBox2;
         private System.Windows.Forms.Button btn_SelectOutputFolder;
         private System.Windows.Forms.Label label3;
         private System.Windows.Forms.Label label1;
-        private System.Windows.Forms.Button button3;
+        private System.Windows.Forms.Button btn_TimeClear;
         private System.Windows.Forms.ComboBox cb_WaitTime;
-        private System.Windows.Forms.Button button6;
-        private System.Windows.Forms.Button button4;
+        private System.Windows.Forms.Button btn_SetTime;
+        private System.Windows.Forms.Button btn_SetFolder;
         private System.Windows.Forms.Label label2;
 
         #region 구성 요소 디자이너에서 생성한 코드
@@ -33,13 +33,13 @@ namespace ITM_Agent.ucPanel
         {
             this.splitContainer2 = new System.Windows.Forms.SplitContainer();
             this.groupBox1 = new System.Windows.Forms.GroupBox();
-            this.button6 = new System.Windows.Forms.Button();
-            this.button4 = new System.Windows.Forms.Button();
+            this.btn_SetTime = new System.Windows.Forms.Button();
+            this.btn_SetFolder = new System.Windows.Forms.Button();
             this.label1 = new System.Windows.Forms.Label();
-            this.button3 = new System.Windows.Forms.Button();
+            this.btn_TimeClear = new System.Windows.Forms.Button();
             this.cb_WaitTime = new System.Windows.Forms.ComboBox();
             this.label3 = new System.Windows.Forms.Label();
-            this.button1 = new System.Windows.Forms.Button();
+            this.btn_FolderClear = new System.Windows.Forms.Button();
             this.cb_TargetImageFolder = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
             this.label2 = new System.Windows.Forms.Label();
@@ -72,13 +72,13 @@ namespace ITM_Agent.ucPanel
             //
             // groupBox1
             //
-            this.groupBox1.Controls.Add(this.button6);
-            this.groupBox1.Controls.Add(this.button4);
+            this.groupBox1.Controls.Add(this.btn_SetTime);
+            this.groupBox1.Controls.Add(this.btn_SetFolder);
             this.groupBox1.Controls.Add(this.label1);
-            this.groupBox1.Controls.Add(this.button3);
+            this.groupBox1.Controls.Add(this.btn_TimeClear);
             this.groupBox1.Controls.Add(this.cb_WaitTime);
             this.groupBox1.Controls.Add(this.label3);
-            this.groupBox1.Controls.Add(this.button1);
+            this.groupBox1.Controls.Add(this.btn_FolderClear);
             this.groupBox1.Controls.Add(this.cb_TargetImageFolder);
             this.groupBox1.Location = new System.Drawing.Point(3, 18);
             this.groupBox1.Name = "groupBox1";
@@ -87,23 +87,23 @@ namespace ITM_Agent.ucPanel
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "● Set a Condition";
             //
-            // button6
+            // btn_SetTime
             //
-            this.button6.Location = new System.Drawing.Point(373, 65);
-            this.button6.Name = "button6";
-            this.button6.Size = new System.Drawing.Size(127, 20);
-            this.button6.TabIndex = 12;
-            this.button6.Text = "Set Time";
-            this.button6.UseVisualStyleBackColor = true;
+            this.btn_SetTime.Location = new System.Drawing.Point(373, 65);
+            this.btn_SetTime.Name = "btn_SetTime";
+            this.btn_SetTime.Size = new System.Drawing.Size(127, 20);
+            this.btn_SetTime.TabIndex = 12;
+            this.btn_SetTime.Text = "Set Time";
+            this.btn_SetTime.UseVisualStyleBackColor = true;
             //
-            // button4
+            // btn_SetFolder
             //
-            this.button4.Location = new System.Drawing.Point(373, 22);
-            this.button4.Name = "button4";
-            this.button4.Size = new System.Drawing.Size(127, 20);
-            this.button4.TabIndex = 11;
-            this.button4.Text = "Set Folder";
-            this.button4.UseVisualStyleBackColor = true;
+            this.btn_SetFolder.Location = new System.Drawing.Point(373, 22);
+            this.btn_SetFolder.Name = "btn_SetFolder";
+            this.btn_SetFolder.Size = new System.Drawing.Size(127, 20);
+            this.btn_SetFolder.TabIndex = 11;
+            this.btn_SetFolder.Text = "Set Folder";
+            this.btn_SetFolder.UseVisualStyleBackColor = true;
             //
             // label1
             //
@@ -114,14 +114,14 @@ namespace ITM_Agent.ucPanel
             this.label1.TabIndex = 10;
             this.label1.Text = "Wait Time";
             //
-            // button3
+            // btn_TimeClear
             //
-            this.button3.Location = new System.Drawing.Point(506, 65);
-            this.button3.Name = "button3";
-            this.button3.Size = new System.Drawing.Size(112, 20);
-            this.button3.TabIndex = 9;
-            this.button3.Text = "Clear";
-            this.button3.UseVisualStyleBackColor = true;
+            this.btn_TimeClear.Location = new System.Drawing.Point(506, 65);
+            this.btn_TimeClear.Name = "btn_TimeClear";
+            this.btn_TimeClear.Size = new System.Drawing.Size(112, 20);
+            this.btn_TimeClear.TabIndex = 9;
+            this.btn_TimeClear.Text = "Clear";
+            this.btn_TimeClear.UseVisualStyleBackColor = true;
             //
             // cb_WaitTime
             //
@@ -140,14 +140,14 @@ namespace ITM_Agent.ucPanel
             this.label3.TabIndex = 7;
             this.label3.Text = "Target Image Folder";
             //
-            // button1
+            // btn_FolderClear
             //
-            this.button1.Location = new System.Drawing.Point(506, 23);
-            this.button1.Name = "button1";
-            this.button1.Size = new System.Drawing.Size(112, 20);
-            this.button1.TabIndex = 6;
-            this.button1.Text = "Clear";
-            this.button1.UseVisualStyleBackColor = true;
+            this.btn_FolderClear.Location = new System.Drawing.Point(506, 23);
+            this.btn_FolderClear.Name = "btn_FolderClear";
+            this.btn_FolderClear.Size = new System.Drawing.Size(112, 20);
+            this.btn_FolderClear.TabIndex = 6;
+            this.btn_FolderClear.Text = "Clear";
+            this.btn_FolderClear.UseVisualStyleBackColor = true;
             //
             // cb_TargetImageFolder
             //
