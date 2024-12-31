@@ -189,5 +189,17 @@ namespace ITM_Agent.ucPanel
             LoadRegexFolderPaths();
             LoadWaitTimes();
         }
+        
+        public void UpdateStatusOnRun(bool isRunning)
+        {
+            // 컨트롤 활성화 상태 변경
+            btn_SetFolder.Enabled = !isRunning;
+            btn_FolderClear.Enabled = !isRunning;
+            btn_SetTime.Enabled = !isRunning;
+            btn_TimeClear.Enabled = !isRunning;
+            btn_SelectOutputFolder.Enabled = !isRunning;
+            cb_TargetImageFolder.Enabled = !isRunning;
+            cb_WaitTime.Enabled = !isRunning;
+        }
     }
 }
