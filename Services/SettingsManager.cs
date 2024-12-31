@@ -466,7 +466,7 @@ namespace ITM_Agent.Services
                 if (endIndex == -1) endIndex = lines.Count;
 
                 lines.RemoveRange(sectionIndex, endIndex - sectionIndex);
-                WriteToFileSafely(lines.ToArray());
+                File.WriteAllLines(settingsFilePath, lines);
             }
         }
 
