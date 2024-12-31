@@ -28,7 +28,7 @@ namespace ITM_Agent
 
         private ucConfigurationPanel ucConfigPanel;
         private ucOverrideNamesPanel ucOverrideNamesPanel;
-        //private ucScreen3 ucImageTransPanel;
+        private ucImageTransPanel ucImageTransPanel;
         //private ucScreen4 ucUploadDataPanel;
 
         private bool isRunning = false; // 현재 상태 플래그
@@ -382,7 +382,7 @@ namespace ITM_Agent
             // UserControl 초기화
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
-            //ucImageTransPanel = new ucScreen3();     // ucScreen3.cs 구현
+            ucImageTransPanel = new ucImageTransPanel(settingsManager);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
 
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
@@ -398,7 +398,7 @@ namespace ITM_Agent
             tsm_OverrideNames.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
 
             // ONTO -> Image Trans
-            //tsm_ImageTrans.Click += (s, e) => ShowUserControl(ucImageTransPanel);
+            tsm_ImageTrans.Click += (s, e) => ShowUserControl(ucImageTransPanel);
 
             // ONTO -> Upload Data
             //tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
