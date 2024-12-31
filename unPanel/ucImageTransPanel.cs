@@ -50,7 +50,7 @@ namespace ITM_Agent.ucPanel
             if (cb_TargetImageFolder.SelectedItem is string selectedFolder)
             {
                 // 선택된 폴더를 설정 파일에 기록
-                settingsManager.SetValueToSection("ImageTrans", "Folder", selectedFolder);
+                settingsManager.SetValueToSection("ImageTrans", "Target", selectedFolder);
                 MessageBox.Show($"폴더가 설정되었습니다: {selectedFolder}", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
             }
             else
@@ -86,7 +86,7 @@ namespace ITM_Agent.ucPanel
             cb_TargetImageFolder.Items.AddRange(regexFolders.ToArray());
 
             // 설정 파일에서 마지막으로 저장된 폴더 가져와 콤보박스에 표시
-            string selectedPath = settingsManager.GetValueFromSection("ImageTrans", "Folder");
+            string selectedPath = settingsManager.GetValueFromSection("ImageTrans", "Target");
             if (!string.IsNullOrEmpty(selectedPath) && cb_TargetImageFolder.Items.Contains(selectedPath))
             {
                 cb_TargetImageFolder.SelectedItem = selectedPath;
