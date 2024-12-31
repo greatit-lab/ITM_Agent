@@ -34,19 +34,38 @@ namespace ITM_Agent.ucPanel
             // UI 초기화
             LoadRegexFolderPaths();
             LoadWaitTimes();
+            LoadOutputFolder();
         }
 
         private void btn_SelectOutputFolder_Click(object sender, EventArgs e)
         {
+            // ucConfigurationPanel의 lb_BaseFolder 경로 가져오기
+            string baseFolder = configPanel.BaseFolderPath;
+        
+            if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
+            {
+                MessageBox.Show("기준 폴더(Base Folder)가 설정되지 않았습니다.", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                return;
+            }
+        
             using (var folderDialog = new FolderBrowserDialog())
             {
+                folderDialog.SelectedPath = baseFolder; // 기준 폴더를 초기 경로로 설정
                 if (folderDialog.ShowDialog() == DialogResult.OK)
                 {
-                    pdfMergeManager.UpdateOutputFolder(folderDialog.SelectedPath);
+                    string selectedFolder = folderDialog.SelectedPath;
+        
+                    // lb_ImageSaveFolder에 선택된 폴더 경로 표시
+                    lb_ImageSaveFolder.Text = selectedFolder;
+        
+                    // Settings.ini의 [ImageTrans] 섹션에 선택된 폴더 저장
+                    settingsManager.SetValueToSection("ImageTrans", "OutputFolder", selectedFolder);
+        
                     MessageBox.Show("출력 폴더가 설정되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 }
             }
         }
+
         
         private void btn_SetFolder_Click(object sender, EventArgs e)
         {
@@ -147,7 +166,24 @@ namespace ITM_Agent.ucPanel
                 MessageBox.Show("선택된 대기 시간이 없습니다.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
-
+        
+        private void LoadOutputFolder()
+        {
+            // Settings.ini 파일에서 [ImageTrans] 섹션의 OutputFolder 값을 가져옴
+            string outputFolder = settingsManager.GetValueFromSection("ImageTrans", "OutputFolder");
+        
+            if (!string.IsNullOrEmpty(outputFolder) && Directory.Exists(outputFolder))
+            {
+                // lb_ImageSaveFolder에 출력 폴더 경로 설정
+                lb_ImageSaveFolder.Text = outputFolder;
+            }
+            else
+            {
+                // 출력 폴더가 설정되지 않았거나 경로가 유효하지 않을 경우 기본 메시지 표시
+                lb_ImageSaveFolder.Text = "Output folder not set or does not exist.";
+            }
+        }
+        
         public void RefreshUI()
         {
             LoadRegexFolderPaths();
