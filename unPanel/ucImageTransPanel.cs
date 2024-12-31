@@ -26,7 +26,8 @@ namespace ITM_Agent.ucPanel
             btn_SetFolder.Click += btn_SetFolder_Click;
             btn_FolderClear.Click += btn_FolderClear_Click;
             
-            btn_SelectOutputFolder.Click += Btn_SelectOutputFolder_Click;
+            btn_SetTime.Click += btn_SetTime_Click;
+            btn_TimeClear.Click += btn_TimeClear_Click;
             
             // UI 초기화
             LoadRegexFolderPaths();
@@ -101,7 +102,48 @@ namespace ITM_Agent.ucPanel
         {
             cb_WaitTime.Items.Clear();
             cb_WaitTime.Items.AddRange(new object[] { "30", "60", "120", "180", "240", "300" });
-            cb_WaitTime.SelectedIndex = 0;
+
+            // 기본 선택 없음
+            cb_WaitTime.SelectedIndex = -1;
+
+            // 설정 파일에서 저장된 값을 가져와 선택
+            string savedWaitTime = settingsManager.GetValueFromSection("ImageTrans", "Wait");
+            if (!string.IsNullOrEmpty(savedWaitTime) && cb_WaitTime.Items.Contains(savedWaitTime))
+            {
+                cb_WaitTime.SelectedItem = savedWaitTime;
+            }
+        }
+        
+        private void btn_SetTime_Click(object sender, EventArgs e)
+        {
+            if (cb_WaitTime.SelectedItem is string selectedWaitTime)
+            {
+                // 선택된 Wait 값을 설정 파일에 저장
+                settingsManager.SetValueToSection("ImageTrans", "Wait", selectedWaitTime);
+                MessageBox.Show($"대기 시간이 설정되었습니다: {selectedWaitTime} 초", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("대기 시간을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }`
+        
+        private void btn_TimeClear_Click(object sender, EventArgs e)
+        {
+            if (cb_WaitTime.SelectedItem != null)
+            {
+                // 콤보박스 선택 해제
+                cb_WaitTime.SelectedIndex = -1;
+
+                // 설정 파일에서 Wait 값을 제거
+                settingsManager.SetValueToSection("ImageTrans", "Wait", string.Empty);
+
+                MessageBox.Show("대기 시간이 초기화되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("선택된 대기 시간이 없습니다.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
         }
 
         public void RefreshUI()
