@@ -42,7 +42,7 @@ namespace ITM_Agent.ucPanel
             this.btn_FolderClear = new System.Windows.Forms.Button();
             this.cb_TargetImageFolder = new System.Windows.Forms.ComboBox();
             this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.label2 = new System.Windows.Forms.Label();
+            this.lb_ImageSaveFolder = new System.Windows.Forms.Label();
             this.btn_SelectOutputFolder = new System.Windows.Forms.Button();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
             this.splitContainer2.Panel1.SuspendLayout();
@@ -168,14 +168,14 @@ namespace ITM_Agent.ucPanel
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "● Image Save Folder";
             //
-            // label2
+            // lb_ImageSaveFolder
             //
-            this.label2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label2.Location = new System.Drawing.Point(18, 70);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(336, 22);
-            this.label2.TabIndex = 13;
-            this.label2.Text = "label2";
+            this.lb_ImageSaveFolder.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
+            this.lb_ImageSaveFolder.Location = new System.Drawing.Point(18, 70);
+            this.lb_ImageSaveFolder.Name = "lb_ImageSaveFolder";
+            this.lb_ImageSaveFolder.Size = new System.Drawing.Size(336, 22);
+            this.lb_ImageSaveFolder.TabIndex = 13;
+            this.lb_ImageSaveFolder.Text = "label2";
             //
             // btn_SelectOutputFolder
             //
