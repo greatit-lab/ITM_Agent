@@ -11,21 +11,29 @@ namespace ITM_Agent.ucPanel
     {
         private readonly PdfMergeManager pdfMergeManager;
         private readonly SettingsManager settingsManager;
+        private readonly ucConfigurationPanel configPanel;
 
-        public ucImageTransPanel(SettingsManager settingsManager)
+        public ucImageTransPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel)
         {
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
             InitializeComponent();
 
             // PDF 병합 관리자 초기화
             pdfMergeManager = new PdfMergeManager(AppDomain.CurrentDomain.BaseDirectory);
 
             // 이벤트 연결
+            btn_SetFolder.Click += btn_SetFolder_Click;
+            btn_FolderClear.Click += btn_FolderClear_Click;
+            
             btn_SelectOutputFolder.Click += Btn_SelectOutputFolder_Click;
-            cb_TargetImageFolder.SelectedIndexChanged += Cb_TargetImageFolder_SelectedIndexChanged;
+            
+            // UI 초기화
+            LoadRegexFolderPaths();
+            LoadWaitTimes();
         }
 
-        private void Btn_SelectOutputFolder_Click(object sender, EventArgs e)
+        private void btn_SelectOutputFolder_Click(object sender, EventArgs e)
         {
             using (var folderDialog = new FolderBrowserDialog())
             {
@@ -36,23 +44,57 @@ namespace ITM_Agent.ucPanel
                 }
             }
         }
-
-        private async void Cb_TargetImageFolder_SelectedIndexChanged(object sender, EventArgs e)
+        
+        private void btn_SetFolder_Click(object sender, EventArgs e)
         {
-            if (cb_TargetImageFolder.SelectedItem is string selectedFolder && Directory.Exists(selectedFolder))
+            if (cb_TargetImageFolder.SelectedItem is string selectedFolder)
             {
-                int waitTime = int.Parse(cb_WaitTime.SelectedItem?.ToString() ?? "30");
-                await pdfMergeManager.MergeImagesToPDF(selectedFolder, waitTime);
-                MessageBox.Show("PDF 병합이 완료되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                // 선택된 폴더를 설정 파일에 기록
+                settingsManager.SetValueToSection("ImageTrans", "Folder", selectedFolder);
+                MessageBox.Show($"폴더가 설정되었습니다: {selectedFolder}", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("폴더를 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
         }
+        
+        private void btn_FolderClear_Click(object sender, EventArgs e)
+        {
+            if (cb_TargetImageFolder.SelectedItem != null)
+            {
+                // 콤보박스 선택 해제
+                cb_TargetImageFolder.SelectedIndex = -1;
 
-        public void LoadTargetFolders()
+                // 설정 파일에서 제거
+                settingsManager.RemoveSection("ImageTrans");
+
+                MessageBox.Show("폴더 설정이 초기화되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
+            }
+            else
+            {
+                MessageBox.Show("선택된 폴더가 없습니다.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+            }
+        }
+        
+        public void LoadRegexFolderPaths()
         {
             cb_TargetImageFolder.Items.Clear();
-            var folders = settingsManager.GetFoldersFromSection("[TargetFolders]");
-            cb_TargetImageFolder.Items.AddRange(folders.ToArray());
-            cb_TargetImageFolder.SelectedIndex = -1;
+
+            // ucConfigurationPanel의 lb_RegexList에서 폴더 경로 가져오기
+            var regexFolders = configPanel.GetRegexList();
+            cb_TargetImageFolder.Items.AddRange(regexFolders.ToArray());
+
+            // 설정 파일에서 마지막으로 저장된 폴더 가져와 콤보박스에 표시
+            string selectedPath = settingsManager.GetValueFromSection("ImageTrans", "Folder");
+            if (!string.IsNullOrEmpty(selectedPath) && cb_TargetImageFolder.Items.Contains(selectedPath))
+            {
+                cb_TargetImageFolder.SelectedItem = selectedPath;
+            }
+            else
+            {
+                cb_TargetImageFolder.SelectedIndex = -1;
+            }
         }
 
         public void LoadWaitTimes()
@@ -64,7 +106,7 @@ namespace ITM_Agent.ucPanel
 
         public void RefreshUI()
         {
-            LoadTargetFolders();
+            LoadRegexFolderPaths();
             LoadWaitTimes();
         }
     }
