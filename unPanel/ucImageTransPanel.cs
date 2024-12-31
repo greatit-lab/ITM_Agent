@@ -29,6 +29,8 @@ namespace ITM_Agent.ucPanel
             btn_SetTime.Click += btn_SetTime_Click;
             btn_TimeClear.Click += btn_TimeClear_Click;
             
+            btn_SelectOutputFolder.Click += btn_SelectOutputFolder_Click;
+            
             // UI 초기화
             LoadRegexFolderPaths();
             LoadWaitTimes();
@@ -126,7 +128,7 @@ namespace ITM_Agent.ucPanel
             {
                 MessageBox.Show("대기 시간을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
             }
-        }`
+        }
         
         private void btn_TimeClear_Click(object sender, EventArgs e)
         {
