@@ -382,7 +382,7 @@ namespace ITM_Agent
             // UserControl 초기화
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
-            ucImageTransPanel = new ucImageTransPanel(settingsManager);
+            ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
 
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
