@@ -20,7 +20,7 @@ namespace ITM_Agent.Services
         public void LogEvent(string message)
         {
             string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");    // 날짜와 시간 형식 설정
-            WriteLog($"{timestamp} - {message}", $"{DateTime.Now:yyyyMMdd}_event.log");
+            WriteLog($"{timestamp} - EVENT: {message}", $"{DateTime.Now:yyyyMMdd}_event.log");
         }
 
         public void LogEvent(string message, bool isDebug)
