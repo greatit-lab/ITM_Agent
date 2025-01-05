@@ -23,7 +23,7 @@ namespace ITM_Agent.ucPanel
             
             logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory); // LogManager 초기화
             // PDF 병합 관리자 초기화
-            pdfMergeManager = new PdfMergeManager(AppDomain.CurrentDomain.BaseDirectory);
+            pdfMergeManager = new PdfMergeManager(AppDomain.CurrentDomain.BaseDirectory, logManager);
 
             // 이벤트 연결
             btn_SetFolder.Click += btn_SetFolder_Click;
