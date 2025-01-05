@@ -27,7 +27,6 @@ namespace ITM_Agent.Services
         private bool isDebugMode;
 
         private bool isRunning = false;
-        // private readonly bool isDebugMode;
 
         // Debug Mode 상태 속성
         public bool IsDebugMode { get; set; } = false;
@@ -50,7 +49,7 @@ namespace ITM_Agent.Services
             var targetFolders = settingsManager.GetFoldersFromSection("[TargetFolders]");
             if (targetFolders.Count == 0)
             {
-                logManager.LogEvent("No target folders configured for monitoring.");
+                logManager.LogEvent("[FileWatcherManager] No target folders configured for monitoring.");
                 return;
             }
 
@@ -58,7 +57,7 @@ namespace ITM_Agent.Services
             {
                 if (!Directory.Exists(folder))
                 {
-                    logManager.LogEvent($"Folder does not exist: {folder}", true);
+                    logManager.LogEvent($"[FileWatcherManager] Folder does not exist: {folder}", true);
                     continue;
                 }
 
@@ -77,19 +76,18 @@ namespace ITM_Agent.Services
 
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Initialized watcher for folder: {folder}");
+                    logManager.LogDebug($"[FileWatcherManager] Initialized watcher for folder: {folder}");
                 }
             }
 
-            logManager.LogEvent($"{watchers.Count} watcher(s) initialized.");
+            logManager.LogEvent($"[FileWatcherManager] {watchers.Count} watcher(s) initialized.");
         }
-
 
         public void StartWatching()
         {
             if (isRunning)
             {
-                logManager.LogEvent("File monitoring is already running.");
+                logManager.LogEvent("[FileWatcherManager] File monitoring is already running.");
                 return;
             }
 
@@ -101,10 +99,9 @@ namespace ITM_Agent.Services
             }
 
             isRunning = true; // 상태 업데이트
-            logManager.LogEvent("File monitoring started.");
-            logManager.LogDebug($"Monitoring {watchers.Count} folder(s): {string.Join(", ", watchers.Select(w => w.Path))}");
+            logManager.LogEvent("[FileWatcherManager] File monitoring started.");
+            logManager.LogDebug($"[FileWatcherManager] Monitoring {watchers.Count} folder(s): {string.Join(", ", watchers.Select(w => w.Path))}");
         }
-
 
         public void StopWatchers()
         {
@@ -118,7 +115,7 @@ namespace ITM_Agent.Services
             }
             watchers.Clear(); // 리스트 비우기
             isRunning = false; // 상태 업데이트
-            logManager.LogEvent("File monitoring stopped.");
+            logManager.LogEvent("[FileWatcherManager] File monitoring stopped.");
         }
 
         private async Task<bool> WaitForFileReadyAsync(string filePath, int maxRetries, int delayMilliseconds)
@@ -127,15 +124,15 @@ namespace ITM_Agent.Services
             {
                 if (IsFileReady(filePath))
                 {
-                    logManager.LogEvent($"File is ready: {filePath}");
+                    logManager.LogEvent($"[FileWatcherManager] File is ready: {filePath}");
                     return true;
                 }
 
-                logManager.LogEvent($"Retrying... File not ready: {filePath}, Attempt: {attempt + 1}");
+                logManager.LogEvent($"[FileWatcherManager] Retrying... File not ready: {filePath}, Attempt: {attempt + 1}");
                 await Task.Delay(delayMilliseconds);
             }
 
-            logManager.LogEvent($"File not ready after {maxRetries} attempts: {filePath}");
+            logManager.LogEvent($"[FileWatcherManager] File not ready after {maxRetries} attempts: {filePath}");
             return false;
         }
 
@@ -144,7 +141,7 @@ namespace ITM_Agent.Services
             if (!isRunning)
             {
                 if (isDebugMode)
-                    logManager.LogDebug($"File event ignored (not running): {e.FullPath}");
+                    logManager.LogDebug($"[FileWatcherManager] File event ignored (not running): {e.FullPath}");
                 return;
             }
 
@@ -152,7 +149,7 @@ namespace ITM_Agent.Services
             if (IsDuplicateEvent(e.FullPath))
             {
                 if (isDebugMode)
-                    logManager.LogDebug($"Duplicate event ignored: {e.ChangeType} - {e.FullPath}");
+                    logManager.LogDebug($"[FileWatcherManager] Duplicate event ignored: {e.ChangeType} - {e.FullPath}");
                 return;
             }
 
@@ -167,15 +164,15 @@ namespace ITM_Agent.Services
                 }
                 else if (e.ChangeType == WatcherChangeTypes.Deleted)
                 {
-                    logManager.LogEvent($"File Deleted: {e.FullPath}");
+                    logManager.LogEvent($"[FileWatcherManager] File Deleted: {e.FullPath}");
                 }
             }
             catch (Exception ex)
             {
-                logManager.LogEvent($"Error processing file: {e.FullPath}. Exception: {ex.Message}");
+                logManager.LogEvent($"[FileWatcherManager] Error processing file: {e.FullPath}. Exception: {ex.Message}");
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Exception details: {ex.Message}");
+                    logManager.LogDebug($"[FileWatcherManager] Exception details: {ex.Message}");
                 }
             }
         }
@@ -199,27 +196,27 @@ namespace ITM_Agent.Services
                         // 파일 준비 상태 확인
                         if (!await WaitForFileReady(filePath))
                         {
-                            logManager.LogEvent($"File skipped (not ready): {filePath}");
+                            logManager.LogEvent($"[FileWatcherManager] File skipped (not ready): {filePath}");
                             return null;
                         }
 
                         // 파일 복사
                         File.Copy(filePath, destinationFile, true);
-                        logManager.LogEvent($"File Created: {filePath} -> copied {destinationFolder}");
+                        logManager.LogEvent($"[FileWatcherManager] File Created: {filePath} -> copied {destinationFolder}");
                         return destinationFolder;
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogEvent($"Error copying file: {filePath}. Exception: {ex.Message}");
+                        logManager.LogEvent($"[FileWatcherManager] Error copying file: {filePath}. Exception: {ex.Message}");
                         if (isDebugMode)
                         {
-                            logManager.LogDebug($"Error details: {ex.Message}");
+                            logManager.LogDebug($"[FileWatcherManager] Error details: {ex.Message}");
                         }
                     }
                 }
             }
 
-            logManager.LogEvent($"No matching regex for file: {fileName}");
+            logManager.LogEvent($"[FileWatcherManager] No matching regex for file: {fileName}");
             return null;
         }
 
@@ -235,27 +232,14 @@ namespace ITM_Agent.Services
                 // 디버그 모드일 경우 재시도 로그 기록
                 if (isDebugMode)
                 {
-                    logManager.LogDebug($"Retrying access to file: {filePath}, Attempt: {attempt + 1}/{maxRetries}");
+                    logManager.LogDebug($"[FileWatcherManager] Retrying access to file: {filePath}, Attempt: {attempt + 1}/{maxRetries}");
                 }
 
                 await Task.Delay(delayMilliseconds); // 대기
             }
 
-            // 파일 준비되지 않음
-            logManager.LogEvent($"File not ready after {maxRetries} retries: {filePath}");
+            logManager.LogEvent($"[FileWatcherManager] File not ready after {maxRetries} retries: {filePath}");
             return false;
-        }
-
-        private void ScheduleDeletedFileCleanup(string filePath)
-        {
-            Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
-            {
-                deletedFiles.Remove(filePath);
-                if (isDebugMode)
-                {
-                    logManager.LogDebug($"Deleted file removed from tracking: {filePath}");
-                }
-            });
         }
 
         private bool IsDuplicateEvent(string filePath)
@@ -266,14 +250,13 @@ namespace ITM_Agent.Services
             {
                 if (fileProcessTracker.TryGetValue(filePath, out var lastProcessed))
                 {
-                    if ((now - lastProcessed).TotalMilliseconds < 500) // 500ms 이내 중복 처리 방지
+                    if ((now - lastProcessed).TotalMilliseconds < duplicateEventThreshold.TotalMilliseconds)
                     {
-                        return true;
+                        return true; // 중복 이벤트로 간주
                     }
                 }
 
-                // 이벤트 처리 시간 갱신
-                fileProcessTracker[filePath] = now;
+                fileProcessTracker[filePath] = now; // 이벤트 처리 시간 갱신
                 return false;
             }
         }
@@ -291,14 +274,6 @@ namespace ITM_Agent.Services
             {
                 return false; // 파일이 잠겨 있음
             }
-        }
-
-        private void ScheduleFileRemoval(string filePath, HashSet<string> fileSet)
-        {
-            Task.Delay(TimeSpan.FromSeconds(5)).ContinueWith(_ =>
-            {
-                fileSet.Remove(filePath);
-            });
         }
     }
 }
