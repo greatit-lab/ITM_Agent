@@ -11,18 +11,27 @@ namespace ITM_Agent.Services
     public class EqpidManager
     {
         private readonly SettingsManager settingsManager;
+        private readonly LogManager logManager;
 
-        public EqpidManager(SettingsManager settings)
+        public EqpidManager(SettingsManager settings, LogManager logManager)
         {
-            this.settingsManager = settings;
+            this.settingsManager = settings ?? throw new ArgumentNullException(nameof(settings));
+            this.logManager = logManager ?? throw new ArgumentNullException(nameof(logManager));
         }
 
         public void InitializeEqpid()
         {
+            logManager.LogEvent("[EqpidManager] Initializing Eqpid.");
+            
             string eqpid = settingsManager.GetEqpid();
             if (string.IsNullOrEmpty(eqpid))
             {
+                logManager.LogEvent("[EqpidManager] Eqpid is empty. Prompting for input.");
                 PromptForEqpid();
+            }
+            else
+            {
+                logManager.LogEvent($"[EqpidManager] Eqpid found: {eqpid}");
             }
         }
 
@@ -37,12 +46,15 @@ namespace ITM_Agent.Services
                     var result = form.ShowDialog();
                     if (result == DialogResult.OK)
                     {
+                        logManager.LogEvent($"[EqpidManager] Eqpid input accepted: {form.Eqpid}");
                         settingsManager.SetEqpid(form.Eqpid.ToUpper());
                         settingsManager.SetType(form.Type); // Type 값 설정
+                        logManager.LogEvent($"[EqpidManager] Type set to: {form.Type}");
                         isValidInput = true;
                     }
                     else if (result == DialogResult.Cancel)
                     {
+                        logManager.LogEvent("[EqpidManager] Eqpid input canceled. Application will exit.");
                         MessageBox.Show("Eqpid 입력이 취소되었습니다. 애플리케이션을 종료합니다.",
                                         "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         Environment.Exit(0);
