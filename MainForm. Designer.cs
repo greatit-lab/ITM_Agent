@@ -422,7 +422,7 @@ namespace ITM_Agent
             //
             this.ts_Status.Name = "ts_Status";
             this.ts_Status.Size = new System.Drawing.Size(121, 17);
-            this.ts_Status.Text = "ToolStripStatusLabel1";
+            this.ts_Status.Text = "toolStripStatusLabel1";
             //
             // statusStrip1 
             //
