@@ -64,7 +64,7 @@ namespace ITM_Agent.Services
                 }
         
                 // 출력 경로 폴더 확인
-                string pdfDirectory = Path.GetDirectoryName(outputPdfPath);
+                string pdfDirectory = System.IO.Path.GetDirectoryName(outputPdfPath);
                 if (string.IsNullOrEmpty(pdfDirectory))
                 {
                     logManager.LogError($"[PdfMergeManager] Invalid outputPdfPath: {outputPdfPath}");
