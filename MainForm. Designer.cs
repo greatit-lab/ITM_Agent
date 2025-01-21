@@ -67,7 +67,9 @@ namespace ITM_Agent
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
-
+        private System.Windows.Forms.ToolStripMenuItem tsm_Plugin;
+        private System.Windows.Forms.ToolStripMenuItem pluginListToolStripMenuItem;
+        
         #region Windows Form 디자이너에서 생성한 코드
 
         private void InitializeComponent()
@@ -87,8 +89,8 @@ namespace ITM_Agent
             this.tsm_Option = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_Onto = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_ImageTrans = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();          
             this.tsm_UploadData = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_Nova = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
@@ -115,6 +117,8 @@ namespace ITM_Agent
             this.lb_ExcludeList = new System.Windows.Forms.ListBox();
             this.lb_RegexList = new System.Windows.Forms.ListBox();
             this.lb_TargetFolders = new System.Windows.Forms.ListBox();
+            this.tsm_Plugin = new System.Windows.Forms.ToolStripMenuItem();
+            this.pluginListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
@@ -142,6 +146,7 @@ namespace ITM_Agent
                 this.toolStripMenuItem8,
                 this.tsm_Onto,
                 this.tsm_Nova,
+                this.tsm_Plugin,
                 this.도움말ToolStripMenuItem1
             });
             this.menuStrip1.Location = new System.Drawing.Point(0, 0);
@@ -247,6 +252,12 @@ namespace ITM_Agent
             this.tsm_Onto.Size = new System.Drawing.Size(52, 20);
             this.tsm_Onto.Text = "ONTO";
             //
+            // tsm_OverrideNames
+            //
+            this.tsm_OverrideNames.Name = "tsm_OverrideNames";
+            this.tsm_OverrideNames.Size = new System.Drawing.Size(180, 22);
+            this.tsm_OverrideNames.Text = "Override Names";
+            //
             // tsm_ImageTrans
             //
             this.tsm_ImageTrans.Name = "tsm_ImageTrans";
@@ -258,12 +269,6 @@ namespace ITM_Agent
             this.tsm_UploadData.Name = "tsm_UploadData";
             this.tsm_UploadData.Size = new System.Drawing.Size(180, 22);
             this.tsm_UploadData.Text = "Upload Data";
-            //
-            // tsm_OverrideNames
-            //
-            this.tsm_OverrideNames.Name = "tsm_OverrideNames";
-            this.tsm_OverrideNames.Size = new System.Drawing.Size(180, 22);
-            this.tsm_OverrideNames.Text = "Override Names";
             //
             // tsm_Nova
             //
@@ -483,6 +488,20 @@ namespace ITM_Agent
             this.lb_TargetFolders.Name = "lb_TargetFolders";
             this.lb_TargetFolders.Size = new System.Drawing.Size(120, 88);
             this.lb_TargetFolders.TabIndex = 11;
+            //
+            // tsm_Plugin
+            //
+            this.tsm_Plugin.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+              this.pluginListToolStripMenuItem});
+            this.tsm_Plugin.Name = "tsm_Plugin";
+            this.tsm_Plugin.Size = new System.Drawing.Size(53, 20);
+            this.tsm_Plugin.Text = "Plugin";
+            //
+            // pluginListToolStripMenuItem
+            //
+            this.pluginListToolStripMenuItem.Name = "pluginListToolStripMenuItem";
+            this.pluginListToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pluginListToolStripMenuItem.Text = "Plugin List";         
             //
             // MainForm
             //
