@@ -4,15 +4,6 @@ namespace ITM_Agent.ucPanel
     {
         private System.ComponentModel.IContainer components = null;
         
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing && (components != null))
-            {
-                components.Dispose();
-            }
-            base.Dispose(disposing);
-        }
-        
         private System.Windows.Forms.SplitContainer splitContainer2;
         private System.Windows.Forms.GroupBox groupBox1;
         private System.Windows.Forms.Button btn_FolderClear;
