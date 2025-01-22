@@ -1,7 +1,6 @@
 // Services\EqpidManager.cs
 using System;
 using System.Windows.Forms;
-using System.Data;
 using MySql.Data.MySqlClient;  // MySql.Data.dll 참조 필요
 using ConnectInfo;            // ConnectInfo.dll( DatabaseInfo ) 참조
 using System.Globalization;
