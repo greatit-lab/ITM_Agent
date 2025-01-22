@@ -5,6 +5,7 @@ using System.Data;
 using MySql.Data.MySqlClient;  // MySql.Data.dll 참조 필요
 using ConnectInfo;            // ConnectInfo.dll( DatabaseInfo ) 참조
 using System.Globalization;
+using System.Management;
 
 namespace ITM_Agent.Services
 {
@@ -81,44 +82,70 @@ namespace ITM_Agent.Services
             // 1) ConnectInfo.dll을 통해 Default DB 정보 가져오기
             DatabaseInfo dbInfo = DatabaseInfo.CreateDefault();
             string connectionString = dbInfo.GetConnectionString();
-            // 예: "Server=localhost;Port=3306;Database=testdb;Uid=admin;Pwd=password123;"
-
+        
             // 2) 시스템 정보 수집
-            string osVersion    = SystemInfoCollector.GetOSVersion();
+            string osVersion = SystemInfoCollector.GetOSVersion();
             string architecture = SystemInfoCollector.GetArchitecture();
-            string machineName  = SystemInfoCollector.GetMachineName();
-            string locale       = SystemInfoCollector.GetLocale();
-            string timeZone     = SystemInfoCollector.GetTimeZone();
-
-            // 3) DB 연결 후 INSERT
-            //    (테이블 이름이 itm.agent_info 라고 가정)
-            //    컬럼 구성(가정): eqpid, type, os_version, architecture, pc_name, locale, timezone, reg_date
-            string query = @"
-                INSERT INTO itm.agent_info
-                (eqpid, type, os, system_type, pc_name, locale, timezone, reg_date)
-                VALUES
-                (@eqpid, @type, @os, @arch, @pc, @loc, @tz, NOW());
-            ";
-
+            string machineName = SystemInfoCollector.GetMachineName();
+            string locale = SystemInfoCollector.GetLocale();
+            string timeZone = SystemInfoCollector.GetTimeZone();
+        
             try
             {
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-
-                    using (MySqlCommand cmd = new MySqlCommand(query, conn))
+        
+                    // 3) 기존 데이터 존재 여부 확인
+                    string selectQuery = @"
+                        SELECT COUNT(*) FROM itm.agent_info 
+                        WHERE eqpid = @eqpid AND pc_name = @pc_name;
+                    ";
+        
+                    int existingRecords = 0;
+                    using (MySqlCommand selectCmd = new MySqlCommand(selectQuery, conn))
                     {
-                        // 파라미터 바인딩
-                        cmd.Parameters.AddWithValue("@eqpid", eqpid);
-                        cmd.Parameters.AddWithValue("@type", type);
-                        cmd.Parameters.AddWithValue("@os", osVersion);
-                        cmd.Parameters.AddWithValue("@arch", architecture);
-                        cmd.Parameters.AddWithValue("@pc", machineName);
-                        cmd.Parameters.AddWithValue("@loc", locale);
-                        cmd.Parameters.AddWithValue("@tz", timeZone);
-
-                        int rowsAffected = cmd.ExecuteNonQuery();
-                        logManager.LogEvent($"[EqpidManager] DB 업로드 완료. (rows inserted={rowsAffected})");
+                        selectCmd.Parameters.AddWithValue("@eqpid", eqpid);
+                        selectCmd.Parameters.AddWithValue("@pc_name", machineName);
+        
+                        existingRecords = Convert.ToInt32(selectCmd.ExecuteScalar());
+                    }
+        
+                    // 4) 조건에 따른 처리
+                    if (existingRecords > 0)
+                    {
+                        logManager.LogEvent($"[EqpidManager] Entry already exists for Eqpid: {eqpid} and PC Name: {machineName}. Skipping upload.");
+                    }
+                    else
+                    {
+                        // 데이터가 없으면 INSERT
+                        string insertQuery = @"
+                            INSERT INTO itm.agent_info
+                            (eqpid, type, os, system_type, pc_name, locale, timezone, reg_date)
+                            VALUES
+                            (@eqpid, @type, @os, @arch, @pc_name, @loc, @tz, NOW())
+                            ON DUPLICATE KEY UPDATE
+                                type = @type,
+                                os = @os,
+                                system_type = @arch,
+                                locale = @loc,
+                                timezone = @tz,
+                                reg_date = NOW();
+                        ";
+        
+                        using (MySqlCommand insertCmd = new MySqlCommand(insertQuery, conn))
+                        {
+                            insertCmd.Parameters.AddWithValue("@eqpid", eqpid);
+                            insertCmd.Parameters.AddWithValue("@type", type);
+                            insertCmd.Parameters.AddWithValue("@os", osVersion);
+                            insertCmd.Parameters.AddWithValue("@arch", architecture);
+                            insertCmd.Parameters.AddWithValue("@pc_name", machineName);
+                            insertCmd.Parameters.AddWithValue("@loc", locale);
+                            insertCmd.Parameters.AddWithValue("@tz", timeZone);
+        
+                            int rowsAffected = insertCmd.ExecuteNonQuery();
+                            logManager.LogEvent($"[EqpidManager] DB 업로드 완료. (rows inserted/updated={rowsAffected})");
+                        }
                     }
                 }
             }
@@ -133,8 +160,21 @@ namespace ITM_Agent.Services
     {
         public static string GetOSVersion()
         {
-            // 예: "Microsoft Windows NT 10.0.19044.0"
-            return Environment.OSVersion.ToString();
+            try
+            {
+                using (var searcher = new ManagementObjectSearcher("SELECT Caption FROM Win32_OperatingSystem"))
+                {
+                    foreach (var obj in searcher.Get())
+                    {
+                        return obj["Caption"].ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                return $"Unknown OS (Error: {ex.Message})";
+            }
+            return "Unknown OS";
         }
     
         public static string GetArchitecture()
