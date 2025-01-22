@@ -181,30 +181,57 @@ namespace ITM_Agent
             ts_Status.Text = status;
             ts_Status.ForeColor = color;
 
-            bool isRunning = status == "Running...";
-            // ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
-            ucOverrideNamesPanel?.UpdateStatus(status); // 상태 업데이트 반영
+            // --- UserControl 상태 동기화 ---
+            ucOverrideNamesPanel?.UpdateStatus(status);
+            bool isRunning = (status == "Running...");
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
-            ucImageTransPanel?.UpdateStatusOnRun(isRunning);  // ucImageTransPanel 상태 동기화
+            ucImageTransPanel?.UpdateStatusOnRun(isRunning);
 
-            // 디버그 모드 비활성화 처리
+            // 디버그 모드
             cb_DebugMode.Enabled = !isRunning;
 
             logManager.LogEvent($"Status updated to: {status}");
-
             if (isDebugMode)
-            {
                 logManager.LogDebug($"Status updated to: {status}. Running state: {isRunning}");
+
+            // --- 여기부터 상태 문자열별로 버튼 활성화 설정 ---
+            if (status == "Stopped!")
+            {
+                // Stopped 상태: Run/Stop 비활성, Quit 활성
+                btn_Run.Enabled = false;
+                btn_Stop.Enabled = false;
+                btn_Quit.Enabled = true;
+            }
+            else if (status == "Ready to Run")
+            {
+                // Ready 상태: Run, Quit 활성 / Stop 비활성
+                btn_Run.Enabled = true;
+                btn_Stop.Enabled = false;
+                btn_Quit.Enabled = true;
+            }
+            else if (status == "Running...")
+            {
+                // Running 상태: Stop 활성 / Run, Quit 비활성
+                btn_Run.Enabled = false;
+                btn_Stop.Enabled = true;
+                btn_Quit.Enabled = false;
+            }
+            else
+            {
+                // 혹시 다른 문자열 상태가 들어왔을 때
+                btn_Run.Enabled = false;
+                btn_Stop.Enabled = false;
+                btn_Quit.Enabled = false;
             }
 
-            btn_Run.Enabled = !isRunning;   // 'Run' 버튼: Stopped 상태에서 활성화
-            btn_Stop.Enabled = isRunning;   // 'Stop' 버튼: Running 상태에서 활성화
-            btn_Quit.Enabled = !isRunning;   // 'Quit' 버튼: Stopped 상태에서 활성화
+            // ★ 기존에 아래처럼 한 줄로 처리하던 'btn_Run.Enabled = !isRunning;' 등은 지워주세요.
+            //    btn_Run.Enabled = !isRunning;   
+            //    btn_Stop.Enabled = isRunning;   
+            //    btn_Quit.Enabled = !isRunning;
 
             UpdateTrayMenuStatus();
-            UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
-            
+            UpdateMenuItemsState(isRunning);
             UpdateButtonsState();
         }
 
@@ -249,27 +276,36 @@ namespace ITM_Agent
             }
         }
 
-
         private void btn_Stop_Click(object sender, EventArgs e)
         {
             logManager.LogEvent("Stop button clicked.");
 
-            fileWatcherManager.StopWatchers(); // StopWatchers 호출
-            isRunning = false; // 상태 변경
-            UpdateMainStatus("Stopped!", Color.Red);
+            fileWatcherManager.StopWatchers(); // 모니터 중지
+            isRunning = false; // 현재 Running 상태 false
 
-            ucConfigPanel.InitializePanel(isRunning); // 패널 동기화
+            // 이제 Ready 상태인지 확인
+            bool isReady = ucConfigPanel.IsReadyToRun();
+            if (isReady)
+            {
+                // 모든 조건이 충족되었다면 "Ready to Run"
+                UpdateMainStatus("Ready to Run", Color.Green);
+            }
+            else
+            {
+                // 아니면 "Stopped!"
+                UpdateMainStatus("Stopped!", Color.Red);
+            }
+
+            // ucConfigPanel, ucOverrideNamesPanel 등 동기화
+            ucConfigPanel.InitializePanel(isRunning);
             ucOverrideNamesPanel.InitializePanel(isRunning);
         }
 
-
-
-
         private void UpdateButtonsState()
         {
-            btn_Run.Enabled = !isRunning;
-            btn_Stop.Enabled = isRunning;
-            btn_Quit.Enabled = !isRunning;
+            //btn_Run.Enabled = !isRunning;
+            //btn_Stop.Enabled = isRunning;
+            //btn_Quit.Enabled = !isRunning;
 
             UpdateTrayMenuStatus(); // Tray 아이콘 상태 업데이트
         }
@@ -294,14 +330,31 @@ namespace ITM_Agent
 
         private void MainForm_Load(object sender, EventArgs e)
         {
-            // 폼 로드시 실행할 로직
+            // (1) 폼 로드시 실행할 로직
             pMain.Controls.Add(ucSc1);
             UpdateMenusBasedOnType();   // 메뉴 상태 업데이트
 
-            // 초기 패널 설정 및 상태 동기화
-            ShowUserControl(ucConfigPanel); // 초기 패널 로드
-            ucConfigPanel.UpdateStatusOnRun(isRunning); // 상태 동기화
-            ucImageTransPanel.UpdateStatusOnRun(isRunning); // ucImageTransPanel 초기 상태 동기화
+            // (2) 초기 패널 설정 및 UserControl 상태 동기화
+            ShowUserControl(ucConfigPanel); // 가장 먼저 ucConfigPanel 보여줌
+
+            // 만약 isRunning 플래그를 기본값으로 false로 두고 있다면,
+            // 우선 "멈춤" 상태를 패널들에 반영
+            ucConfigPanel.UpdateStatusOnRun(isRunning);
+            ucImageTransPanel.UpdateStatusOnRun(isRunning);
+
+            // (3) ucConfigurationPanel 에서 현재 Target/Folder/Regex 등이 모두 세팅되었는지 확인
+            bool isReady = ucConfigPanel.IsReadyToRun();
+
+            // (4) 준비되었으면 "Ready to Run" 상태로,
+            //     아니면 "Stopped!" 상태로 업데이트
+            if (isReady)
+            {
+                UpdateMainStatus("Ready to Run", Color.Green);
+            }
+            else
+            {
+                UpdateMainStatus("Stopped!", Color.Red);
+            }
         }
 
         private void RefreshUI()
@@ -425,7 +478,6 @@ namespace ITM_Agent
             }
         }
 
-        // MainForm.cs
         private void UpdateMenusBasedOnType()
         {
             string type = settingsManager.GetType();
