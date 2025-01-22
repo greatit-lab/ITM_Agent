@@ -1,10 +1,6 @@
 // Program.cs
-using ITM_Agent.Services;
-using ITM_Agent;
-using System;
 using System.Windows.Forms;
 using System.IO;
-using ConnectInfo;
 
 namespace ITM_Agent
 {
@@ -26,20 +22,6 @@ namespace ITM_Agent
 
             // MainForm 실행
             Application.Run(new MainForm(settingsManager));
-        }
-        
-        static void Main(string[] args)
-        {
-            // Create an instance with default DB connection info
-            var dbInfo = DatabaseInfo.CreateDefault();
-    
-            // Get connection string
-            string connectionString = dbInfo.GetConnectionString();
-            Console.WriteLine("Generated Connection String:");
-            Console.WriteLine(connectionString);
-    
-            // Test the connection
-            dbInfo.TestConnection();
         }
     }
 }
