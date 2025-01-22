@@ -95,7 +95,7 @@ namespace ITM_Agent.Services
             //    컬럼 구성(가정): eqpid, type, os_version, architecture, pc_name, locale, timezone, reg_date
             string query = @"
                 INSERT INTO itm.agent_info
-                (eqpid, type, os_version, architecture, pc_name, locale, timezone, reg_date)
+                (eqpid, type, os, system_type, pc_name, locale, timezone, reg_date)
                 VALUES
                 (@eqpid, @type, @os, @arch, @pc, @loc, @tz, NOW());
             ";
