@@ -57,7 +57,7 @@ namespace ITM_Agent
 
             // fileWatcherManager 생성 시 isDebugMode 전달
             fileWatcherManager = new FileWatcherManager(settingsManager, logManager, isDebugMode);
-            eqpidManager = new EqpidManager(settingsManager, logManager);
+            eqpidManager = new EqpidManager(settingsManager, logManager, AppVersion);
 
             // icon 설정
             SetFormIcon();
