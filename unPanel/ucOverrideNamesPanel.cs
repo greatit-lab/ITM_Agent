@@ -535,38 +535,42 @@ namespace ITM_Agent.ucPanel
 
         private void InitializeBaselineWatcher()
         {
-            // Debug Log
+            if (baselineWatcher != null)
+            {
+                // 혹은 baselineWatcher.Dispose() 후 null 할당
+                baselineWatcher.EnableRaisingEvents = false;
+                baselineWatcher.Dispose();
+                baselineWatcher = null;
+            }
+        
             logManager.LogDebug("[ucOverrideNamesPanel] InitializeBaselineWatcher() 호출");
-
+        
             var baseFolder = settingsManager.GetFoldersFromSection("[BaseFolder]").FirstOrDefault();
             if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
             {
-                MessageBox.Show("BaseFolder를 선택하거나 유효한 경로를 설정하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                logManager.LogError("[ucOverrideNamesPanel] 유효하지 않은 BaseFolder로 인해 BaselineWatcher 초기화 실패");
+                logManager.LogError("[ucOverrideNamesPanel] 유효하지 않은 BaseFolder로 인해 BaselineWatcher 초기화 불가");
                 return;
             }
-
+        
             var baselineFolder = Path.Combine(baseFolder, "Baseline");
             if (!Directory.Exists(baselineFolder))
             {
-                MessageBox.Show("Baseline 폴더가 존재하지 않습니다.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                logManager.LogError("[ucOverrideNamesPanel] Baseline 폴더가 없어 BaselineWatcher 초기화 실패");
+                logManager.LogError("[ucOverrideNamesPanel] Baseline 폴더가 존재하지 않아 BaselineWatcher 초기화 불가");
                 return;
             }
-
+        
             baselineWatcher = new FileSystemWatcher(baselineFolder, "*.info")
             {
                 NotifyFilter = NotifyFilters.FileName | NotifyFilters.LastWrite
             };
-
+        
             baselineWatcher.Created += OnBaselineFileChanged;
             baselineWatcher.Changed += OnBaselineFileChanged;
             baselineWatcher.EnableRaisingEvents = true;
-
-            // Event Log
+        
             logManager.LogEvent($"[ucOverrideNamesPanel] BaselineWatcher 초기화 완료 - 경로: {baselineFolder}");
         }
-
+        
         private void OnBaselineFileChanged(object sender, FileSystemEventArgs e)
         {
             // Debug Log
