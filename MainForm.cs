@@ -1,485 +1,541 @@
-// MainForm.cs
-using System;
-using System.Drawing;
-using System.IO;
-using System.Windows.Forms;
 using ITM_Agent.Services;
-using ITM_Agent.ucPanel;
+using System.Drawing;
+using System.Windows.Forms;
 
 namespace ITM_Agent
 {
-    public partial class MainForm : Form
+    partial class MainForm
     {
-        private SettingsManager settingsManager;
-        private LogManager logManager;
-        private FileWatcherManager fileWatcherManager;
-        private EqpidManager eqpidManager;
+        private System.ComponentModel.IContainer components = null;
 
-        private NotifyIcon trayIcon;
-        private ContextMenuStrip trayMenu;
-        private ToolStripMenuItem titleItem;
-        private ToolStripMenuItem runItem;
-        private ToolStripMenuItem stopItem;
-        private ToolStripMenuItem quitItem;
-
-        private const string AppVersion = "v1.0.0";
-
-        ucPanel.ucConfigurationPanel ucSc1;
-
-        private ucConfigurationPanel ucConfigPanel;
-        private ucOverrideNamesPanel ucOverrideNamesPanel;
-        private ucImageTransPanel ucImageTransPanel;
-        //private ucScreen4 ucUploadDataPanel;
-
-        private bool isRunning = false; // 현재 상태 플래그
-        private bool isDebugMode = false;   // 디버그 모드 상태
-
-        public MainForm(SettingsManager settingsManager)
+        protected override void Dispose(bool disposing)
         {
-            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
-            InitializeComponent();
-
-            // 이벤트 핸들러를 생성자에서 설정
-            this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped", Color.Red);
-
-            InitializeUserControls();
-            RegisterMenuEvents();
-
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
-
-            // settingsManager 인스턴스를 생성자 인자로 전달
-            ucSc1 = new ucPanel.ucConfigurationPanel(settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel); // ucConfigPanel 전달
-
-            logManager = new LogManager(baseDir);
-
-            // fileWatcherManager 생성 시 isDebugMode 전달
-            fileWatcherManager = new FileWatcherManager(settingsManager, logManager, isDebugMode);
-            eqpidManager = new EqpidManager(settingsManager, logManager, AppVersion);
-
-            // icon 설정
-            SetFormIcon();
-
-            this.Text = $"ITM Agent - {AppVersion}";
-            this.MaximizeBox = false;
-
-            InitializeTrayIcon();
-            this.FormClosing += MainForm_FormClosing;
-
-            eqpidManager.InitializeEqpid();
-            // Eqpid 초기화 완료 후 eqpid 값 가져오기
-            string eqpid = settingsManager.GetEqpid();
-            if (!string.IsNullOrEmpty(eqpid))
+            if (disposing && (components != null))
             {
-                ProceedWithMainFunctionality(eqpid);
+                components.Dispose();
             }
-
-            fileWatcherManager.InitializeWatchers();
-
-            btn_Run.Click += btn_Run_Click;
-            btn_Stop.Click += btn_Stop_Click;
-            btn_Quit.Click += btn_Quit_Click;
-
-            UpdateUIBasedOnSettings();
+            base.Dispose(disposing);
         }
 
-        private void SetFormIcon()
+        private System.Windows.Forms.MenuStrip menuStrip1;
+        private System.Windows.Forms.ToolStripMenuItem tsm_Onto;
+        private System.Windows.Forms.ToolStripMenuItem newConfigurationToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator1;
+        private System.Windows.Forms.ToolStripMenuItem settingsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem overrideNamesToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem imageTransToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem uploadDataToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem 파일ToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem newToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem openToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator7;
+        private System.Windows.Forms.ToolStripMenuItem saveAsToolStripMenuItem;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator8;
+        private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
+        private System.Windows.Forms.ToolStripMenuItem tsm_OverrideNames;
+        private System.Windows.Forms.ToolStripMenuItem tsm_ImageTrans;
+        private System.Windows.Forms.ToolStripMenuItem tsm_UploadData;
+        private System.Windows.Forms.ToolStripMenuItem 도움말ToolStripMenuItem1;
+        private System.Windows.Forms.ToolStripMenuItem 내용ToolStripMenuItem1;
+        private System.Windows.Forms.SplitContainer splitContainer3;
+        private System.Windows.Forms.CheckBox cb_DebugMode;
+        private System.Windows.Forms.Button btn_Quit;
+        private System.Windows.Forms.Button btn_Stop;
+        private System.Windows.Forms.Button btn_Run;
+        private System.Windows.Forms.Panel pMain;
+        private System.Windows.Forms.Label lb_eqpid;
+        private System.Windows.Forms.ToolStripStatusLabel ts_Status;
+        private System.Windows.Forms.StatusStrip statusStrip1;
+        private System.Windows.Forms.ListBox lb_TargetFolders;
+        private System.Windows.Forms.ListBox lb_regexPatterns;
+        private System.Windows.Forms.ListBox lb_TargetList;
+        private System.Windows.Forms.ListBox lb_ExcludeList;
+        private System.Windows.Forms.Label lb_BaseFolder;
+        private System.Windows.Forms.ListBox lb_RegexList;
+        private System.Windows.Forms.Button btn_TargetFolder;
+        private System.Windows.Forms.Button btn_TargetRemove;
+        private System.Windows.Forms.Button btn_ExcludeFolder;
+        private System.Windows.Forms.Button btn_ExcludeRemove;
+        private System.Windows.Forms.Button btn_RegAdd;
+        private System.Windows.Forms.Button btn_RegEdit;
+        private System.Windows.Forms.Button btn_RegRemove;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem8;
+        private System.Windows.Forms.ToolStripMenuItem tsm_Categorize;
+        private System.Windows.Forms.ToolStripSeparator toolStripSeparator9;
+        private System.Windows.Forms.ToolStripMenuItem tsm_Option;
+        private System.Windows.Forms.ToolStripMenuItem tsm_Nova;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
+        private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
+        private System.Windows.Forms.ToolStripMenuItem tsm_Plugin;
+        private System.Windows.Forms.ToolStripMenuItem pluginListToolStripMenuItem;
+        
+        #region Windows Form 디자이너에서 생성한 코드
+
+        private void InitializeComponent()
         {
-            // 제목줄 아이콘 설정
-            this.Icon = new Icon(@"Resources\Icons\icon.ico");
-        }
-
-        private void ProceedWithMainFunctionality(string eqpid)
-        {
-            lb_eqpid.Text = $"Eqpid: {eqpid}";
-        }
-
-        private void InitializeTrayIcon()
-        {
-            trayMenu = new ContextMenuStrip();
-
-            titleItem = new ToolStripMenuItem(this.Text);
-            titleItem.Click += (sender, e) => RestoreMainForm();
-            trayMenu.Items.Add(titleItem);
-
-            trayMenu.Items.Add(new ToolStripSeparator());
-
-            runItem = new ToolStripMenuItem("Run", null, (sender, e) => btn_Run.PerformClick());
-            trayMenu.Items.Add(runItem);
-
-            stopItem = new ToolStripMenuItem("Stop", null, (sender, e) => btn_Stop.PerformClick());
-            trayMenu.Items.Add(stopItem);
-
-            quitItem = new ToolStripMenuItem("Quit", null, (sender, e) => PerformQuit());
-            trayMenu.Items.Add(quitItem);
-
-            trayIcon = new NotifyIcon
+            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
+            this.menuStrip1 = new System.Windows.Forms.MenuStrip();
+            this.파일ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.openToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator7 = new System.Windows.Forms.ToolStripSeparator();
+            this.saveAsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator8 = new System.Windows.Forms.ToolStripSeparator();
+            this.quitToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem8 = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Categorize = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
+            this.tsm_Option = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Onto = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_ImageTrans = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_UploadData = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Nova = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.도움말ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.내용ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
+            this.newConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.toolStripSeparator1 = new System.Windows.Forms.ToolStripSeparator();
+            this.settingsToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.overrideNamesToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.imageTransToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.uploadDataToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.splitContainer3 = new System.Windows.Forms.SplitContainer();
+            this.lb_eqpid = new System.Windows.Forms.Label();
+            this.pMain = new System.Windows.Forms.Panel();
+            this.btn_Quit = new System.Windows.Forms.Button();
+            this.btn_Stop = new System.Windows.Forms.Button();
+            this.btn_Run = new System.Windows.Forms.Button();
+            this.ts_Status = new System.Windows.Forms.ToolStripStatusLabel();
+            this.statusStrip1 = new System.Windows.Forms.StatusStrip();
+            this.lb_regexPatterns = new System.Windows.Forms.ListBox();
+            this.lb_BaseFolder = new System.Windows.Forms.Label();
+            this.lb_TargetList = new System.Windows.Forms.ListBox();
+            this.lb_ExcludeList = new System.Windows.Forms.ListBox();
+            this.lb_RegexList = new System.Windows.Forms.ListBox();
+            this.lb_TargetFolders = new System.Windows.Forms.ListBox();
+            this.tsm_Plugin = new System.Windows.Forms.ToolStripMenuItem();
+            this.pluginListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
+            this.menuStrip1.SuspendLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
+            this.splitContainer3.Panel1.SuspendLayout();
+            this.splitContainer3.Panel2.SuspendLayout();
+            this.splitContainer3.SuspendLayout();
+            this.statusStrip1.SuspendLayout();
+            this.SuspendLayout();
+            //
+            // cb_DebugMode
+            //
+            this.cb_DebugMode.AutoSize = true;
+            this.cb_DebugMode.Location = new System.Drawing.Point(569, 12);
+            this.cb_DebugMode.Name = "cb_DebugMode";
+            this.cb_DebugMode.Size = new System.Drawing.Size(96, 16);
+            this.cb_DebugMode.TabIndex = 0;
+            this.cb_DebugMode.Text = "Debug Mode";
+            this.cb_DebugMode.UseVisualStyleBackColor = true;
+            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);  // 이벤트 연결
+            //
+            // menuStrip11
+            //
+            this.menuStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                Icon = new Icon(@"Resources\Icons\icon.ico"), // TrayIcon에 사용할 아이콘
-                ContextMenuStrip = trayMenu,
-                Visible = true,
-                Text = this.Text
-            };
-            trayIcon.DoubleClick += (sender, e) => RestoreMainForm();
-        }
-
-        private void RestoreMainForm()
-        {
-            this.Show();
-            this.WindowState = FormWindowState.Normal;
-            this.Activate();
-            titleItem.Enabled = false;  // 트레이 메뉴 비활성화
-        }
-
-        private void UpdateTrayMenuStatus()
-        {
-            if (runItem != null) runItem.Enabled = btn_Run.Enabled;
-            if (stopItem != null) stopItem.Enabled = btn_Stop.Enabled;
-            if (quitItem != null) quitItem.Enabled = btn_Quit.Enabled;
-        }
-
-        private void MainForm_FormClosing(object sender, FormClosingEventArgs e)
-        {
-            if (e.CloseReason == CloseReason.UserClosing) // X 버튼 클릭 시
+                this.파일ToolStripMenuItem1,
+                this.toolStripMenuItem8,
+                this.tsm_Onto,
+                this.tsm_Nova,
+                this.tsm_Plugin,
+                this.도움말ToolStripMenuItem1
+            });
+            this.menuStrip1.Location = new System.Drawing.Point(0, 0);
+            this.menuStrip1.Name = "menuStrip1";
+            this.menuStrip1.Size = new System.Drawing.Size(676, 24);
+            this.menuStrip1.TabIndex = 1;
+            this.menuStrip1.Text = "menuStrip1";
+            //
+            // 파일ToolStripMenuItem1
+            //
+            this.파일ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                e.Cancel = true; // 종료 방지
-                this.Hide(); // 폼을 숨김
-                trayIcon.BalloonTipTitle = "ITM Agent";
-                trayIcon.BalloonTipText = "ITM Agent가 백그라운드에서 실행 중입니다.";
-                trayIcon.ShowBalloonTip(3000); // 3초 동안 풍선 도움말 표시
-            }
-            else
+                this.newToolStripMenuItem,
+                this.openToolStripMenuItem,
+                this.toolStripSeparator7,
+                this.saveAsToolStripMenuItem,
+                this.toolStripSeparator8,
+                this.quitToolStripMenuItem
+            });
+            this.파일ToolStripMenuItem1.Name = "파일ToolStripMenuItem1";
+            this.파일ToolStripMenuItem1.Size = new System.Drawing.Size(37, 20);
+            this.파일ToolStripMenuItem1.Text = "File";
+            //
+            // newToolStripMenuItem
+            //
+            this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.newToolStripMenuItem.Name = "newToolStripMenuItem";
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.newToolStripMenuItem.Text = "New";
+            this.newToolStripMenuItem.Click += new System.EventHandler(this.NewMenuItem_Click);
+            //
+            // openToolStripMenuItem
+            //
+            this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.openToolStripMenuItem.Name = "openToolStripMenuItem";
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.openToolStripMenuItem.Text = "Open";
+            this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenMenuItem_Click);
+            //
+            // toolStripSeparator7
+            //
+            this.toolStripSeparator7.Name = "toolStripSeparator7";
+            this.toolStripSeparator7.Size = new System.Drawing.Size(111, 6);
+            //
+            // saveAsToolStripMenuItem
+            //
+            this.saveAsToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
+            this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.saveAsToolStripMenuItem.Text = "Save as";
+            this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsMenuItem_Click);
+            //
+            // toolStripSeparator8
+            //
+            this.toolStripSeparator8.Name = "toolStripSeparator8";
+            this.toolStripSeparator8.Size = new System.Drawing.Size(111, 6);
+            //
+            // quitToolStripMenuItem
+            //
+            this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
+            this.quitToolStripMenuItem.Text = "Quit";
+            this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitMenuItem_Click);
+            //
+            // toolStripMenuItem8
+            //
+            this.toolStripMenuItem8.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                // 강제 종료 등 다른 이유로 닫힐 때 처리
-                fileWatcherManager.StopWatchers();
-                trayIcon?.Dispose();
-                Environment.Exit(0);
-            }
-        }
-
-        private void UpdateUIBasedOnSettings()
-        {
-            // SettingsManager의 IsReadyToRun 결과에 따라 상태 업데이트
-            if (settingsManager.IsReadyToRun())
+                this.tsm_Categorize,
+                this.toolStripSeparator9,
+                this.tsm_Option
+            });
+            this.toolStripMenuItem8.Name = "toolStripMenuItem8";
+            this.toolStripMenuItem8.Size = new System.Drawing.Size(70, 20);
+            this.toolStripMenuItem8.Text = "Common";
+            //
+            // tsm_Categorize
+            //
+            this.tsm_Categorize.Name = "tsm_Categorize";
+            this.tsm_Categorize.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Categorize.Text = "Categorize";
+            //
+            // toolStripSeparator9
+            //
+            this.toolStripSeparator9.Name = "toolStripSeparator9";
+            this.toolStripSeparator9.Size = new System.Drawing.Size(177, 6);
+            //
+            // tsm_Option
+            //
+            this.tsm_Option.Name = "tsm_Option";
+            this.tsm_Option.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Option.Text = "Option";
+            //
+            // tsm_Onto
+            //
+            this.tsm_Onto.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                UpdateMainStatus("Ready to Run", Color.Green);
-                btn_Run.Enabled = true; // Run 버튼 활성화
-            }
-            else
+                this.tsm_OverrideNames,
+                this.tsm_ImageTrans,
+                this.tsm_UploadData
+            });
+            this.tsm_Onto.Name = "tsm_Onto";
+            this.tsm_Onto.Size = new System.Drawing.Size(52, 20);
+            this.tsm_Onto.Text = "ONTO";
+            //
+            // tsm_OverrideNames
+            //
+            this.tsm_OverrideNames.Name = "tsm_OverrideNames";
+            this.tsm_OverrideNames.Size = new System.Drawing.Size(180, 22);
+            this.tsm_OverrideNames.Text = "Override Names";
+            //
+            // tsm_ImageTrans
+            //
+            this.tsm_ImageTrans.Name = "tsm_ImageTrans";
+            this.tsm_ImageTrans.Size = new System.Drawing.Size(180, 22);
+            this.tsm_ImageTrans.Text = "Image Trans";
+            //
+            // tsm_UploadData
+            //
+            this.tsm_UploadData.Name = "tsm_UploadData";
+            this.tsm_UploadData.Size = new System.Drawing.Size(180, 22);
+            this.tsm_UploadData.Text = "Upload Data";
+            //
+            // tsm_Nova
+            //
+            this.tsm_Nova.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                UpdateMainStatus("Stopped!", Color.Red);
-                btn_Run.Enabled = false; // Run 버튼 비활성화
-            }
-            btn_Stop.Enabled = false; // 초기 상태에서 Stop 버튼 비활성화
-            btn_Quit.Enabled = true;  // Quit 버튼 활성화
-        }
-
-        private void UpdateMainStatus(string status, Color color)
-        {
-            ts_Status.Text = status;
-            ts_Status.ForeColor = color;
-
-            bool isRunning = status == "Running...";
-            // ucSc1.UpdateStatusOnRun(isRunning); // 상태를 UserControl에 전달
-            ucOverrideNamesPanel?.UpdateStatus(status); // 상태 업데이트 반영
-            ucConfigPanel?.UpdateStatusOnRun(isRunning);
-            ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
-            ucImageTransPanel?.UpdateStatusOnRun(isRunning);  // ucImageTransPanel 상태 동기화
-
-            // 디버그 모드 비활성화 처리
-            cb_DebugMode.Enabled = !isRunning;
-
-            logManager.LogEvent($"Status updated to: {status}");
-
-            if (isDebugMode)
+                this.toolStripMenuItem4,
+                this.toolStripMenuItem5,
+                this.toolStripMenuItem6
+            });
+            this.tsm_Nova.Name = "tsm_Nova";
+            this.tsm_Nova.Size = new System.Drawing.Size(53, 20);
+            this.tsm_Nova.Text = "NOVA";
+            //
+            // toolStripMenuItem4
+            //
+            this.toolStripMenuItem4.Name = "toolStripMenuItem4";
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem4.Text = "Override Names";
+            //
+            // toolStripMenuItem5
+            //
+            this.toolStripMenuItem5.Name = "toolStripMenuItem5";
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem5.Text = "Image Trans";
+            //
+            // toolStripMenuItem6
+            //
+            this.toolStripMenuItem6.Name = "toolStripMenuItem6";
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem6.Text = "Upload Data";
+            //
+            // 도움말ToolStripMenuItem1
+            //
+            this.도움말ToolStripMenuItem1.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                logManager.LogDebug($"Status updated to: {status}. Running state: {isRunning}");
-            }
-
-            btn_Run.Enabled = !isRunning;   // 'Run' 버튼: Stopped 상태에서 활성화
-            btn_Stop.Enabled = isRunning;   // 'Stop' 버튼: Running 상태에서 활성화
-            btn_Quit.Enabled = !isRunning;   // 'Quit' 버튼: Stopped 상태에서 활성화
-
-            UpdateTrayMenuStatus();
-            UpdateMenuItemsState(isRunning); // 메뉴 활성/비활성화
-            
-            UpdateButtonsState();
-        }
-
-        private void UpdateMenuItemsState(bool isRunning)
-        {
-            if (menuStrip1 != null)
+                this.내용ToolStripMenuItem1
+            });
+            this.도움말ToolStripMenuItem1.Name = "도움말ToolStripMenuItem1";
+            this.도움말ToolStripMenuItem1.Size = new System.Drawing.Size(52, 20);
+            this.도움말ToolStripMenuItem1.Text = "About";
+            //
+            // 내용ToolStripMenuItem1
+            //
+            this.내용ToolStripMenuItem1.Name = "내용ToolStripMenuItem1";
+            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.내용ToolStripMenuItem1.Text = "Information...";
+            //
+            // newConfigurationToolStripMenuItem
+            //
+            this.newConfigurationToolStripMenuItem.Name = "newConfigurationToolStripMenuItem";
+            this.newConfigurationToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newConfigurationToolStripMenuItem.Text = "New";
+            //
+            // toolStripSeparator1
+            //
+            this.toolStripSeparator1.Name = "toolStripSeparator1";
+            this.toolStripSeparator1.Size = new System.Drawing.Size(177, 6);
+            //
+            // settingsToolStripMenuItem
+            //
+            this.settingsToolStripMenuItem.Name = "settingsToolStripMenuItem";
+            this.settingsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.settingsToolStripMenuItem.Text = "Categorize";
+            //
+            // overrideNamesToolStripMenuItem
+            //
+            this.overrideNamesToolStripMenuItem.Name = "overrideNamesToolStripMenuItem";
+            this.overrideNamesToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.overrideNamesToolStripMenuItem.Text = "Override Names";
+            //
+            // imageTransToolStripMenuItem
+            //
+            this.imageTransToolStripMenuItem.Name = "imageTransToolStripMenuItem";
+            this.imageTransToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.imageTransToolStripMenuItem.Text = "Image Trans";
+            //
+            // uploadDataToolStripMenuItem
+            //
+            this.uploadDataToolStripMenuItem.Name = "uploadDataToolStripMenuItem";
+            this.uploadDataToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.uploadDataToolStripMenuItem.Text = "Upload Data";
+            //
+            // splitContainer3
+            //
+            this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.Location = new System.Drawing.Point(0, 24);
+            this.splitContainer3.Name = "splitContainer3";
+            this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
+            //
+            // splitContainer3.Panel1
+            //
+            this.splitContainer3.Panel1.Controls.Add(this.lb_eqpid);
+            this.splitContainer3.Panel1.Controls.Add(this.pMain);
+            //
+            // splitContainer3.Panel2
+            //
+            this.splitContainer3.Panel2.Controls.Add(this.cb_DebugMode);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Quit);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Stop);
+            this.splitContainer3.Panel2.Controls.Add(this.btn_Run);
+            this.splitContainer3.Size = new System.Drawing.Size(676, 385);
+            this.splitContainer3.SplitterDistance = 303;
+            this.splitContainer3.TabIndex = 10;
+            //
+            // lb_eqpid
+            //
+            this.lb_eqpid.AutoSize = true;
+            this.lb_eqpid.Location = new System.Drawing.Point(554, 7);
+            this.lb_eqpid.Name = "lb_eqpid";
+            this.lb_eqpid.Size = new System.Drawing.Size(37, 12);
+            this.lb_eqpid.TabIndex = 17;
+            this.lb_eqpid.Text = "EqpId";
+            //
+            // pMain
+            //
+            this.pMain.Dock = System.Windows.Forms.DockStyle.Bottom;
+            this.pMain.Location = new System.Drawing.Point(0, 0);
+            this.pMain.Name = "pMain";
+            this.pMain.Size = new System.Drawing.Size(676, 303);
+            this.pMain.TabIndex = 0;
+            //
+            // btn_Quit
+            //
+            this.btn_Quit.Location = new System.Drawing.Point(457, 34);
+            this.btn_Quit.Name = "btn_Quit";
+            this.btn_Quit.Size = new System.Drawing.Size(208, 39);
+            this.btn_Quit.TabIndex = 11;
+            this.btn_Quit.Text = "Quit";
+            this.btn_Quit.UseVisualStyleBackColor = true;
+            this.btn_Quit.Click += new System.EventHandler(this.btn_Quit_Click);
+            //
+            // btn_Stop
+            //
+            this.btn_Stop.Location = new System.Drawing.Point(235, 34);
+            this.btn_Stop.Name = "btn_Stop";
+            this.btn_Stop.Size = new System.Drawing.Size(208, 39);
+            this.btn_Stop.TabIndex = 10;
+            this.btn_Stop.Text = "Stop";
+            this.btn_Stop.UseVisualStyleBackColor = true;
+            //
+            // btn_Run
+            //
+            this.btn_Run.Location = new System.Drawing.Point(12, 34);
+            this.btn_Run.Name = "btn_Run";
+            this.btn_Run.Size = new System.Drawing.Size(208, 39);
+            this.btn_Run.TabIndex = 9;
+            this.btn_Run.Text = "Run";
+            this.btn_Run.UseVisualStyleBackColor = true;
+            //
+            // ts_Status
+            //
+            this.ts_Status.Name = "ts_Status";
+            this.ts_Status.Size = new System.Drawing.Size(121, 17);
+            this.ts_Status.Text = "toolStripStatusLabel1";
+            //
+            // statusStrip1 
+            //
+            this.statusStrip1.Items.AddRange(new System.Windows.Forms.ToolStripItem[]
             {
-                foreach (ToolStripMenuItem item in menuStrip1.Items)
-                {
-                    if (item.Text == "File")
-                    {
-                        foreach (ToolStripItem subItem in item.DropDownItems)
-                        {
-                            if (subItem.Text == "New" || subItem.Text == "Open" || subItem.Text == "Quit")
-                            {
-                                subItem.Enabled = !isRunning; // Running 상태에서 비활성화
-                            }
-                        }
-                    }
-                }
-            }
+                this.ts_Status
+            });
+            this.statusStrip1.Location = new System.Drawing.Point(0, 409);
+            this.statusStrip1.Name = "statusStrip1";
+            this.statusStrip1.Size = new System.Drawing.Size(676, 22);
+            this.statusStrip1.TabIndex = 2;
+            this.statusStrip1.Text = "statusStrip1";
+            //
+            // lb_regexPatterns 
+            //
+            this.lb_regexPatterns.FormattingEnabled = true;
+            this.lb_regexPatterns.ItemHeight = 12;
+            this.lb_regexPatterns.Location = new System.Drawing.Point(20, 200);
+            this.lb_regexPatterns.Name = "lb_regexPatterns";
+            this.lb_regexPatterns.Size = new System.Drawing.Size(300, 100);
+            this.lb_regexPatterns.TabIndex = 3;
+            //
+            // lb_BaseFolder 
+            //
+            this.lb_BaseFolder.AutoSize = true;
+            this.lb_BaseFolder.Location = new System.Drawing.Point(20, 100);
+            this.lb_BaseFolder.Name = "lb_BaseFolder";
+            this.lb_BaseFolder.Size = new System.Drawing.Size(56, 12);
+            this.lb_BaseFolder.TabIndex = 0;
+            this.lb_BaseFolder.Text = "(Not Set)";
+            //
+            // lb_TargetList 
+            //
+            this.lb_TargetList.FormattingEnabled = true;
+            this.lb_TargetList.ItemHeight = 12;
+            this.lb_TargetList.Location = new System.Drawing.Point(20, 50);
+            this.lb_TargetList.Name = "lb_TargetList";
+            this.lb_TargetList.Size = new System.Drawing.Size(200, 148);
+            this.lb_TargetList.TabIndex = 1;
+            //
+            // lb_ExcludeList 
+            //
+            this.lb_ExcludeList.FormattingEnabled = true;
+            this.lb_ExcludeList.ItemHeight = 12;
+            this.lb_ExcludeList.Location = new System.Drawing.Point(250, 50);
+            this.lb_ExcludeList.Name = "lb_ExcludeList";
+            this.lb_ExcludeList.Size = new System.Drawing.Size(200, 148);
+            this.lb_ExcludeList.TabIndex = 2;
+            //
+            // lb_RegexList 
+            //
+            this.lb_RegexList.FormattingEnabled = true;
+            this.lb_RegexList.ItemHeight = 12;
+            this.lb_RegexList.Location = new System.Drawing.Point(500, 50);
+            this.lb_RegexList.Name = "lb_RegexList";
+            this.lb_RegexList.Size = new System.Drawing.Size(200, 148);
+            this.lb_RegexList.TabIndex = 3;
+            //
+            // lb_TargetFolders 
+            //
+            this.lb_TargetFolders.ItemHeight = 12;
+            this.lb_TargetFolders.Location = new System.Drawing.Point(0, 0);
+            this.lb_TargetFolders.Name = "lb_TargetFolders";
+            this.lb_TargetFolders.Size = new System.Drawing.Size(120, 88);
+            this.lb_TargetFolders.TabIndex = 11;
+            //
+            // tsm_Plugin
+            //
+            this.tsm_Plugin.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+              this.pluginListToolStripMenuItem});
+            this.tsm_Plugin.Name = "tsm_Plugin";
+            this.tsm_Plugin.Size = new System.Drawing.Size(53, 20);
+            this.tsm_Plugin.Text = "Plugin";
+            //
+            // pluginListToolStripMenuItem
+            //
+            this.pluginListToolStripMenuItem.Name = "pluginListToolStripMenuItem";
+            this.pluginListToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.pluginListToolStripMenuItem.Text = "Plugin List";         
+            //
+            // MainForm
+            //
+            // 창 핸들이 생성된 후 UpdateMainStatus 실행
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle; // 크기 고정
+            this.StartPosition = FormStartPosition.CenterScreen; // 화면 중앙 정렬
+            this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
+            this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
+            this.ClientSize = new System.Drawing.Size(676, 431);
+            this.Controls.Add(this.splitContainer3);
+            this.Controls.Add(this.statusStrip1);
+            this.Controls.Add(this.menuStrip1);
+            this.Controls.Add(this.lb_BaseFolder);
+            this.Controls.Add(this.lb_TargetList);
+            this.Controls.Add(this.lb_ExcludeList);
+            this.Controls.Add(this.lb_RegexList);
+            this.Controls.Add(this.lb_TargetFolders);
+            this.MainMenuStrip = this.menuStrip1;
+            this.Name = "MainForm";
+            this.Text = "ITM Agent";
+            this.Load += new System.EventHandler(this.MainForm_Load);
+            this.menuStrip1.ResumeLayout(false);
+            this.menuStrip1.PerformLayout();
+            this.splitContainer3.Panel1.ResumeLayout(false);
+            this.splitContainer3.Panel1.PerformLayout();
+            this.splitContainer3.Panel2.ResumeLayout(false);
+            this.splitContainer3.Panel2.PerformLayout();
+            ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
+            this.splitContainer3.ResumeLayout(false);
+            this.statusStrip1.ResumeLayout(false);
+            this.statusStrip1.PerformLayout();
+            this.ResumeLayout(false);
+            this.PerformLayout();
         }
-
-        private void btn_Run_Click(object sender, EventArgs e)
-        {
-            logManager.LogEvent("Run button clicked.");
-            try
-            {
-                fileWatcherManager.StartWatching(); // FileWatcher 시작
-                isRunning = true; // 상태 업데이트
-                UpdateMainStatus("Running...", Color.Blue);
-
-                if (isDebugMode)
-                {
-                    logManager.LogDebug("FileWatcherManager started successfully.");
-                }
-            }
-            catch (Exception ex)
-            {
-                logManager.LogError($"Error starting monitoring: {ex.Message}");
-                UpdateMainStatus("Stopped!", Color.Red);
-            }
-        }
-
-
-        private void btn_Stop_Click(object sender, EventArgs e)
-        {
-            logManager.LogEvent("Stop button clicked.");
-
-            fileWatcherManager.StopWatchers(); // StopWatchers 호출
-            isRunning = false; // 상태 변경
-            UpdateMainStatus("Stopped!", Color.Red);
-
-            ucConfigPanel.InitializePanel(isRunning); // 패널 동기화
-            ucOverrideNamesPanel.InitializePanel(isRunning);
-        }
-
-
-
-
-        private void UpdateButtonsState()
-        {
-            btn_Run.Enabled = !isRunning;
-            btn_Stop.Enabled = isRunning;
-            btn_Quit.Enabled = !isRunning;
-
-            UpdateTrayMenuStatus(); // Tray 아이콘 상태 업데이트
-        }
-
-        private void btn_Quit_Click(object sender, EventArgs e)
-        {
-            if (ts_Status.Text == "Running...")
-            {
-                // 실행 중인 작업 강제 중지
-                btn_Stop.PerformClick(); // Stop 버튼 동작 호출
-            }
-
-            PerformQuit(); // 종료 실행
-        }
-
-        private void PerformQuit()
-        {
-            fileWatcherManager.StopWatchers();
-            trayIcon?.Dispose();
-            Environment.Exit(0);
-        }
-
-        private void MainForm_Load(object sender, EventArgs e)
-        {
-            // 폼 로드시 실행할 로직
-            pMain.Controls.Add(ucSc1);
-            UpdateMenusBasedOnType();   // 메뉴 상태 업데이트
-
-            // 초기 패널 설정 및 상태 동기화
-            ShowUserControl(ucConfigPanel); // 초기 패널 로드
-            ucConfigPanel.UpdateStatusOnRun(isRunning); // 상태 동기화
-            ucImageTransPanel.UpdateStatusOnRun(isRunning); // ucImageTransPanel 초기 상태 동기화
-        }
-
-        private void RefreshUI()
-        {
-            // Eqpid 상태 갱신
-            string eqpid = settingsManager.GetEqpid();
-            lb_eqpid.Text = $"Eqpid: {eqpid}";
-
-            // TargetFolders, Regex 리스트 갱신
-            ucSc1.RefreshUI(); // UserControl의 UI 갱신 호출
-            ucConfigPanel?.RefreshUI();
-            ucOverrideNamesPanel?.RefreshUI();
-
-            // MainForm 상태 업데이트
-            UpdateUIBasedOnSettings();
-        }
-
-        private void NewMenuItem_Click(object sender, EventArgs e)
-        {
-            // Settings 초기화 (Eqpid 제외)
-            settingsManager.ResetExceptEqpid();
-            MessageBox.Show("Settings 초기화 완료 (Eqpid 제외)", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-            RefreshUI(); // 초기화 후 UI 갱신
-        }
-
-        private void OpenMenuItem_Click(object sender, EventArgs e)
-        {
-            using (OpenFileDialog openFileDialog = new OpenFileDialog())
-            {
-                openFileDialog.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
-                if (openFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        settingsManager.LoadFromFile(openFileDialog.FileName);
-                        MessageBox.Show("새로운 Settings.ini 파일이 로드되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-
-                        RefreshUI(); // 파일 로드 후 UI 갱신
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"파일 로드 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private void SaveAsMenuItem_Click(object sender, EventArgs e)
-        {
-            using (SaveFileDialog saveFileDialog = new SaveFileDialog())
-            {
-                saveFileDialog.Filter = "INI files (*.ini)|*.ini|All files (*.*)|*.*";
-                if (saveFileDialog.ShowDialog() == DialogResult.OK)
-                {
-                    try
-                    {
-                        settingsManager.SaveToFile(saveFileDialog.FileName);
-                        MessageBox.Show("Settings.ini가 저장되었습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                    }
-                    catch (Exception ex)
-                    {
-                        MessageBox.Show($"파일 저장 중 오류 발생: {ex.Message}", "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    }
-                }
-            }
-        }
-
-        private void QuitMenuItem_Click(object sender, EventArgs e)
-        {
-            if (ts_Status.Text == "Running...")
-            {
-                MessageBox.Show("실행 중에는 종료할 수 없습니다. 작업을 중지하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            Application.Exit();
-        }
-
-        private void InitializeUserControls()
-        {
-            // UserControl 초기화
-            ucConfigPanel = new ucConfigurationPanel(settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
-            ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
-            //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
-
-            ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
-            ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
-        }
-
-        private void RegisterMenuEvents()
-        {
-            // Common -> Categorize
-            tsm_Categorize.Click += (s, e) => ShowUserControl(ucConfigPanel);
-
-            // ONTO -> Override Names
-            tsm_OverrideNames.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
-
-            // ONTO -> Image Trans
-            tsm_ImageTrans.Click += (s, e) => ShowUserControl(ucImageTransPanel);
-
-            // ONTO -> Upload Data
-            //tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
-        }
-
-        private void ShowUserControl(UserControl control)
-        {
-            pMain.Controls.Clear();
-            pMain.Controls.Add(control);
-            control.Dock = DockStyle.Fill;
-
-            // 상태 동기화
-            if (control is ucConfigurationPanel configPanel)
-            {
-                configPanel.InitializePanel(isRunning); // Running 상태 동기화
-            }
-            else if (control is ucOverrideNamesPanel overridePanel)
-            {
-                overridePanel.InitializePanel(isRunning); // Running 상태 동기화
-            }
-        }
-
-        // MainForm.cs
-        private void UpdateMenusBasedOnType()
-        {
-            string type = settingsManager.GetType();
-            if (type == "ONTO")
-            {
-                tsm_Nova.Visible = false;
-                tsm_Onto.Visible = true;
-            }
-            else if (type == "NOVA")
-            {
-                tsm_Onto.Visible = false;
-                tsm_Nova.Visible = true;
-            }
-            else
-            {
-                tsm_Onto.Visible = false;
-                tsm_Nova.Visible = false;
-                return;
-            }
-
-            // Type 값에 따라 메뉴 표시/숨김 처리
-            tsm_Onto.Visible = type.Equals("ONTO", StringComparison.OrdinalIgnoreCase);
-            tsm_Nova.Visible = type.Equals("NOVA", StringComparison.OrdinalIgnoreCase);
-        }
-
-        private void InitializeMainMenu()
-        {
-            // 기존 메뉴 초기화 코드...
-            UpdateMenusBasedOnType();
-        }
-        // 기본 생성자 추가
-        public MainForm()
-            : this(new SettingsManager(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini")))
-        {
-            // 추가 동작 없음
-        }
-
-        private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
-        {
-            isDebugMode = cb_DebugMode.Checked;
-            settingsManager.IsDebugMode = isDebugMode; // SettingsManager에 상태 업데이트
-
-            fileWatcherManager.UpdateDebugMode(isDebugMode);
-
-            if (isDebugMode)
-            {
-                logManager.LogEvent("Debug Mode: Enabled");
-                logManager.LogDebug("Debug mode enabled.");
-            }
-            else
-            {
-                logManager.LogEvent("Debug Mode: Disabled");
-                logManager.LogDebug("Debug mode disabled.");
-            }
-        }
+        #endregion
     }
 }
