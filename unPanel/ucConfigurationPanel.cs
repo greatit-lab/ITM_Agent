@@ -419,5 +419,16 @@ namespace ITM_Agent.ucPanel
             btn_RegEdit.Enabled = isEnabled;
             btn_RegRemove.Enabled = isEnabled;
         }
+
+        public bool IsReadyToRun()
+        {
+            // TargetList / BaseFolder / RegexList 모두 충족하는지
+            bool hasTarget = (lb_TargetList.Items.Count > 0);
+            bool hasBase = (lb_BaseFolder.Text != "폴더가 미선택되었습니다"
+                            && !string.IsNullOrEmpty(lb_BaseFolder.Text));
+            bool hasRegex = (lb_RegexList.Items.Count > 0);
+        
+            return hasTarget && hasBase && hasRegex;
+        }
     }
 }
