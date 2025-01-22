@@ -19,7 +19,7 @@ namespace ITM_Agent.Services
         private readonly LogManager logManager;
         private readonly string appVersion;
 
-        public EqpidManager(SettingsManager settings, LogManager logManager, LogManager logManager)
+        public EqpidManager(SettingsManager settings, LogManager logManager, string appVersion)
         {
             this.settingsManager = settings ?? throw new ArgumentNullException(nameof(settings));
             this.logManager = logManager ?? throw new ArgumentNullException(nameof(logManager));
