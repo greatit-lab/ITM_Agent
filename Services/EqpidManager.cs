@@ -17,11 +17,13 @@ namespace ITM_Agent.Services
     {
         private readonly SettingsManager settingsManager;
         private readonly LogManager logManager;
+        private readonly string appVersion;
 
-        public EqpidManager(SettingsManager settings, LogManager logManager)
+        public EqpidManager(SettingsManager settings, LogManager logManager, LogManager logManager)
         {
             this.settingsManager = settings ?? throw new ArgumentNullException(nameof(settings));
             this.logManager = logManager ?? throw new ArgumentNullException(nameof(logManager));
+            this.appVersion = appVersion ?? throw new ArgumentNullException(nameof(appVersion));
         }
 
         public void InitializeEqpid()
@@ -89,7 +91,8 @@ namespace ITM_Agent.Services
             string machineName = SystemInfoCollector.GetMachineName();
             string locale = SystemInfoCollector.GetLocale();
             string timeZone = SystemInfoCollector.GetTimeZone();
-        
+            string pcNow = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss");
+            
             try
             {
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
@@ -121,16 +124,18 @@ namespace ITM_Agent.Services
                         // 데이터가 없으면 INSERT
                         string insertQuery = @"
                             INSERT INTO itm.agent_info
-                            (eqpid, type, os, system_type, pc_name, locale, timezone, reg_date)
+                            (eqpid, type, os, system_type, pc_name, locale, timezone, app_ver, reg_date, servtime)
                             VALUES
-                            (@eqpid, @type, @os, @arch, @pc_name, @loc, @tz, NOW())
+                            (@eqpid, @type, @os, @arch, @pc_name, @loc, @tz, @app_ver, @pc_now, NOW())
                             ON DUPLICATE KEY UPDATE
                                 type = @type,
                                 os = @os,
                                 system_type = @arch,
                                 locale = @loc,
                                 timezone = @tz,
-                                reg_date = NOW();
+                                app_ver = @app_ver,
+                                reg_date = @pc_now,
+                                servtime = NOW();
                         ";
         
                         using (MySqlCommand insertCmd = new MySqlCommand(insertQuery, conn))
@@ -142,6 +147,8 @@ namespace ITM_Agent.Services
                             insertCmd.Parameters.AddWithValue("@pc_name", machineName);
                             insertCmd.Parameters.AddWithValue("@loc", locale);
                             insertCmd.Parameters.AddWithValue("@tz", timeZone);
+                            insertCmd.Parameters.AddWithValue("@app_ver", appVersion);
+                            insertCmd.Parameters.AddWithValue("@pc_now", pcNow);
         
                             int rowsAffected = insertCmd.ExecuteNonQuery();
                             logManager.LogEvent($"[EqpidManager] DB 업로드 완료. (rows inserted/updated={rowsAffected})");
