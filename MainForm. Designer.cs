@@ -88,8 +88,8 @@ namespace ITM_Agent
             this.toolStripSeparator9 = new System.Windows.Forms.ToolStripSeparator();
             this.tsm_Option = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_Onto = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_ImageTrans = new System.Windows.Forms.ToolStripMenuItem();
-            this.tsm_OverrideNames = new System.Windows.Forms.ToolStripMenuItem();          
             this.tsm_UploadData = new System.Windows.Forms.ToolStripMenuItem();
             this.tsm_Nova = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
@@ -174,7 +174,7 @@ namespace ITM_Agent
             //
             this.newToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.newToolStripMenuItem.Name = "newToolStripMenuItem";
-            this.newToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.newToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
             this.newToolStripMenuItem.Text = "New";
             this.newToolStripMenuItem.Click += new System.EventHandler(this.NewMenuItem_Click);
             //
@@ -182,32 +182,32 @@ namespace ITM_Agent
             //
             this.openToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.openToolStripMenuItem.Name = "openToolStripMenuItem";
-            this.openToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.openToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
             this.openToolStripMenuItem.Text = "Open";
             this.openToolStripMenuItem.Click += new System.EventHandler(this.OpenMenuItem_Click);
             //
             // toolStripSeparator7
             //
             this.toolStripSeparator7.Name = "toolStripSeparator7";
-            this.toolStripSeparator7.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator7.Size = new System.Drawing.Size(111, 6);
             //
             // saveAsToolStripMenuItem
             //
             this.saveAsToolStripMenuItem.ImageTransparentColor = System.Drawing.Color.Magenta;
             this.saveAsToolStripMenuItem.Name = "saveAsToolStripMenuItem";
-            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.saveAsToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
             this.saveAsToolStripMenuItem.Text = "Save as";
             this.saveAsToolStripMenuItem.Click += new System.EventHandler(this.SaveAsMenuItem_Click);
             //
             // toolStripSeparator8
             //
             this.toolStripSeparator8.Name = "toolStripSeparator8";
-            this.toolStripSeparator8.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator8.Size = new System.Drawing.Size(111, 6);
             //
             // quitToolStripMenuItem
             //
             this.quitToolStripMenuItem.Name = "quitToolStripMenuItem";
-            this.quitToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
+            this.quitToolStripMenuItem.Size = new System.Drawing.Size(114, 22);
             this.quitToolStripMenuItem.Text = "Quit";
             this.quitToolStripMenuItem.Click += new System.EventHandler(this.QuitMenuItem_Click);
             //
@@ -313,7 +313,7 @@ namespace ITM_Agent
             // 내용ToolStripMenuItem1
             //
             this.내용ToolStripMenuItem1.Name = "내용ToolStripMenuItem1";
-            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
+            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
             this.내용ToolStripMenuItem1.Text = "Information...";
             //
             // newConfigurationToolStripMenuItem
