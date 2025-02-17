@@ -58,7 +58,7 @@ namespace ITM_Agent.Plugins
             var lines = content.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
             
             Dictionary<string, string> data = new Dictionary<string, string>();
-            foreach (vvar line in lines)
+            foreach (var line in lines)
             {
                 if (line.Contains(":"))
                 {
@@ -120,7 +120,7 @@ namespace ITM_Agent.Plugins
                                     .Select(h => cleanHeader(h.Trim()))
                                     .ToList();
             
-            List<Dictionary<string object>> rowData = new List<Dictionary<string, object>>();
+            List<Dictionary<string, object>> rowData = new List<Dictionary<string, object>>();
             for (int i = headerIndex + 1; i < lines.Length; i++)
             {
                 string line = lines[i];
@@ -133,7 +133,7 @@ namespace ITM_Agent.Plugins
                 row["StageRCP"] = data.ContainsKey("Stage Recipe Name") ? data["Stage Recipe Name"] : "";
                 row["StageGroup"] = data.ContainsKey("Stage Group Name") ? data["Stage Group Name"] : "";
                 row["LotID"] = data.ContainsKey("Lot ID") ? data["Lot ID"] : "";
-                row["WaferID"] = waferNumber.HasValue ? waferNumber.Value :(object)DBNull.Value;
+                row["WaferID"] = waferNumber.HasValue ? waferNumber.Value : (object)DBNull.Value;
                 row["DateTime"] = dateTimeVal != DateTime.MinValue ? dateTimeVal : (object)DBNull.Value;
                 row["Film"] = data.ContainsKey("Film Name") ? data["Film Name"] : "";
                 
@@ -144,9 +144,9 @@ namespace ITM_Agent.Plugins
                     else
                         row["Point"] = DBNull.Value;
                 }
-                if (value.Length > 1)
+                if (values.Length > 1)
                 {
-                    if (double.TryParse(vvalues[1], out double mes))
+                    if (double.TryParse(values[1], out double mse))
                         row["MSE"] = mse;
                     else
                         row["MSE"] = DBNull.Value;
@@ -169,8 +169,8 @@ namespace ITM_Agent.Plugins
                             }
                             else
                             {
-                                if (double.TryParse(values[colIndex], out double dbVal))
-                                    row[header] = dbVal;
+                                if (double.TryParse(values[colIndex], out double dblVal))
+                                    row[header] = dblVal;
                                 else
                                     row[header] = DBNull.Value;
                             }
@@ -196,7 +196,7 @@ namespace ITM_Agent.Plugins
             }
             
             DataTable dt = new DataTable();
-            foreach (var key in rowData[0].keys)
+            foreach (var key in rowData[0].Keys)
             {
                 dt.Columns.Add(key, typeof(object));
             }
@@ -226,7 +226,7 @@ namespace ITM_Agent.Plugins
                 using (MySqlConnection conn = new MySqlConnection(connectionString))
                 {
                     conn.Open();
-                    foreach (DateRow row in dt.Rows)
+                    foreach (DataRow row in dt.Rows)
                     {
                         List<string> columns = new List<string>();
                         List<string> paramNames = new List<string>();
