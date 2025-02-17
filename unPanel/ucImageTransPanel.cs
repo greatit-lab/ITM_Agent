@@ -236,11 +236,24 @@ namespace ITM_Agent.ucPanel
         {
             // cb_WaitTime 또는 settingsManager "ImageTrans/Wait" 설정값
             string waitStr = settingsManager.GetValueFromSection("ImageTrans", "Wait");
-            if (cb_WaitTime.SelectedItem is string sel)
+            if (cb_WaitTime.InvokeRequired)
             {
-                waitStr = sel;
+                cb_WaitTime.Invoke(new MethodInvoker(delegate
+                {
+                    if (cb_WaitTime.SelectedItem is string sel)
+                    {
+                        waitStr = sel;
+                    }
+                }));
             }
-
+            else
+            {
+                if (cb_WaitTime.SelectedItem is string sel)
+                {
+                    waitStr = sel;
+                }
+            }
+        
             if (int.TryParse(waitStr, out int ws))
             {
                 return ws;
