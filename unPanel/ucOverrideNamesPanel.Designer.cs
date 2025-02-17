@@ -1,3 +1,5 @@
+using System.Windows.Forms;
+
 namespace ITM_Agent.ucPanel
 {
     partial class ucOverrideNamesPanel
