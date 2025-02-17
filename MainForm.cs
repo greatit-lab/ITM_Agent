@@ -32,7 +32,7 @@ namespace ITM_Agent
         //private ucScreen4 ucUploadDataPanel;
 
         private bool isRunning = false; // 현재 상태 플래그
-        private bool isDebugMode = false;   // 디버그 모드 상태\
+        private bool isDebugMode = false;   // 디버그 모드 상태
         
         // MainForm.cs 상단 (다른 user control 변수들과 함께)
         private ucUploadPanel ucUploadPanel;
@@ -446,7 +446,7 @@ namespace ITM_Agent
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
             
-            // 신규 플러그인, 업로드 패널 생성자
+            // 신규 플러그인, 업로드 패널 생성
             ucUploadPanel = new ucUploadPanel();
             ucPluginPanel = new ucPluginPanel();
             
