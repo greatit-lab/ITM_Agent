@@ -32,7 +32,11 @@ namespace ITM_Agent
         //private ucScreen4 ucUploadDataPanel;
 
         private bool isRunning = false; // 현재 상태 플래그
-        private bool isDebugMode = false;   // 디버그 모드 상태
+        private bool isDebugMode = false;   // 디버그 모드 상태\
+        
+        // MainForm.cs 상단 (다른 user control 변수들과 함께)
+        private ucUploadPanel ucUploadPanel;
+        private ucPluginPanel ucPluginPanel;
 
         public MainForm(SettingsManager settingsManager)
         {
@@ -441,7 +445,11 @@ namespace ITM_Agent
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
-
+            
+            // 신규 플러그인, 업로드 패널 생성자
+            ucUploadPanel = new ucUploadPanel();
+            ucPluginPanel = new ucPluginPanel();
+            
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
             ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
         }
@@ -459,6 +467,12 @@ namespace ITM_Agent
 
             // ONTO -> Upload Data
             //tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
+            
+            // 신규 메뉴 - Upload Data 메뉴 클릭 시 ucUploadPanel 표시
+            tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadPanel);
+            
+            // 신규 메뉴 - Plugin 메뉴 클릭 시 ucPluginPanel 표시
+            tsm_PluginList.Click += (s, e) => ShowUserControl(ucPluginPanel);
         }
 
         private void ShowUserControl(UserControl control)
