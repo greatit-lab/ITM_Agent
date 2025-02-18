@@ -3,6 +3,10 @@ using System.IO;
 using System.Linq;
 using System.Windows.Forms;
 using ITM_Agent.Plugins;
+using ITM_Agent.Services;
+using ITM_Agent.ucPanel;
+using System.Reflection;
+using System.Collections.Generic;
 
 namespace ITM_Agent.ucPanel
 {
@@ -27,8 +31,24 @@ namespace ITM_Agent.ucPanel
 
             LoadTargetFolderItems();
             LoadPluginItems();
+            LoadUploadSettings();
         }
-
+        
+        private void LoadUploadSettings()
+        {
+          string savedFolder = settingsManager.GetValueFromSection("Upload", "WaferFlatFolder");
+          if (!string.IsNullOrEmpty(savedFolder) && Directory.Exists(savedFolder))
+          {
+            cb_WaferFlat_Path.Text = savedFolder;
+            StartUploadFolderWatcher(savedFolder);
+          }
+          else
+          {
+            // 설정이 없거나 폴더가 존재하지 않으면 기본값 처리(필요시)
+            cb_WaferFlat_Path.Text = "";
+          }
+        }
+        
         // ucConfigurationPanel에서 lb_RegexList에 있는 target 폴더 목록을 가져와 콤보박스에 로드
         private void LoadTargetFolderItems()
         {
