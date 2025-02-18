@@ -447,7 +447,7 @@ namespace ITM_Agent
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
             
             // 신규 플러그인, 업로드 패널 생성
-            ucUploadPanel = new ucUploadPanel();
+            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
             ucPluginPanel = new ucPluginPanel();
             
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
