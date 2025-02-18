@@ -92,7 +92,7 @@ namespace ITM_Agent.ucPanel
             this.cb_PreAlignSet.Size = new System.Drawing.Size(112, 22);
             this.cb_PreAlignSet.TabIndex = 31;
             this.cb_PreAlignSet.Text = "Set";
-            this.cb_PreAlignSet.UseVisualStyleBackColor = true;;
+            this.cb_PreAlignSet.UseVisualStyleBackColor = true;
             //
             // cb_PreAlignPlugin
             //
