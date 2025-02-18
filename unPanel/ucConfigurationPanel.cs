@@ -430,5 +430,24 @@ namespace ITM_Agent.ucPanel
         
             return hasTarget && hasBase && hasRegex;
         }
+        
+        public string[] GetTargetFolders()
+        {
+            // lb_RegexList 항목은 "번호 regex -> targetFolder" 형식으로 되어 있다고 가정합니다.
+            return lb_RegexList.Items
+                 .Cast<string>()
+                 .Select(item =>
+                 {
+                     // "1 someRegex -> C:\TargetFolder" 형식으로 되어 있으므로 "->"를 기준으로 분리
+                     var parts = item.Split(new string[] { "->" }, StringSplitOptions.None);
+                     if (parts.Length >= 2)
+                     {
+                         return parts[1].Trim(); // 오른쪽(타겟 폴더) 부분 반환
+                     }
+                     return string.Empty;
+                 })
+                 .Where(folder => !string.IsNullOrEmpty(folder))
+                 .ToArray();
+        }
     }
 }
