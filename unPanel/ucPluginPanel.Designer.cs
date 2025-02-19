@@ -41,7 +41,7 @@ namespace ITM_Agent.ucPanel
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(646, 273);
+            this.tabPage1.Size = new System.Drawing.Size(645, 273);
             this.tabPage1.TabIndex = 1;
             this.tabPage1.Text = "Plugin";
             this.tabPage1.UseVisualStyleBackColor = true;
