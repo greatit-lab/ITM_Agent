@@ -521,13 +521,57 @@ namespace ITM_Agent.Services
         
         public string GetBaseFolder()
         {
-          var baseFolders = GetFoldersFromSection("[BaseFolder]");
-          if (baseFolders.Count > 0)
-          {
-            return baseFolders[0];  // 첫 번째 BaseFolder 반환
-          }
+            var baseFolders = GetFoldersFromSection("[BaseFolder]");
+            if (baseFolders.Count > 0)
+            {
+                return baseFolders[0];  // 첫 번째 BaseFolder 반환
+            }
           
-          return null; // BaseFolder가 없는 경우 null 반환
+            return null; // BaseFolder가 없는 경우 null 반환
+        }
+        
+        public void RemoveKeyFromSection(string section, string key)
+        {
+            if (!File.Exists(settingsFilePath))
+                return;
+        
+            var lines = File.ReadAllLines(settingsFilePath).ToList();
+            bool inSection = false;
+            bool modified = false;
+            var newLines = new List<string>();
+        
+            foreach (var line in lines)
+            {
+                string trimmedLine = line.Trim();
+        
+                // 섹션 시작이면 inSection true로 설정 후 그대로 추가
+                if (trimmedLine.Equals($"[{section}]", StringComparison.OrdinalIgnoreCase))
+                {
+                    inSection = true;
+                    newLines.Add(line);
+                    continue;
+                }
+        
+                // 섹션 내부에서 다른 섹션 시작이면 inSection false로 전환
+                if (inSection && trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
+                {
+                    inSection = false;
+                }
+        
+                // 섹션 내부이고, 해당 key= 로 시작하면 건너뛰어 삭제 효과를 냄
+                if (inSection && trimmedLine.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase))
+                {
+                    modified = true;
+                    continue;
+                }
+        
+                newLines.Add(line);
+            }
+        
+            if (modified)
+            {
+                File.WriteAllLines(settingsFilePath, newLines);
+            }
         }
     }
 }
