@@ -1,4 +1,4 @@
-namespace ITM_Agent
+namespace ITM_Agent.ucPanel
 {
     partial class ucPluginPanel
     {
@@ -41,6 +41,7 @@ namespace ITM_Agent
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
+            this.tabPage1.Size = new System.Drawing.Size(646, 273);
             this.tabPage1.TabIndex = 1;
             this.tabPage1.Text = "Plugin";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -57,15 +58,6 @@ namespace ITM_Agent
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "● Plugin Listup";
             //
-            // btn_PlugAdd
-            //
-            this.btn_PlugAdd.Location = new System.Drawing.Point(515, 20);
-            this.btn_PlugAdd.Name = "btn_PlugAdd";
-            this.btn_PlugAdd.Size = new System.Drawing.Size(89, 33);
-            this.btn_PlugAdd.TabIndex = 4;
-            this.btn_PlugAdd.Text = "Add Plugin";
-            this.btn_PlugAdd.UseVisualStyleBackColor = true;;
-            //
             // lb_PluginList
             //
             this.lb_PluginList.FormattingEnabled = true;
@@ -74,6 +66,24 @@ namespace ITM_Agent
             this.lb_PluginList.Name = "lb_PluginList";
             this.lb_PluginList.Size = new System.Drawing.Size(479, 220);
             this.lb_PluginList.TabIndex = 8;
+            //
+            // btn_PlugAdd
+            //
+            this.btn_PlugAdd.Location = new System.Drawing.Point(515, 20);
+            this.btn_PlugAdd.Name = "btn_PlugAdd";
+            this.btn_PlugAdd.Size = new System.Drawing.Size(89, 33);
+            this.btn_PlugAdd.TabIndex = 4;
+            this.btn_PlugAdd.Text = "Add Plugin";
+            this.btn_PlugAdd.UseVisualStyleBackColor = true;
+            //
+            // btn_PlugRemove
+            //
+            this.btn_PlugRemove.Location = new System.Drawing.Point(515, 59);
+            this.btn_PlugRemove.Name = "btn_PlugRemove";
+            this.btn_PlugRemove.Size = new System.Drawing.Size(89, 33);
+            this.btn_PlugRemove.TabIndex = 7;
+            this.btn_PlugRemove.Text = "Add Remove";
+            this.btn_PlugRemove.UseVisualStyleBackColor = true;
             //
             // tabControl1
             //
@@ -84,21 +94,12 @@ namespace ITM_Agent
             this.tabControl1.Size = new System.Drawing.Size(653, 299);
             this.tabControl1.TabIndex = 15;
             //
-            // btn_PlugRemove
-            //
-            this.btn_PlugRemove.Location = new System.Drawing.Point(515, 59);
-            this.btn_PlugRemove.Name = "btn_PlugRemove";
-            this.btn_PlugRemove.Size = new System.Drawing.Size(89, 33);
-            this.btn_PlugRemove.TabIndex = 7;
-            this.btn_PlugRemove.Text = "Add Remove";
-            this.btn_PlugRemove.UseVisualStyleBackColor = true;;
-            //
-            // ucScreen5
+            // ucPluginPanel
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tabControl1);
-            this.Name = "ucScreen5";
+            this.Name = "ucPluginPanel";
             this.Size = new System.Drawing.Size(676, 320);
             this.tabPage1.ResumeLayout(false);
             this.groupBox1.ResumeLayout(false);
