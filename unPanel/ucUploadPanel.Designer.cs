@@ -85,14 +85,14 @@ namespace ITM_Agent.ucPanel
             this.cb_ImagePlugin.Size = new System.Drawing.Size(158, 20);
             this.cb_ImagePlugin.TabIndex = 32;
             //
-            // cb_PreAlignSet
+            // btn_PreAlignSet
             //
-            this.cb_PreAlignSet.Location = new System.Drawing.Point(506, 57);
-            this.cb_PreAlignSet.Name = "cb_PreAlignSet";
-            this.cb_PreAlignSet.Size = new System.Drawing.Size(112, 22);
-            this.cb_PreAlignSet.TabIndex = 31;
-            this.cb_PreAlignSet.Text = "Set";
-            this.cb_PreAlignSet.UseVisualStyleBackColor = true;
+            this.btn_PreAlignSet.Location = new System.Drawing.Point(506, 57);
+            this.btn_PreAlignSet.Name = "btn_PreAlignSet";
+            this.btn_PreAlignSet.Size = new System.Drawing.Size(112, 22);
+            this.btn_PreAlignSet.TabIndex = 31;
+            this.btn_PreAlignSet.Text = "Set";
+            this.btn_PreAlignSet.UseVisualStyleBackColor = true;
             //
             // cb_PreAlignPlugin
             //
