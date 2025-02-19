@@ -83,7 +83,7 @@ namespace ITM_Agent.ucPanel
             this.btn_PlugRemove.Name = "btn_PlugRemove";
             this.btn_PlugRemove.Size = new System.Drawing.Size(89, 33);
             this.btn_PlugRemove.TabIndex = 7;
-            this.btn_PlugRemove.Text = "Add Remove";
+            this.btn_PlugRemove.Text = "Remove";
             this.btn_PlugRemove.UseVisualStyleBackColor = true;
             this.btn_PlugRemove.Click += new System.EventHandler(this.btn_PlugRemove_Click);
             //
