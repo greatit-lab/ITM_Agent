@@ -448,7 +448,7 @@ namespace ITM_Agent
             
             // 신규 플러그인, 업로드 패널 생성
             ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
-            ucPluginPanel = new ucPluginPanel();
+            ucPluginPanel = new ucPluginPanel(settingsManager);
             
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
             ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
