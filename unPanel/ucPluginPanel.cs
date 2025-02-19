@@ -14,7 +14,10 @@ namespace ITM_Agent.ucPanel
     {
         // 플러그인 정보를 보관하는 리스트 (PluginListItem은 플러그인명과 DLL 경로 정보를 저장)
         private List<PluginListItem> loadedPlugins = new List<PluginListItem>();
-
+        
+        // 플러그인 목록 변경 이벤트 선언
+        public event EventHandler PluginListUpdated;
+        
         private SettingsManager settingsManager;
         private LogManager logManager;
 
@@ -33,6 +36,7 @@ namespace ITM_Agent.ucPanel
         /// OpenFileDialog를 열어 DLL 파일을 선택한 후, 파일을 바이트 배열로 로드하여 중복 검사하고,  
         /// 실행 경로 아래 "Library" 폴더에 DLL 파일을 복사하며, settings.ini의 [RegPlugins] 섹션에 기록합니다.
         /// </summary>
+        // 예시: 플러그인 추가 버튼 클릭 이벤트
         private void btn_PlugAdd_Click(object sender, EventArgs e)
         {
             OpenFileDialog openFileDialog = new OpenFileDialog
@@ -48,7 +52,7 @@ namespace ITM_Agent.ucPanel
                 {
                     // 파일을 바이트 배열로 읽어서 메모리로 로드 (파일 잠금 방지)
                     byte[] dllData = File.ReadAllBytes(selectedDllPath);
-                    Assembly asm = Assembly.Load(dllData);
+                    var asm = System.Reflection.Assembly.Load(dllData);
                     string pluginName = asm.GetName().Name;
 
                     // 이미 등록된 플러그인 검사
@@ -84,13 +88,14 @@ namespace ITM_Agent.ucPanel
                     lb_PluginList.Items.Add(pluginItem.PluginName);
 
                     // settings.ini의 [RegPlugins] 섹션에 플러그인 정보 기록
-                    SavePluginInfoToSettings(pluginItem);
-
-                    logManager.LogEvent($"Plugin registered: {pluginName}");
+                    //SavePluginInfoToSettings(pluginItem);
+                    
+                    //logManager.LogEvent($"Plugin registered: {pluginName}");
+                    PluginListUpdated?.Invoke(this, EventArgs.Empty);
                 }
                 catch (Exception ex)
                 {
-                    MessageBox.Show("플러그인 로드 오류: " + ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    //MessageBox.Show("플러그인 로드 오류: " + ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     logManager.LogError("플러그인 로드 오류: " + ex.Message);
                 }
             }
