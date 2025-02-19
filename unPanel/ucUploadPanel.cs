@@ -112,23 +112,21 @@ namespace ITM_Agent.ucPanel
         {
             cb_FlatPlugin.Items.Clear();
             regPlugins.Clear();
-            var pluginLines = settingsManager.GetFoldersFromSection("RegPlugins");
-            if (pluginLines != null)
+            var pluginLines = settingsManager.GetFoldersFromSection("[RegPlugins]");
+            
+            foreach (var line in pluginLines)
             {
-                foreach (var line in pluginLines)
+                if (string.IsNullOrWhiteSpace(line))
+                    continue;
+                string[] parts = line.Split(new char[] { '=' }, 2);
+                if (parts.Length == 2)
                 {
-                    if (string.IsNullOrWhiteSpace(line))
-                        continue;
-                    string[] parts = line.Split(new char[] { '=' }, 2);
-                    if (parts.Length == 2)
+                    string pluginName = parts[0].Trim();
+                    string dllPath = parts[1].Trim();
+                    regPlugins[pluginName] = dllPath;
+                    if (!cb_FlatPlugin.Items.Contains(pluginName))
                     {
-                        string pluginName = parts[0].Trim();
-                        string dllPath = parts[1].Trim();
-                        regPlugins[pluginName] = dllPath;
-                        if (!cb_FlatPlugin.Items.Contains(pluginName))
-                        {
-                            cb_FlatPlugin.Items.Add(pluginName);
-                        }
+                        cb_FlatPlugin.Items.Add(pluginName);
                     }
                 }
             }
@@ -150,7 +148,7 @@ namespace ITM_Agent.ucPanel
         
         private void LoadLibraryLinkSettings()
         {
-            var lines = settingsManager.GetFoldersFromSection("LibraryLink");
+            var lines = settingsManager.GetFoldersFromSection("[LibraryLink]");
             if (lines != null && lines.Count > 0)
             {
                 string line = lines[0];
@@ -306,6 +304,7 @@ namespace ITM_Agent.ucPanel
 
             MessageBox.Show("Library Link settings saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
             // 모니터링 시작은 MainForm의 btn_Run 이벤트에서 StartMonitoring()을 호출하여 진행합니다.
+            StartUploadFolderWatcher(selectedFolder);
         }
     }
 }
