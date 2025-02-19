@@ -535,43 +535,47 @@ namespace ITM_Agent.Services
             if (!File.Exists(settingsFilePath))
                 return;
         
+            // 파일의 모든 줄을 읽어옵니다.
             var lines = File.ReadAllLines(settingsFilePath).ToList();
             bool inSection = false;
-            bool modified = false;
-            var newLines = new List<string>();
         
-            foreach (var line in lines)
+            for (int i = 0; i < lines.Count; i++)
             {
-                string trimmedLine = line.Trim();
+                string line = lines[i];
+                string trimmed = line.Trim();
         
-                // 섹션 시작이면 inSection true로 설정 후 그대로 추가
-                if (trimmedLine.Equals($"[{section}]", StringComparison.OrdinalIgnoreCase))
+                // 지정 섹션의 시작을 찾습니다.
+                if (trimmed.Equals($"[{section}]", StringComparison.OrdinalIgnoreCase))
                 {
                     inSection = true;
-                    newLines.Add(line);
                     continue;
                 }
         
-                // 섹션 내부에서 다른 섹션 시작이면 inSection false로 전환
-                if (inSection && trimmedLine.StartsWith("[") && trimmedLine.EndsWith("]"))
+                // 섹션 내부에 있다면
+                if (inSection)
                 {
-                    inSection = false;
+                    // 새로운 섹션이 시작되면 종료
+                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                        break;
+        
+                    // '=' 문자의 인덱스를 찾습니다.
+                    int equalIndex = line.IndexOf('=');
+                    if (equalIndex >= 0)
+                    {
+                        // '=' 왼쪽의 키 부분을 추출합니다.
+                        string currentKey = line.Substring(0, equalIndex).Trim();
+                        if (currentKey.Equals(key, StringComparison.OrdinalIgnoreCase))
+                        {
+                            // 해당 줄을 삭제하고 인덱스를 하나 줄입니다.
+                            lines.RemoveAt(i);
+                            i--;
+                        }
+                    }
                 }
-        
-                // 섹션 내부이고, 해당 key= 로 시작하면 건너뛰어 삭제 효과를 냄
-                if (inSection && trimmedLine.StartsWith(key + "=", StringComparison.OrdinalIgnoreCase))
-                {
-                    modified = true;
-                    continue;
-                }
-        
-                newLines.Add(line);
             }
-        
-            if (modified)
-            {
-                File.WriteAllLines(settingsFilePath, newLines);
-            }
+            
+            File.WriteAllLines(settingsFilePath, lines);
         }
+
     }
 }
