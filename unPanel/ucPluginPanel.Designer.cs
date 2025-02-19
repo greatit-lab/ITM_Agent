@@ -75,6 +75,7 @@ namespace ITM_Agent.ucPanel
             this.btn_PlugAdd.TabIndex = 4;
             this.btn_PlugAdd.Text = "Add Plugin";
             this.btn_PlugAdd.UseVisualStyleBackColor = true;
+            this.btn_PlugAdd.Click += new System.EventHandler(this.btn_PlugAdd_Click);
             //
             // btn_PlugRemove
             //
@@ -84,6 +85,7 @@ namespace ITM_Agent.ucPanel
             this.btn_PlugRemove.TabIndex = 7;
             this.btn_PlugRemove.Text = "Add Remove";
             this.btn_PlugRemove.UseVisualStyleBackColor = true;
+            this.btn_PlugRemove.Click += new System.EventHandler(this.btn_PlugRemove_Click);
             //
             // tabControl1
             //
