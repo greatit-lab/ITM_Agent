@@ -92,7 +92,7 @@ namespace ITM_Agent.ucPanel
                 EnableRaisingEvents = true
             };
             uploadFolderWatcher.Created += UploadFolderWatcher_Event;
-            UploadFolderWatcher.Changed += UploadFolderWatcher_Event;
+            uploadFolderWatcher.Changed += UploadFolderWatcher_Event;
             logManager.LogEvent($"[ucUploadPanel] Started watching folder: {folderPath}");
         }
         
@@ -107,9 +107,9 @@ namespace ITM_Agent.ucPanel
             this.Invoke(new Action(() =>
             {
                 // Settings.ini "[UploadSettings]" 섹션에 저장된 플러그인명을 가져옴
-                string savedPlugin = settingsManager.GetValueFromSection("UploadSettings", "FilePlugin");
+                string savedPlugin = settingsManager.GetValueFromSection("UploadSettings", "FlatPlugin");
                 // pluginPanel에서 로드한 PluginListItem 목록 중 일치하는 항목 검색
-                var pluginItem = pluginPanel.GetLoadedPlugins().FirstOnDefault(p => p.PluginName.Equals(savedPlugin, StringComparision.OrdinalIgnoreCase));
+                var pluginItem = pluginPanel.GetLoadedPlugins().FirstOrDefault(p => p.PluginName.Equals(savedPlugin, StringComparision.OrdinalIgnoreCase));
 
                 if (pluginItem != null)
                 {
@@ -117,7 +117,7 @@ namespace ITM_Agent.ucPanel
                     {
                         // DLL 경로를 이용해 어셈블리 로드
                         Assembly asm = Assembly.LoadFrom(pluginItem.AssemblyPath);
-                        // 외부 DLL 내에 "PluginUploader"라는 타입이 존잰한다고 가정
+                        // 외부 DLL 내에 "PluginUploader"라는 타입이 존재한다고 가정
                         Type uploaderType = asm.GetType("PluginUploader");
                         if (uploaderType == null)
                         {
@@ -126,7 +126,7 @@ namespace ITM_Agent.ucPanel
                         }
                         // PluginUploader 인스턴스 생성
                         object uploaderInstance = Activator.CreateInstance(uploaderType);
-                        // "PorcessAndUpload(string)" 메서드 검색
+                        // "ProcessAndUpload(string)" 메서드 검색
                         MethodInfo mi = uploaderType.GetMethod("ProcessAndUpload", new Type[] { typeof(string) });
                         if (mi == null)
                         {
@@ -138,7 +138,7 @@ namespace ITM_Agent.ucPanel
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogError("[ucUploadPanel] 플러그인 호출 중 오류: " + ex.Massage);
+                        logManager.LogError("[ucUploadPanel] 플러그인 호출 중 오류: " + ex.Message);
                     }
                 }
                 else
