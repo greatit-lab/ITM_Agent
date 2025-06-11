@@ -14,10 +14,6 @@ namespace ITM_Agent.ucPanel
     {
         // 플러그인 정보를 보관하는 리스트 (PluginListItem은 플러그인명과 DLL 경로 정보를 저장)
         private List<PluginListItem> loadedPlugins = new List<PluginListItem>();
-        
-        // 플러그인 목록 변경 이벤트 선언
-        public event EventHandler PluginListUpdated;
-        
         private SettingsManager settingsManager;
         private LogManager logManager;
 
@@ -52,7 +48,7 @@ namespace ITM_Agent.ucPanel
                 {
                     // 파일을 바이트 배열로 읽어서 메모리로 로드 (파일 잠금 방지)
                     byte[] dllData = File.ReadAllBytes(selectedDllPath);
-                    var asm = System.Reflection.Assembly.Load(dllData);
+                    Assembly asm = Assembly.Load(dllData);
                     string pluginName = asm.GetName().Name;
 
                     // 이미 등록된 플러그인 검사
@@ -88,14 +84,13 @@ namespace ITM_Agent.ucPanel
                     lb_PluginList.Items.Add(pluginItem.PluginName);
 
                     // settings.ini의 [RegPlugins] 섹션에 플러그인 정보 기록
-                    //SavePluginInfoToSettings(pluginItem);
+                    SavePluginInfoToSettings(pluginItem);
                     
-                    //logManager.LogEvent($"Plugin registered: {pluginName}");
-                    PluginListUpdated?.Invoke(this, EventArgs.Empty);
+                    logManager.LogEvent($"Plugin registered: {pluginName}");
                 }
                 catch (Exception ex)
                 {
-                    //MessageBox.Show("플러그인 로드 오류: " + ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+                    MessageBox.Show("플러그인 로드 오류: " + ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
                     logManager.LogError("플러그인 로드 오류: " + ex.Message);
                 }
             }
@@ -164,11 +159,12 @@ namespace ITM_Agent.ucPanel
         /// </summary>
         private void LoadPluginsFromSettings()
         {
-            var pluginLines = settingsManager.GetFoldersFromSection("[RegPlugins]");
-            foreach (var line in pluginLines)
+            // GetFoldersFromSection은 단순히 라인 목록을 반환하므로, 직접 파싱해야 합니다.
+            var pluginEntries = settingsManager.GetFoldersFromSection("[RegPlugins]");
+            foreach (var entry in pluginEntries)
             {
-                // line 형식: "PluginName = AssemblyPath"
-                string[] parts = line.Split(new char[] { '=' }, 2);
+                // PluginName = AssemblyPath" 형식의 문자열을 '=' 기준으로 분리합니다.
+                string[] parts = entry.Split(new[] { '=' }, 2);
                 if (parts.Length == 2)
                 {
                     string pluginName = parts[0].Trim();
