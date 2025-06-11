@@ -50,8 +50,7 @@ namespace ITM_Agent
             RegisterMenuEvents();
 
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-
-            settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
+            //settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
 
             // settingsManager 인스턴스를 생성자 인자로 전달
             ucSc1 = new ucPanel.ucConfigurationPanel(settingsManager);
@@ -442,14 +441,14 @@ namespace ITM_Agent
         {
             // UserControl 초기화
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
+            
+            // ucPluginPanel을 ucUploadPanel보다 먼저 생성하여 NullReferenceException을 방지합니다.
+            ucPluginPanel = new ucPluginPanel(settingsManager);
+            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
             ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
-            
-            // 신규 플러그인, 업로드 패널 생성
-            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
-            ucPluginPanel = new ucPluginPanel(settingsManager);
-            
+
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
             ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
         }
