@@ -124,6 +124,15 @@ namespace ITM_Agent.ucPanel
                         {
                             File.Delete(pluginItem.AssemblyPath);
                             logManager.LogEvent($"DLL 파일 삭제됨: {pluginItem.AssemblyPath}");
+
+                            // 삭제 후 파일이 남아있으면(파일 잠김 등) 안내
+                            if (File.Exists(pluginItem.AssemblyPath))
+                            {
+                                MessageBox.Show("DLL 파일이 사용 중이거나 삭제되지 않았습니다. 프로그램을 재시작 후 다시 시도하세요.",
+                                    "파일 삭제 실패", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                                logManager.LogError("DLL 파일이 삭제되지 않았음(잠김 등): " + pluginItem.AssemblyPath);
+                                return;
+                            }
                         }
                         catch (Exception ex)
                         {
