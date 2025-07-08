@@ -1,9 +1,12 @@
 // ucPanel\ucUploadPanel.cs
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Windows.Forms;
+using System.Threading.Tasks;
+using ITM_Agent.Plugins;
 using ITM_Agent.Services;
 
 namespace ITM_Agent.ucPanel
@@ -19,6 +22,11 @@ namespace ITM_Agent.ucPanel
         // 업로드 대상 폴더 감시용 FileSystemWatcher
         private FileSystemWatcher uploadFolderWatcher;
 
+        private const string UploadSection = "UploadSettings";  // INI 섹션명
+        private const string UploadKey = "DBItem";
+        private const string KeyFolder = "WaferFlatFolder";  // 폴더 키
+        private const string KeyPlugin = "FilePlugin";  // 플러그인 키
+        
         public ucUploadPanel(ucConfigurationPanel configPanel, ucPluginPanel pluginPanel, SettingsManager settingsManager)
         {
             InitializeComponent();
@@ -27,27 +35,53 @@ namespace ITM_Agent.ucPanel
             this.settingsManager = settingsManager;
             logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory);
 
+            // 반드시 이벤트 먼저 연결
+            btn_FlatSet.Click += btn_FlatSet_Click;
+            
             LoadTargetFolderItems();
             LoadPluginItems();
+            
+            LoadWaferFlatSettings();  // 방금 만든 복원 로직
+            
             LoadUploadSettings();
         }
         
         private void LoadUploadSettings()
         {
-            string savedFolder = settingsManager.GetValueFromSection("Upload", "WaferFlatFolder");
-            if (!string.IsNullOrEmpty(savedFolder) && Directory.Exists(savedFolder))
-            {
-                cb_WaferFlat_Path.Text = savedFolder;
-                StartUploadFolderWatcher(savedFolder);
-            }
-            else
-            {
-                // 설정이 없거나 폴더가 존재하지 않으면 기본값 처리(필요시)
-                cb_WaferFlat_Path.Text = "";
-            }
-        }
+            string iniLine = settingsManager.GetValueFromSection(UploadSection, UploadKey);
+            if (string.IsNullOrWhiteSpace(iniLine)) return;
         
-        /// ucConfigurationPanel에서 대상 폴더 목록을 가져와 콤보박스에 로드
+            // "WaferFlat, Folder : D:\ITM_Agent\wf, Plugin : Onto_WaferFlatData"
+            string[] parts = iniLine.Split(',');
+        
+            if (parts.Length < 3) return;
+        
+            // Folder : 뒤의 **전체 문자열**을 잘라 온다
+            string folderToken = parts[1];                       // " Folder : D:\ITM_Agent\wf"
+            int    idxFolder   = folderToken.IndexOf(':');
+            if (idxFolder <= 0) return;
+            string folderPath  = folderToken.Substring(idxFolder + 1).Trim(); // "D:\ITM_Agent\wf"
+        
+            // Plugin : 뒤 문자열
+            string pluginToken = parts[2];                       // " Plugin : Onto_WaferFlatData"
+            int    idxPlugin   = pluginToken.IndexOf(':');
+            if (idxPlugin <= 0) return;
+            string pluginName  = pluginToken.Substring(idxPlugin + 1).Trim(); // "Onto_WaferFlatData"
+        
+            // 콤보박스 반영
+            if (!cb_WaferFlat_Path.Items.Contains(folderPath))
+                cb_WaferFlat_Path.Items.Add(folderPath);
+            cb_WaferFlat_Path.Text = folderPath;
+        
+            if (!cb_FlatPlugin.Items.Contains(pluginName))
+                cb_FlatPlugin.Items.Add(pluginName);
+            cb_FlatPlugin.Text = pluginName;
+        
+            // 감시 재개
+            StartUploadFolderWatcher(folderPath);
+        }
+
+        // ucConfigurationPanel에서 대상 폴더 목록을 가져와 콤보박스에 로드
         private void LoadTargetFolderItems()
         {
             cb_WaferFlat_Path.Items.Clear();
@@ -80,20 +114,46 @@ namespace ITM_Agent.ucPanel
         // 선택된 업로드 폴더에서 파일 변화 감시 시작
         private void StartUploadFolderWatcher(string folderPath)
         {
-            if (uploadFolderWatcher != null)
+            try
             {
-                uploadFolderWatcher.EnableRaisingEvents = false;
-                uploadFolderWatcher.Dispose();
+                // ① 경로 문자열 정리(개행·앞뒤 공백 제거)
+                folderPath = folderPath.Trim();
+        
+                // ② 유효성 검사
+                if (string.IsNullOrEmpty(folderPath))
+                    throw new ArgumentException("폴더 경로가 비어 있습니다.", nameof(folderPath));
+        
+                // ③ 폴더가 없으면 생성 (권한 없으면 예외 발생)
+                if (!Directory.Exists(folderPath))
+                {
+                    Directory.CreateDirectory(folderPath);
+                    logManager.LogEvent($"[UploadPanel] 폴더가 없어 새로 생성: {folderPath}");
+                }
+        
+                // ④ 이전 Watcher 해제
+                uploadFolderWatcher?.Dispose();
+        
+                // ⑤ 새로운 Watcher 생성
+                uploadFolderWatcher = new FileSystemWatcher(folderPath)
+                {
+                    Filter               = "*.*",
+                    IncludeSubdirectories = false,
+                    NotifyFilter          = NotifyFilters.FileName
+                                            | NotifyFilters.Size
+                                            | NotifyFilters.LastWrite,
+                    EnableRaisingEvents   = true
+                };
+                uploadFolderWatcher.Created += UploadFolderWatcher_Created;
+        
+                logManager.LogEvent($"[UploadPanel] 폴더 감시 시작: {folderPath}");
             }
-            uploadFolderWatcher = new FileSystemWatcher(folderPath)
+            catch (Exception ex)
             {
-                Filter = "*.*",
-                IncludeSubdirectories = false,
-                EnableRaisingEvents = true
-            };
-            uploadFolderWatcher.Created += UploadFolderWatcher_Event;
-            uploadFolderWatcher.Changed += UploadFolderWatcher_Event;
-            logManager.LogEvent($"[ucUploadPanel] Started watching folder: {folderPath}");
+                // 실패 시 로그 + 사용자 알림
+                logManager.LogError($"[UploadPanel] 폴더 감시 시작 실패: {ex.Message}");
+                MessageBox.Show("폴더 감시를 시작할 수 없습니다.\n" + ex.Message,
+                                "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
+            }
         }
         
         // FileSystemWatcher 이벤트 처리 - 파일 변화 감지 시 지정 플러그인 호출 (리플렉션 사용)
@@ -107,7 +167,15 @@ namespace ITM_Agent.ucPanel
             this.Invoke(new Action(() =>
             {
                 // Settings.ini "[UploadSettings]" 섹션에 저장된 플러그인명을 가져옴
-                string savedPlugin = settingsManager.GetValueFromSection("UploadSettings", "FlatPlugin");
+                
+                string iniLine = settingsManager.GetValueFromSection("UploadSection", "DBItem");
+                string savedPlugin = null;
+                if (!string.IsNullOrWhiteSpace(IniLine))
+                {
+                    var p = iniLine.Split(',');
+                    if (p.Length >= 3) savedPlugin = p[2].Split(':')[1].Trim();
+                }
+                
                 if (string.IsNullOrEmpty(savedPlugin))
                 {
                     logManager.LogError("[ucUploadPanel] 설정에서 플러그인을 찾을 수 없습니다.");
@@ -173,19 +241,142 @@ namespace ITM_Agent.ucPanel
         // btn_FlatSet 클릭 시: 선택된 폴더와 플러그인 정보를 Settings.ini에 저장하고 감시 시작
         private void btn_FlatSet_Click(object sender, EventArgs e)
         {
-            if (cb_WaferFlat_Path.SelectedItem == null || cb_FlatPlugin.SelectedItem == null)
+            // (1) 콤보박스 텍스트 취득
+            string folderPath = cb_WaferFlat_Path.Text.Trim();
+            string pluginName = cb_FlatPlugin.Text.Trim();
+        
+            // (2) 필수값 검사
+            if (string.IsNullOrEmpty(folderPath) || string.IsNullOrEmpty(pluginName))
             {
-                MessageBox.Show("Please select both a folder and a plugin.", "Warning", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                MessageBox.Show("Wafer-Flat 폴더와 플러그인을 모두 선택(입력)하세요.",
+                                "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
                 return;
             }
-            string selectedFolder = cb_WaferFlat_Path.SelectedItem.ToString();
-            string selectedPlugin = cb_FlatPlugin.SelectedItem.ToString();
+        
+            // (3) INI 한 줄 포맷
+            string iniValue = $"WaferFlat, Folder : {folderPath}, Plugin : {pluginName}";
+        
+            // ▼▼▼ 기존 코드 : "Line" 키 사용  (오류 원인) ▼▼▼
+            // settingsManager.SetValueToSection(UploadSection, "Line", iniValue);
+        
+            // ===== 개선 코드 : "DBItem" 키 사용 =====
+            settingsManager.SetValueToSection(UploadSection, "DBItem", iniValue);
+        
+            // (4) 콤보박스 목록 관리
+            if (!cb_WaferFlat_Path.Items.Contains(folderPath))
+                cb_WaferFlat_Path.Items.Add(folderPath);
+            if (!cb_FlatPlugin.Items.Contains(pluginName))
+                cb_FlatPlugin.Items.Add(pluginName);
+        
+            // (5) 로그 & 안내
+            logManager.LogEvent($"[ucUploadPanel] 저장 ➜ {iniValue}");
+            MessageBox.Show("설정이 저장되었습니다.", "완료",
+                            MessageBoxButtons.OK, MessageBoxIcon.Information);
+        
+            // (6) 폴더 감시 시작
+            StartUploadFolderWatcher(folderPath);
+        }
 
-            settingsManager.SetValueToSection("UploadSettings", "WaferFlatFolder", selectedFolder);
-            settingsManager.SetValueToSection("UploadSettings", "FlatPlugin", selectedPlugin);
-            MessageBox.Show("Upload settings saved.", "Information", MessageBoxButtons.OK, MessageBoxIcon.Information);
-            
-            StartUploadFolderWatcher(selectedFolder);
+        /// <summary>
+        /// [WaferFlat] 섹션에 폴더/플러그인 정보를 저장
+        /// </summary>
+        private void SaveWaferFlatSettings()
+        {
+            string folderPath = cb_WaferFlat_Path.Text.Trim();
+            string pluginName = cb_FlatPlugin.SelectedItem!.ToString();
+        
+            // 플러그인 상대경로: 항상 Library\*.dll
+            PluginListItem pItem   = pluginPanel.GetPluginByName(pluginName);
+            string pluginRelPath   = Path.Combine("Library",
+                                     Path.GetFileName(pItem.AssemblyPath));
+        
+            settingsManager.SetValueToSection("WaferFlat", "Folder", folderPath);
+            settingsManager.SetValueToSection("WaferFlat", "Plugin", pluginRelPath);
+        
+            // INI 즉시 디스크 반영(옵션) – SettingsManager가 내부 버퍼를 가질 경우 필요
+            settingsManager.Flush();
+        
+            logManager.LogEvent($"[UploadPanel] WaferFlat 설정 저장: {folderPath}, {pluginRelPath}");
+        }
+
+        private void SaveWaferFlatSettings()
+        {
+            string folderPath = cb_WaferFlat_Path.Text.Trim();
+            string pluginName = cb_FlatPlugin.Text.Trim();
+        
+            string iniValue = $"WaferFlat, Folder : {folderPath}, Plugin : {pluginName}";
+            settingsManager.SetValueToSection(UploadSection, UploadKey, iniValue);
+        
+            logManager.LogEvent($"[ucUploadPanel] 저장 ➜ {iniValue}");
+        }
+        
+        /// <summary>
+        /// Settings.ini 의 [UploadSetting] 섹션에서
+        /// Wafer-Flat 폴더·플러그인 정보를 읽어 콤보박스에 반영
+        /// </summary>
+        private void LoadWaferFlatSettings()
+        {
+            string valueLine = settingsManager.GetValueFromSection("UploadSetting", "Line1");
+            if (string.IsNullOrWhiteSpace(valueLine)) return;
+        
+            // 예: "WaferFlat, Folder : D:\ITM_Agent\wf, Plugin : Onto_WaferFlatData"
+            string[] parts = valueLine.Split(',');
+            if (parts.Length < 3) return;
+        
+            // Folder 부분 추출
+            string folderToken = parts[1];                       // " Folder : D:\ITM_Agent\wf"
+            int idxFolder      = folderToken.IndexOf(':');
+            if (idxFolder <= 0) return;
+            string folderPath  = folderToken.Substring(idxFolder + 1).Trim();
+        
+            // Plugin 부분 추출
+            string pluginToken = parts[2];                       // " Plugin : Onto_WaferFlatData"
+            int idxPlugin      = pluginToken.IndexOf(':');
+            if (idxPlugin <= 0) return;
+            string pluginName  = pluginToken.Substring(idxPlugin + 1).Trim();
+        
+            // (1) 폴더 콤보박스
+            if (!cb_WaferFlat_Path.Items.Contains(folderPath))
+                cb_WaferFlat_Path.Items.Add(folderPath);
+            cb_WaferFlat_Path.SelectedItem = folderPath;
+        
+            // (2) 플러그인 콤보박스
+            if (cb_FlatPlugin.Items.Contains(pluginName))
+                cb_FlatPlugin.SelectedItem = pluginName;
+        }
+
+        /// <summary>
+        /// FileSystemWatcher 가 감시 폴더에서 새 파일을 감지했을 때 호출됩니다.
+        /// </summary>
+        private void UploadFolderWatcher_Created(object sender, FileSystemEventArgs e)
+        {
+            try
+            {
+                // (1) 전체 경로 얻기
+                string filePath = e.FullPath;
+
+                // (2) 로그 기록
+                logManager.LogEvent("[UploadPanel] 새 파일 감지 : " + filePath);
+
+                // (3) 워크로드가 무거울 수 있으므로 비동기로 처리
+                Task.Run(() => ProcessWaferFlatFile(filePath));
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError("[UploadPanel] 파일 처리 실패 : " + ex.Message);
+            }
+        }
+        
+        /// <summary>
+        /// 플러그인을 이용해 Wafer-Flat 데이터 파일을 처리합니다.
+        /// 실제 로직은 프로젝트 상황에 맞게 구현하세요.
+        /// </summary>
+        private void ProcessWaferFlatFile(string filePath)
+        {
+            // TODO: 플러그인 호출 및 DB 업로드 로직
+            // ✔️ 여기서는 예시로 2초 Sleep 후 완료 로그만 남깁니다.
+            System.Threading.Thread.Sleep(2000);
+            logManager.LogEvent("[UploadPanel] 파일 처리 완료 : " + filePath);
         }
     }
 }
