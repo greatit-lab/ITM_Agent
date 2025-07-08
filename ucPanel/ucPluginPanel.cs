@@ -16,7 +16,10 @@ namespace ITM_Agent.ucPanel
         private List<PluginListItem> loadedPlugins = new List<PluginListItem>();
         private SettingsManager settingsManager;
         private LogManager logManager;
-
+        
+        // 플러그인 리스트가 변경될 때 통보용
+        public event EventHandler PluginsChanged;
+        
         public ucPluginPanel(SettingsManager settings)
         {
             InitializeComponent();
