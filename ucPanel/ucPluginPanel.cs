@@ -88,8 +88,8 @@ namespace ITM_Agent.ucPanel
 
                     // settings.ini의 [RegPlugins] 섹션에 플러그인 정보 기록
                     SavePluginInfoToSettings(pluginItem);
-                    
                     logManager.LogEvent($"Plugin registered: {pluginName}");
+                    PluginsChanged?.Invoke(this, EventArgs.Empty);     // ✅ 새로 추가
                 }
                 catch (Exception ex)
                 {
@@ -150,8 +150,8 @@ namespace ITM_Agent.ucPanel
 
                 // settings.ini의 [RegPlugins] 섹션에서 해당 키 제거
                 settingsManager.RemoveKeyFromSection("RegPlugins", selectedPluginName);
-
-                logManager.LogEvent($"플러그인 삭제됨: {selectedPluginName}");
+                logManager.LogEvent($"Plugin removed: {selectedPluginName}");
+                PluginsChanged?.Invoke(this, EventArgs.Empty);     // ✅ 새로 추가
             }
         }
 
@@ -182,7 +182,7 @@ namespace ITM_Agent.ucPanel
             var pluginEntries = settingsManager.GetFoldersFromSection("[RegPlugins]");
             foreach (var entry in pluginEntries)
             {
-                // PluginName = AssemblyPath" 형식의 문자열을 '=' 기준으로 분리합니다.
+                // "PluginName = AssemblyPath" 형식의 문자열을 '=' 기준으로 분리합니다.
                 string[] parts = entry.Split(new[] { '=' }, 2);
                 if (parts.Length == 2)
                 {
