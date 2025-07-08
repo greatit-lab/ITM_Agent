@@ -160,7 +160,14 @@ namespace ITM_Agent.ucPanel
         /// </summary>
         private void SavePluginInfoToSettings(PluginListItem pluginItem)
         {
-            settingsManager.SetValueToSection("RegPlugins", pluginItem.PluginName, pluginItem.AssemblyPath);
+            // (1)  플러그인 DLL은 항상 BaseDir\Library 에 복사되므로
+            //      ini 파일에는 "Library\파일명.dll" 만 저장
+            string relativePath = Path.Combine("Library", Path.GetFileName(pluginItem.AssemblyPath));
+        
+            // (2)  Settings.ini → [RegPlugins] 섹션에 기록
+            settingsManager.SetValueToSection("RegPlugins",
+                pluginItem.PluginName,
+                relativePath);                       //  ← Library\Onto_WaferFlatData.dll
         }
 
         /// <summary>
@@ -178,29 +185,18 @@ namespace ITM_Agent.ucPanel
                 {
                     string pluginName = parts[0].Trim();
                     string assemblyPath = parts[1].Trim();
-                    if (File.Exists(assemblyPath))
+                    
+                    // (1) 절대 경로가 아니라면 → BaseDir 결합
+                    if (!Path.IsPathRooted(assemblyPath))
                     {
-                        try
-                        {
-                            // 파일을 바이트 배열로 읽어 메모리로 로드
-                            byte[] dllData = File.ReadAllBytes(assemblyPath);
-                            Assembly asm = Assembly.Load(dllData);
-                            if (asm.GetName().Name.Equals(pluginName, StringComparison.OrdinalIgnoreCase))
-                            {
-                                PluginListItem pluginItem = new PluginListItem
-                                {
-                                    PluginName = pluginName,
-                                    AssemblyPath = assemblyPath
-                                };
-                                loadedPlugins.Add(pluginItem);
-                                lb_PluginList.Items.Add(pluginItem.PluginName);
-                                logManager.LogEvent($"Plugin loaded from settings: {pluginName}");
-                            }
-                        }
-                        catch (Exception ex)
-                        {
-                            logManager.LogError("Settings에서 플러그인 로드 오류: " + ex.Message);
-                        }
+                        assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyPath);
+                    }
+                    
+                    // (2) Library\.. 경로가 아직 없으면 건너뜀
+                    if (!File.Exists(assemblyPath))
+                    {
+                        logManager.LogError($"Settings.ini-경로를 찾을 수 없습니다: {assemblyPath}");
+                        continue;
                     }
                 }
             }
