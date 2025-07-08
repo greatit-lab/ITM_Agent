@@ -368,14 +368,34 @@ namespace ITM_Agent.ucPanel
         
         private void RefreshPluginCombo()
         {
+            // (1) 현재 선택 상태 보존
+            string prevSelection = cb_FlatPlugin.SelectedItem as string;
+        
+            cb_FlatPlugin.BeginUpdate();
             cb_FlatPlugin.Items.Clear();
-            
-            // pluginPanel.GetLoadedPlugins() 는 이미 있는 메서드
+        
+            // (2) 플러그인 이름 다시 채우기
             foreach (var p in pluginPanel.GetLoadedPlugins())
                 cb_FlatPlugin.Items.Add(p.PluginName);
-            // 사용자가 직전에 추가한 플러그인을 자동 선택하면 편리
-            if (cb_FlatPlugin.Items.Count > 0)
-                cb_FlatPlugin.SelectedIndex = cb_FlatPlugin.Items.Count - 1;
+        
+            // ▼▼ 기존 코드 : 새 목록의 “마지막 항목”을 강제로 선택 -------------------
+            //if (cb_FlatPlugin.Items.Count > 0)
+            //    cb_FlatPlugin.SelectedIndex = cb_FlatPlugin.Items.Count - 1;
+            // ▲▲ 삭제(주석처리) -----------------------------------------------------
+        
+            // (3) 이전에 선택돼 있던 값이 아직도 존재하면 그대로 유지
+            if (!string.IsNullOrEmpty(prevSelection) &&
+                cb_FlatPlugin.Items.Contains(prevSelection))
+            {
+                cb_FlatPlugin.SelectedItem = prevSelection;
+            }
+            else
+            {
+                // 아니면 아무 것도 선택하지 않음
+                cb_FlatPlugin.SelectedIndex = -1;
+            }
+        
+            cb_FlatPlugin.EndUpdate();
         }
     }
 }
