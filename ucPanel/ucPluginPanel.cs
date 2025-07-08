@@ -186,17 +186,38 @@ namespace ITM_Agent.ucPanel
                     string pluginName = parts[0].Trim();
                     string assemblyPath = parts[1].Trim();
                     
-                    // (1) 절대 경로가 아니라면 → BaseDir 결합
+                    // (1) 상대 경로면 실행 폴더와 결합
                     if (!Path.IsPathRooted(assemblyPath))
-                    {
                         assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyPath);
-                    }
                     
-                    // (2) Library\.. 경로가 아직 없으면 건너뜀
                     if (!File.Exists(assemblyPath))
                     {
-                        logManager.LogError($"Settings.ini-경로를 찾을 수 없습니다: {assemblyPath}");
+                        logManager.LogError($"플러그인 DLL을 찾을 수 없습니다: {assemblyPath}");
                         continue;
+                    }
+                    
+                    try
+                    {
+                        // 메모리 로드 → 파일 잠금 방지
+                        byte[] dllData = File.ReadAllBytes(assemblyPath);
+                        Assembly asm   = Assembly.Load(dllData);
+                    
+                        // (2) INI 키와 어셈블리 이름이 달라도 무조건 등록
+                        string asmName = asm.GetName().Name;
+                    
+                        PluginListItem item = new PluginListItem
+                        {
+                            PluginName   = asmName,          // UI에는 실제 어셈블리 이름 표시
+                            AssemblyPath = assemblyPath
+                        };
+                        loadedPlugins.Add(item);
+                        lb_PluginList.Items.Add(item.PluginName);
+                    
+                        logManager.LogEvent($"Plugin auto-loaded: {asmName}");
+                    }
+                    catch (Exception ex)
+                    {
+                        logManager.LogError($"플러그인 로드 실패: {ex.Message}");
                     }
                 }
             }
