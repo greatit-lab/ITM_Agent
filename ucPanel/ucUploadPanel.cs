@@ -22,7 +22,7 @@ namespace ITM_Agent.ucPanel
         // 업로드 대상 폴더 감시용 FileSystemWatcher
         private FileSystemWatcher uploadFolderWatcher;
 
-        private const string UploadSection = "UploadSettings";  // INI 섹션명
+        private const string UploadSection = "UploadSetting";  // INI 섹션명
         private const string UploadKey = "DBItem";
         private const string KeyFolder = "WaferFlatFolder";  // 폴더 키
         private const string KeyPlugin = "FilePlugin";  // 플러그인 키
@@ -32,6 +32,7 @@ namespace ITM_Agent.ucPanel
             InitializeComponent();
             this.configPanel = configPanel;
             this.pluginPanel = pluginPanel;
+            this.pluginPanel.PluginsChanged += pluginPanel_PluginsChanged;  // 구독
             this.settingsManager = settingsManager;
             logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory);
 
@@ -159,67 +160,67 @@ namespace ITM_Agent.ucPanel
         // FileSystemWatcher 이벤트 처리 - 파일 변화 감지 시 지정 플러그인 호출 (리플렉션 사용)
         private void UploadFolderWatcher_Event(object sender, FileSystemEventArgs e)
         {
-            // 파일 접근이 준비되었는지 확인
-            if (!IsFileReady(e.FullPath))
-                return;
-            
-            // UI 스레드에서 실행
-            this.Invoke(new Action(() =>
+            try
             {
-                // Settings.ini "[UploadSettings]" 섹션에 저장된 플러그인명을 가져옴
+                /* 0) 파일 잠금 해제 대기 (200 ms) */
+                System.Threading.Thread.Sleep(200);
                 
-                string iniLine = settingsManager.GetValueFromSection(UploadSection, "DBItem");
-                string savedPlugin = null;
-                if (!string.IsNullOrWhiteSpace(iniLine))
+                /* 1) 현재 UI에서 선택된 플러그인 이름을 가져옴 */
+                string pluginName = cb_FlatPlugin.Text.Trim();
+                if (string.IsNullOrEmpty(pluginName))
                 {
-                    var p = iniLine.Split(',');
-                    if (p.Length >= 3) savedPlugin = p[2].Split(':')[1].Trim();
-                }
-                
-                if (string.IsNullOrEmpty(savedPlugin))
-                {
-                    logManager.LogError("[ucUploadPanel] 설정에서 플러그인을 찾을 수 없습니다.");
+                    logManager.LogError("[UploadPanel] 플러그인을 선택하지 않았습니다.");
                     return;
                 }
                 
-                // pluginPanel에서 로드한 PluginListItem 목록 중 일치하는 항목 검색
-                var pluginItem = pluginPanel.GetLoadedPlugins().FirstOrDefault(p => p.PluginName.Equals(savedPlugin, StringComparison.OrdinalIgnoreCase));
+                /* 2) pluginPanel 에 로드된 DLL 목록에서 매칭 */
+                var pluginItem = pluginPanel
+                    .GetLoadedPlugins()
+                    .FirstOrDefault(p => p.PluginName
+                                          .Equals(pluginName,
+                                                  StringComparison.OrdinalIgnoreCase));
                 
-                if (pluginItem != null)
+                if (pluginItem == null)
                 {
-                    try
-                    {
-                        // DLL 경로를 이용해 어셈블리 로드
-                        Assembly asm = Assembly.LoadFrom(pluginItem.AssemblyPath);
-                        // 외부 DLL 내에 "PluginUploader"라는 타입이 존재한다고 가정
-                        Type uploaderType = asm.GetType("PluginUploader");
-                        if (uploaderType == null)
-                        {
-                            logManager.LogError("[ucUploadPanel] PluginUploader 타입을 찾을 수 없습니다.");
-                            return;
-                        }
-                        // PluginUploader 인스턴스 생성
-                        object uploaderInstance = Activator.CreateInstance(uploaderType);
-                        // "ProcessAndUpload(string)" 메서드 검색
-                        MethodInfo mi = uploaderType.GetMethod("ProcessAndUpload", new Type[] { typeof(string) });
-                        if (mi == null)
-                        {
-                            logManager.LogError("[ucUploadPanel] ProcessAndUpload(string) 메서드가 구현되어 있지 않습니다.");
-                            return;
-                        }
-                        // 메서드 호출 - 인자로 파일 변화가 발생한 폴더 경로 전달
-                        mi.Invoke(uploaderInstance, new object[] { Path.GetDirectoryName(e.FullPath) });
-                    }
-                    catch (Exception ex)
-                    {
-                        logManager.LogError("[ucUploadPanel] 플러그인 호출 중 오류: " + ex.Message);
-                    }
+                    logManager.LogError($"[UploadPanel] '{pluginName}' 플러그인을 로드하지 못했습니다.");
+                    return;
                 }
-                else
+                
+                /* 3) DLL 로드 & IOnto_WaferFlatData 구현 타입 검색 */
+                Assembly asm = Assembly.LoadFrom(pluginItem.AssemblyPath);
+                
+                // 네임스페이스를 모른다면 Reflection 문자열 검색 방식 사용
+                Type targetType = asm.GetTypes()
+                    .FirstOrDefault(t => t.GetInterface("Onto_WaferFlatDataLib.IOnto_WaferFlatData") != null
+                                      && !t.IsInterface && !t.IsAbstract);
+                
+                if (targetType == null)
                 {
-                    logManager.LogError($"[ucUploadPanel] 선택한 플러그인 '{savedPlugin}'을(를) 찾을 수 없습니다.");
+                    logManager.LogError($"[UploadPanel] IOnto_WaferFlatData 구현을 '{pluginName}' 에서 찾지 못했습니다.");
+                    return;
                 }
-            }));
+                
+                /* 4) 인스턴스 생성 & 전처리+업로드 실행 */
+                object processor = Activator.CreateInstance(targetType);
+                
+                // MethodInfo 미리 가져오기(c# 7.3 호환)
+                MethodInfo mi = targetType.GetMethod("ProcessAndUpload",
+                                                      new[] { typeof(string) });
+                if (mi == null)
+                {
+                    logManager.LogError($"[UploadPanel] ProcessAndUpload 메서드를 '{pluginName}' 에서 찾지 못했습니다.");
+                    return;
+                }
+                
+                string watchFolder = cb_WaferFlat_Path.Text.Trim();
+                logManager.LogEvent($"[UploadPanel] 플러그인 실행 시작 > {pluginName}");
+                mi.Invoke(processor, newe object[] { watchFolder });
+                logManager.LogEvent($"[UploadPanel] 플러그인 실행 완료 > {pluginName}");
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError("[UploadPanel] UploadFolderWatcher_Event 예외 : " + ex.Message);
+            }
         }
         
         // 파일 접근 준비 여부 확인 헬퍼 메서드
@@ -280,6 +281,24 @@ namespace ITM_Agent.ucPanel
         /// <summary>
         /// [WaferFlat] 섹션에 폴더/플러그인 정보를 저장
         /// </summary>
+        private void SaveWaferFlatSettings()
+        {
+            string folderPath = cb_WaferFlat_Path.Text.Trim();
+            string pluginName = cb_FlatPlugin.SelectedItem!.ToString();
+        
+            // 플러그인 상대경로: 항상 Library\*.dll
+            PluginListItem pItem   = pluginPanel.GetPluginByName(pluginName);
+            string pluginRelPath   = Path.Combine("Library",
+                                     Path.GetFileName(pItem.AssemblyPath));
+        
+            settingsManager.SetValueToSection("WaferFlat", "Folder", folderPath);
+            settingsManager.SetValueToSection("WaferFlat", "Plugin", pluginRelPath);
+        
+            // INI 즉시 디스크 반영(옵션) – SettingsManager가 내부 버퍼를 가질 경우 필요
+            settingsManager.Flush();
+        
+            logManager.LogEvent($"[UploadPanel] WaferFlat 설정 저장: {folderPath}, {pluginRelPath}");
+        }
 
         private void SaveWaferFlatSettings()
         {
@@ -359,6 +378,23 @@ namespace ITM_Agent.ucPanel
             // ✔️ 여기서는 예시로 2초 Sleep 후 완료 로그만 남깁니다.
             System.Threading.Thread.Sleep(2000);
             logManager.LogEvent("[UploadPanel] 파일 처리 완료 : " + filePath);
+        }
+        
+        private void pluginPanel_PluginsChanged(object sender, EventArgs e)
+        {
+            RefreshPluginCombo();
+        }
+        
+        private void RefreshPluginCombo()
+        {
+            cb_FlatPlugin.Items.Clear();
+            
+            // pluginPanel.GetLoadedPlugins() 는 이미 있는 메서드
+            foreach (var p in pluginPanel.GetLoadedPlugins())
+                cb_FlatPlugin.Items.Add(p.PluginName);
+            // 사용자가 직전에 추가한 플러그인을 자동 선택하면 편리
+            if (cb_FlatPlugin.Items.Count > 0)
+                cb_FlatPlugin.SelectedIndex = cb_FlatPlugin.Items.Count - 1;
         }
     }
 }
