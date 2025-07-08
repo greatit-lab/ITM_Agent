@@ -168,9 +168,9 @@ namespace ITM_Agent.ucPanel
             {
                 // Settings.ini "[UploadSettings]" 섹션에 저장된 플러그인명을 가져옴
                 
-                string iniLine = settingsManager.GetValueFromSection("UploadSection", "DBItem");
+                string iniLine = settingsManager.GetValueFromSection(UploadSection, "DBItem");
                 string savedPlugin = null;
-                if (!string.IsNullOrWhiteSpace(IniLine))
+                if (!string.IsNullOrWhiteSpace(iniLine))
                 {
                     var p = iniLine.Split(',');
                     if (p.Length >= 3) savedPlugin = p[2].Split(':')[1].Trim();
@@ -280,24 +280,6 @@ namespace ITM_Agent.ucPanel
         /// <summary>
         /// [WaferFlat] 섹션에 폴더/플러그인 정보를 저장
         /// </summary>
-        private void SaveWaferFlatSettings()
-        {
-            string folderPath = cb_WaferFlat_Path.Text.Trim();
-            string pluginName = cb_FlatPlugin.SelectedItem!.ToString();
-        
-            // 플러그인 상대경로: 항상 Library\*.dll
-            PluginListItem pItem   = pluginPanel.GetPluginByName(pluginName);
-            string pluginRelPath   = Path.Combine("Library",
-                                     Path.GetFileName(pItem.AssemblyPath));
-        
-            settingsManager.SetValueToSection("WaferFlat", "Folder", folderPath);
-            settingsManager.SetValueToSection("WaferFlat", "Plugin", pluginRelPath);
-        
-            // INI 즉시 디스크 반영(옵션) – SettingsManager가 내부 버퍼를 가질 경우 필요
-            settingsManager.Flush();
-        
-            logManager.LogEvent($"[UploadPanel] WaferFlat 설정 저장: {folderPath}, {pluginRelPath}");
-        }
 
         private void SaveWaferFlatSettings()
         {
