@@ -576,47 +576,5 @@ namespace ITM_Agent.Services
             
             File.WriteAllLines(settingsFilePath, lines);
         }
-        
-        public void SetLibraryLink(string folder, string plugin)
-        {
-            lock (fileLock)
-            {
-                List<string> lines = File.Exists(settingsFilePath)
-                    ? File.ReadAllLines(settingsFilePath).ToList()
-                    : new List<string>();
-        
-                // 새로 기록할 한 줄 문자열 생성
-                string newLine = $"WaferFlat,  WaferFlatplugin = {folder}, {plugin}";
-        
-                // [LibraryLink] 섹션 검색
-                int sectionIndex = lines.FindIndex(l => l.Trim() == "[LibraryLink]");
-        
-                if (sectionIndex == -1)
-                {
-                    // 섹션이 없으면 마지막에 추가
-                    if (lines.Count > 0 && !string.IsNullOrWhiteSpace(lines.Last()))
-                    {
-                        lines.Add("");
-                    }
-                    lines.Add("[LibraryLink]");
-                    lines.Add(newLine);
-                }
-                else
-                {
-                    // 섹션이 존재하면, 섹션 바로 아래 줄을 찾아 갱신
-                    int targetIndex = sectionIndex + 1;
-                    if (targetIndex < lines.Count && !string.IsNullOrWhiteSpace(lines[targetIndex]))
-                    {
-                        lines[targetIndex] = newLine;
-                    }
-                    else
-                    {
-                        lines.Insert(targetIndex, newLine);
-                    }
-                }
-                File.WriteAllLines(settingsFilePath, lines);
-            }
-        }
-
     }
 }
