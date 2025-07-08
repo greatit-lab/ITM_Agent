@@ -32,7 +32,7 @@ namespace ITM_Agent.ucPanel
             InitializeComponent();
             this.configPanel = configPanel;
             this.pluginPanel = pluginPanel;
-            this.pluginPanel.PluginsChanged += pluginPanel_PluginsChanged;  // 구독
+            this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;  // 구독
             this.settingsManager = settingsManager;
             logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory);
 
@@ -214,7 +214,7 @@ namespace ITM_Agent.ucPanel
                 
                 string watchFolder = cb_WaferFlat_Path.Text.Trim();
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 시작 > {pluginName}");
-                mi.Invoke(processor, newe object[] { watchFolder });
+                mi.Invoke(processor, new object[] { watchFolder });
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 완료 > {pluginName}");
             }
             catch (Exception ex)
@@ -281,25 +281,6 @@ namespace ITM_Agent.ucPanel
         /// <summary>
         /// [WaferFlat] 섹션에 폴더/플러그인 정보를 저장
         /// </summary>
-        private void SaveWaferFlatSettings()
-        {
-            string folderPath = cb_WaferFlat_Path.Text.Trim();
-            string pluginName = cb_FlatPlugin.SelectedItem!.ToString();
-        
-            // 플러그인 상대경로: 항상 Library\*.dll
-            PluginListItem pItem   = pluginPanel.GetPluginByName(pluginName);
-            string pluginRelPath   = Path.Combine("Library",
-                                     Path.GetFileName(pItem.AssemblyPath));
-        
-            settingsManager.SetValueToSection("WaferFlat", "Folder", folderPath);
-            settingsManager.SetValueToSection("WaferFlat", "Plugin", pluginRelPath);
-        
-            // INI 즉시 디스크 반영(옵션) – SettingsManager가 내부 버퍼를 가질 경우 필요
-            settingsManager.Flush();
-        
-            logManager.LogEvent($"[UploadPanel] WaferFlat 설정 저장: {folderPath}, {pluginRelPath}");
-        }
-
         private void SaveWaferFlatSettings()
         {
             string folderPath = cb_WaferFlat_Path.Text.Trim();
@@ -380,7 +361,7 @@ namespace ITM_Agent.ucPanel
             logManager.LogEvent("[UploadPanel] 파일 처리 완료 : " + filePath);
         }
         
-        private void pluginPanel_PluginsChanged(object sender, EventArgs e)
+        private void PluginPanel_PluginsChanged(object sender, EventArgs e)
         {
             RefreshPluginCombo();
         }
