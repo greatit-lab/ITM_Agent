@@ -149,7 +149,7 @@ namespace ITM_Agent.ucPanel
                 }
                 else
                 {
-                    logManager.LogError("$[ucUploadPanel] 선택한 플러그인 '{savedPlugin}'을(를) 찾을 수 없습니다.");
+                    logManager.LogError($"[ucUploadPanel] 선택한 플러그인 '{savedPlugin}'을(를) 찾을 수 없습니다.");
                 }
             }));
         }
