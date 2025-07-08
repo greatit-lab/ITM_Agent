@@ -14,6 +14,7 @@ namespace ITM_Agent.Services
     {
         private readonly string settingsFilePath;
         private readonly object fileLock = new object();
+        private readonly LogManager logManager;
         public event Action RegexSettingsUpdated;
 
         private bool isDebugMode; // DebugMode 상태 저장
@@ -21,6 +22,11 @@ namespace ITM_Agent.Services
         public SettingsManager(string settingsFilePath)
         {
             this.settingsFilePath = settingsFilePath;
+        
+            // 🌟 로그 매니저 주입 — 기본 실행 경로 Logs 폴더 사용
+            logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory);
+            logManager.LogEvent("[SettingsManager] Instantiated");
+        
             EnsureSettingsFileExists();
         }
 
@@ -66,9 +72,21 @@ namespace ITM_Agent.Services
 
         private void WriteToFileSafely(string[] lines)
         {
-            lock (fileLock)
+            try
             {
-                File.WriteAllLines(settingsFilePath, lines);
+                lock (fileLock)
+                {
+                    // File.WriteAllLines(settingsFilePath, lines);   // ❌ 로그 없음
+        
+                    // ===== 개선 =====
+                    File.WriteAllLines(settingsFilePath, lines);
+                    logManager.LogEvent($"[SettingsManager] Wrote {lines.Length} lines -> {settingsFilePath}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError($"[SettingsManager] WRITE failed: {ex.Message}");
+                throw; // 상위 호출부에도 예외 전달
             }
         }
 
@@ -324,17 +342,35 @@ namespace ITM_Agent.Services
             File.AppendAllText(settingsFilePath, Environment.NewLine);
         }
 
-
         public void LoadFromFile(string filePath)
         {
-            if (!File.Exists(filePath)) throw new FileNotFoundException("File not found.", filePath);
-
-            File.Copy(filePath, settingsFilePath, overwrite: true);
+            try
+            {
+                if (!File.Exists(filePath))
+                    throw new FileNotFoundException("File not found.", filePath);
+        
+                File.Copy(filePath, settingsFilePath, overwrite: true);
+                logManager.LogEvent($"[SettingsManager] Loaded settings from {filePath}");
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError($"[SettingsManager] LOAD failed: {ex.Message}");
+                throw;
+            }
         }
 
         public void SaveToFile(string filePath)
         {
-            File.Copy(settingsFilePath, filePath, overwrite: true);
+            try
+            {
+                File.Copy(settingsFilePath, filePath, overwrite: true);
+                logManager.LogEvent($"[SettingsManager] Saved settings to {filePath}");
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError($"[SettingsManager] SAVE failed: {ex.Message}");
+                throw;
+            }
         }
 
         public void SetType(string type)
