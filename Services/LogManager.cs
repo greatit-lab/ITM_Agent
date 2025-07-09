@@ -1,3 +1,4 @@
+//Services\LogManager.cs
 using System;
 using System.IO;
 
