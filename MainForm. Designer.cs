@@ -1,3 +1,4 @@
+// MainForm. Designer.cs
 using ITM_Agent.Services;
 using System.Drawing;
 using System.Windows.Forms;
