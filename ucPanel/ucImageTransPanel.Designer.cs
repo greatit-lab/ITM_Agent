@@ -1,3 +1,4 @@
+//ucPanel\ucImageTransPanel.Designer.cs
 namespace ITM_Agent.ucPanel
 {
     partial class ucImageTransPanel
