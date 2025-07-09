@@ -1,3 +1,4 @@
+// ucPanel\ucPluginPanel.Designer.cs
 namespace ITM_Agent.ucPanel
 {
     partial class ucPluginPanel
