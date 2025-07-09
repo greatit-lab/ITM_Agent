@@ -1,3 +1,4 @@
+//ucPanel\ucConfigurationPanel.Designer.cs
 namespace ITM_Agent.ucPanel
 {
     partial class ucConfigurationPanel
