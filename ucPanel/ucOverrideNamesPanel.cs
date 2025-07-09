@@ -431,39 +431,22 @@ namespace ITM_Agent.ucPanel
         
             try
             {
-                // ▼ (1) BaselineWatcher 일시 중지
-                if (baselineWatcher != null)
-                    baselineWatcher.EnableRaisingEvents = false;
-        
-                // 이미 존재하면 생성 생략
-                if (File.Exists(newFilePath))
+                // 파일 접근 테스트
+                using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    logManager.LogDebug($"[ucOverrideNamesPanel] 이미 존재: {newFilePath}");
-                    return;
+                    // 단순 읽기 후 닫기
                 }
         
-                // ▼ (2) 공유 모드(ReadWrite)로 .info 파일 생성
-                // using (File.Create(newFilePath)) { }            // ← 기존 코드 주석
-                using (var fs = new FileStream(
-                           newFilePath,
-                           FileMode.CreateNew,
-                           FileAccess.ReadWrite,
-                           FileShare.ReadWrite | FileShare.Delete))   // ✅ 변경
+                // 빈 파일 생성
+                using (File.Create(newFilePath))
                 {
-                    fs.Flush();     // 즉시 디스크 반영
+                    // **실제 .info 파일이 만들어진 순간**에만 "Baseline 파일 생성 성공" 로그 출력
+                    logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 파일 생성 성공: {newFilePath}");
                 }
-                logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 파일 생성 성공: {newFilePath}");
             }
             catch (Exception ex)
             {
-                logManager.LogError(
-                    $"[ucOverrideNamesPanel] 파일 처리 중 오류: {ex.Message}\n파일: {filePath}");
-            }
-            finally
-            {
-                // ▼ (3) Watcher 재개
-                if (baselineWatcher != null)
-                    baselineWatcher.EnableRaisingEvents = true;
+                logManager.LogError($"[ucOverrideNamesPanel] 파일 처리 중 오류가 발생했습니다: {ex.Message}\n파일: {filePath}");
             }
         }
 
@@ -590,67 +573,50 @@ namespace ITM_Agent.ucPanel
         
         private void OnBaselineFileChanged(object sender, FileSystemEventArgs e)
         {
-            // 1) 변경 로그
-            logManager.LogDebug($"[ucOverrideNamesPanel] Baseline 변경 감지: {e.FullPath}");
-        
-            // 2) 파일 잠금 해제 대기 (최대 20 회 × 300 ms = 약 6초)
-            if (!WaitForFileReady(e.FullPath, 20, 300))
+            // Debug Log
+            logManager.LogDebug($"[ucOverrideNamesPanel] OnBaselineFileChanged() - Baseline 파일 변경 감지: {e.FullPath}");
+
+            if (File.Exists(e.FullPath))
             {
-                logManager.LogError($"[ucOverrideNamesPanel] 잠김 상태로 건너뜀: {e.FullPath}");
-                return;
-            }
-        
-            if (!File.Exists(e.FullPath))
-                return;
-        
-            // 3) Baseline 정보 추출
-            Dictionary<string, (string TimeInfo, string Prefix, string CInfo)> baselineData;
-            try
-            {
-                baselineData = ExtractBaselineData(new[] { e.FullPath });
-            }
-            catch (Exception ex)
-            {
-                logManager.LogError($"[ucOverrideNamesPanel] Baseline 분석 실패: {ex.Message}");
-                return;
-            }
-        
-            // 4) Target Compare Path 별 파일 처리
-            foreach (string targetFolder in lb_TargetComparePath.Items)
-            {
-                if (!Directory.Exists(targetFolder)) continue;
-        
-                foreach (var targetFile in Directory.GetFiles(targetFolder))
+                var baselineData = ExtractBaselineData(new[] { e.FullPath });
+
+                foreach (string targetFolder in lb_TargetComparePath.Items)
                 {
-                    string newFileName = ProcessTargetFile(targetFile, baselineData);
-                    if (string.IsNullOrEmpty(newFileName)) continue;
-        
-                    string newFilePath = Path.Combine(targetFolder, newFileName);
-        
-                    try
+                    if (!Directory.Exists(targetFolder)) continue;
+
+                    var targetFiles = Directory.GetFiles(targetFolder);
+                    foreach (var targetFile in targetFiles)
                     {
-                        // 원본 존재 유무 재확인
-                        if (!File.Exists(targetFile))
+                        string newFileName = ProcessTargetFile(targetFile, baselineData);
+                        if (!string.IsNullOrEmpty(newFileName))
                         {
-                            if (settingsManager.IsDebugMode)
-                                logManager.LogDebug($"원본 파일 없음, 건너뜀: {targetFile}");
-                            continue;
+                            string newFilePath = Path.Combine(targetFolder, newFileName);
+
+                            try
+                            {
+                                // 파일 경로 존재 여부 확인
+                                if (!File.Exists(targetFile))
+                                {
+                                    if (settingsManager.IsDebugMode)
+                                    {
+                                        logManager.LogDebug($"[ucOverrideNamesPanel] 원본 파일을 찾을 수 없어 건너뜀: {targetFile}");
+                                    }
+                                    continue;
+                                }
+
+                                File.Move(targetFile, newFilePath);
+                                // 변경 내용 로그 기록
+                                LogFileRename(targetFile, newFilePath);
+                            }
+                            catch (IOException ioEx)
+                            {
+                                logManager.LogError($"[ucOverrideNamesPanel] 파일 이동 중 오류 발생: {ioEx.Message}\n파일: {targetFile}");
+                            }
+                            catch (Exception ex)
+                            {
+                                logManager.LogError($"[ucOverrideNamesPanel] 예기치 않은 오류 발생: {ex.Message}\n파일: {targetFile}");
+                            }
                         }
-        
-                        // 동일 이름 파일이 이미 있으면 삭제 후 이동 (overwrite 대체)
-                        if (File.Exists(newFilePath))
-                            File.Delete(newFilePath);
-        
-                        File.Move(targetFile, newFilePath);          // C# 7.3 API 사용
-                        LogFileRename(targetFile, newFilePath);
-                    }
-                    catch (IOException ioEx)
-                    {
-                        logManager.LogError($"[ucOverrideNamesPanel] 파일 이동 오류: {ioEx.Message}\n파일: {targetFile}");
-                    }
-                    catch (Exception ex)
-                    {
-                        logManager.LogError($"[ucOverrideNamesPanel] 예기치 않은 오류: {ex.Message}\n파일: {targetFile}");
                     }
                 }
             }
