@@ -1,3 +1,4 @@
+// ucPanel\ucUploadPanel.Designer.cs
 namespace ITM_Agent.ucPanel
 {
     partial class ucUploadPanel
