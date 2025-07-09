@@ -1,3 +1,4 @@
+// ucPanel\ucOverrideNamesPanel.Designer.cs
 using System.Windows.Forms;
 
 namespace ITM_Agent.ucPanel
