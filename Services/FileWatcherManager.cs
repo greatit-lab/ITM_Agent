@@ -15,30 +15,30 @@ namespace ITM_Agent.Services
     /// </summary>
     public class FileWatcherManager
     {
+        
+        private SettingsManager settingsManager;
+        private LogManager logManager;
+        private bool isDebugMode;  // readonly 제거
         private readonly List<FileSystemWatcher> watchers = new List<FileSystemWatcher>();
-        private readonly SettingsManager settingsManager;
-        private readonly LogManager logManager;
         private readonly Dictionary<string, DateTime> lastModifiedFiles = new Dictionary<string, DateTime>(); // 수정 시간 추적
         private readonly HashSet<string> recentlyCreatedFiles = new HashSet<string>(); // 최근 생성된 파일 추적
         private readonly HashSet<string> deletedFiles = new HashSet<string>(); // 삭제된 파일 추적
         private readonly Dictionary<string, DateTime> fileProcessTracker = new Dictionary<string, DateTime>(); // 파일 처리 추적
         private readonly TimeSpan duplicateEventThreshold = TimeSpan.FromSeconds(5); // 중복 이벤트 방지 시간
-
-        private bool isDebugMode;
-
+        
         private bool isRunning = false;
-
+        
         // Debug Mode 상태 속성
         public bool IsDebugMode { get; set; } = false;
-
-        public FileWatcherManager(SettingsManager settingsManager, LogManager logManager, bool isDebugMode)
-        {
-            this.settingsManager = settingsManager;
-            this.logManager = logManager;
-            this.isDebugMode = isDebugMode; // MainForm 에서 전달받은 디버그 모드 상태
-        }
-
-        public void UpdateDebugMode(bool isDebug)
+    
+    public FileWatcherManager(SettingsManager settingsManager, LogManager logManager, bool isDebugMode)
+    {
+       this.settingsManager = settingsManager;
+       this.logManager = logManager;
+       this.isDebugMode = isDebugMode;  // 이제 정상 할당 가능
+    }
+    
+    public void UpdateDebugMode(bool isDebug)
         {
             this.isDebugMode = isDebug; // 디버그 모드 상태 업데이트
         }
@@ -85,22 +85,28 @@ namespace ITM_Agent.Services
 
         public void StartWatching()
         {
-            if (isRunning)
-            {
-                logManager.LogEvent("[FileWatcherManager] File monitoring is already running.");
-                return;
-            }
-
-            InitializeWatchers(); // 새로 초기화
-
-            foreach (var watcher in watchers)
-            {
-                watcher.EnableRaisingEvents = true; // 이벤트 활성화
-            }
-
-            isRunning = true; // 상태 업데이트
-            logManager.LogEvent("[FileWatcherManager] File monitoring started.");
-            logManager.LogDebug($"[FileWatcherManager] Monitoring {watchers.Count} folder(s): {string.Join(", ", watchers.Select(w => w.Path))}");
+           if (isRunning)
+           {
+               logManager.LogEvent("[FileWatcherManager] File monitoring is already running.");
+               return;
+           }
+        
+           InitializeWatchers(); // 새로 초기화
+        
+           foreach (var watcher in watchers)
+           {
+               watcher.EnableRaisingEvents = true; // 이벤트 활성화
+           }
+        
+           isRunning = true; // 상태 업데이트
+           logManager.LogEvent("[FileWatcherManager] File monitoring started.");
+           if (settingsManager.IsDebugMode)
+           {
+               logManager.LogDebug(
+                   $"[FileWatcherManager] Monitoring {watchers.Count} folder(s): " +
+                   $"{string.Join(", ", watchers.Select(w => w.Path))}"
+               );
+           }
         }
 
         public void StopWatchers()
@@ -181,33 +187,41 @@ namespace ITM_Agent.Services
         {
             string fileName = Path.GetFileName(filePath);
             var regexList = settingsManager.GetRegexList();
-
+        
             foreach (var kvp in regexList)
             {
                 if (Regex.IsMatch(fileName, kvp.Key))
                 {
                     string destinationFolder = kvp.Value;
                     string destinationFile = Path.Combine(destinationFolder, fileName);
-
+        
                     try
                     {
                         Directory.CreateDirectory(destinationFolder);
-
-                        // 파일 준비 상태 확인
+        
                         if (!await WaitForFileReady(filePath))
                         {
-                            logManager.LogEvent($"[FileWatcherManager] File skipped (not ready): {filePath}");
+                            logManager.LogEvent($"[FileWatcherManager] File skipped (not ready): {fileName}");
                             return null;
                         }
-
-                        // 파일 복사
+        
                         File.Copy(filePath, destinationFile, true);
-                        logManager.LogEvent($"[FileWatcherManager] File Created: {filePath} -> copied {destinationFolder}");
+        
+                        // ▼▼▼ 원본 로그 (전체 경로 출력) ▼▼▼
+                        // logManager.LogEvent($"[FileWatcherManager] File Created: {filePath} -> copied {destinationFolder}");
+        
+                        // ▲▲▲ 개선된 로그 (파일명만, 복사된 폴더경로) ▲▲▲
+                        logManager.LogEvent(
+                            $"[FileWatcherManager] File Created: {fileName} -> copied {destinationFolder}"
+                        );
+        
                         return destinationFolder;
                     }
                     catch (Exception ex)
                     {
-                        logManager.LogEvent($"[FileWatcherManager] Error copying file: {filePath}. Exception: {ex.Message}");
+                        logManager.LogEvent(
+                            $"[FileWatcherManager] Error copying file: {fileName}. Exception: {ex.Message}"
+                        );
                         if (isDebugMode)
                         {
                             logManager.LogDebug($"[FileWatcherManager] Error details: {ex.Message}");
@@ -215,7 +229,7 @@ namespace ITM_Agent.Services
                     }
                 }
             }
-
+        
             logManager.LogEvent($"[FileWatcherManager] No matching regex for file: {fileName}");
             return null;
         }
