@@ -14,15 +14,16 @@ namespace ITM_Agent.ucPanel
     public partial class ucOverrideNamesPanel : UserControl
     {
         private readonly SettingsManager settingsManager;
+        private readonly ucConfigurationPanel configPanel;
+        private readonly LogManager logManager;
+        private readonly bool IsDebugMode;
+        
         private FileSystemWatcher folderWatcher;   // 폴더 감시기
         private List<string> regexFolders;         // 정규표현식과 폴더 정보 저장
         private string baseFolder;                 // BaseFolder 저장
 
         public event Action<string, Color> StatusUpdated;
-
-        private ucConfigurationPanel configPanel;
         private FileSystemWatcher baselineWatcher;
-        private readonly LogManager logManager;
 
         // ----------------------------
         // (1) 안정화 감지를 위한 필드
@@ -32,18 +33,30 @@ namespace ITM_Agent.ucPanel
         private readonly object trackingLock = new object();
         private const double StabilitySeconds = 2.0;   // "안정화" 판단까지 대기시간 (초)
 
-        public ucOverrideNamesPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel)
+        public ucOverrideNamesPanel(SettingsManager settingsManager, ucConfigurationPanel configPanel, LogManager logManager, bool IsDebugMode)
         {
+            // 필수 인자 null 체크
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
-
+            this.logManager = logManager ?? throw new ArgumentNullException(nameof(logManager));
+            this.IsDebugMode = IsDebugMode;
+            
             InitializeComponent();
+            this.settingsManager = settingsManager;
+            this.logManager = logManager;
+            this.IsDebugMode = IsDebugMode;
+            
+            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
             
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             logManager = new LogManager(baseDir);
 
-            // Debug Log 예시
-            logManager.LogDebug("[ucOverrideNamesPanel] 생성자 호출 - 초기화 시작");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log 예시
+                logManager.LogDebug("[ucOverrideNamesPanel] 생성자 호출 - 초기화 시작"); 
+            }
 
             InitializeBaselineWatcher();
             InitializeCustomEvents();
@@ -52,16 +65,16 @@ namespace ITM_Agent.ucPanel
             LoadDataFromSettings();
             LoadRegexFolderPaths(); // 초기화 시 목록 로드
             LoadSelectedBaseDatePath(); // 저장된 선택 값 불러오기
-
-            // Debug Log 예시
-            logManager.LogDebug("[ucOverrideNamesPanel] 생성자 호출 - 초기화 완료");
+            
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log 예시
+                logManager.LogDebug("[ucOverrideNamesPanel] 생성자 호출 - 초기화 완료");
+            }
         }
 
         #region 안정화 감지용 내부 클래스/메서드
 
-        /// <summary>
-        /// 파일 추적 정보를 저장하기 위한 클래스
-        /// </summary>
         private class FileTrackingInfo
         {
             public DateTime LastEventTime { get; set; }     // 마지막 이벤트가 감지된 시각
@@ -135,14 +148,10 @@ namespace ITM_Agent.ucPanel
             }
         }
 
-        /// <summary>
-        /// 안정화된 파일을 실제로 처리하는 메서드 (기존 OnFileChanged로직 대체)
-        /// </summary>
         private void ProcessStableFile(string filePath)
         {
             try
             {
-                // 충분히 긴 대기(파일 잠금 해제) 로직
                 if (!WaitForFileReady(filePath, maxRetries: 30, delayMilliseconds: 1000))
                 {
                     logManager.LogError($"[ucOverrideNamesPanel] 파일을 처리할 수 없습니다.(장기 잠김): {filePath}");
@@ -151,12 +160,20 @@ namespace ITM_Agent.ucPanel
 
                 if (File.Exists(filePath))
                 {
-                    // 기존에 OnFileChanged에서 하던 처리를 그대로 진행
                     DateTime? dateTimeInfo = ExtractDateTimeFromFile(filePath);
                     if (dateTimeInfo.HasValue)
                     {
-                        logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 대상 파일 감지: {filePath}");
-                        CreateBaselineInfoFile(filePath, dateTimeInfo.Value);
+                        // 파일명만 추출
+                        string fileName = Path.GetFileName(filePath);
+                        
+                        // Baseline .info 파일 생성
+                        string infoPath = CreateBaselineInfoFile(filePath, dateTimeInfo.Value);
+                        
+                        if (!string.IsNullOrEmpty(infoPath))
+                        {
+                            // 감지 및 생성 성공을 한 줄로 기록
+                            logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 대상 파일 감지: {fileName} -> info 파일 생성");
+                        }
                     }
                 }
             }
@@ -217,8 +234,11 @@ namespace ITM_Agent.ucPanel
 
         private void LoadRegexFolderPaths()
         {
-            // Debug Log 예시
-            logManager.LogDebug("[ucOverrideNamesPanel] LoadRegexFolderPaths() 시작");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log 예시
+                logManager.LogDebug("[ucOverrideNamesPanel] LoadRegexFolderPaths() 시작");
+            }
 
             cb_BaseDatePath.Items.Clear();
             var regexList = settingsManager.GetRegexList();
@@ -232,8 +252,11 @@ namespace ITM_Agent.ucPanel
 
         private void LoadSelectedBaseDatePath()
         {
-            // Debug Log
-            logManager.LogDebug("[ucOverrideNamesPanel] LoadSelectedBaseDatePath() 시작");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log
+                logManager.LogDebug("[ucOverrideNamesPanel] LoadSelectedBaseDatePath() 시작");
+            }
 
             string selectedPath = settingsManager.GetValueFromSection("SelectedBaseDatePath", "Path");
             if (!string.IsNullOrEmpty(selectedPath) && cb_BaseDatePath.Items.Contains(selectedPath))
@@ -252,9 +275,12 @@ namespace ITM_Agent.ucPanel
             {
                 settingsManager.SetValueToSection("SelectedBaseDatePath", "Path", selectedPath);
                 StartFolderWatcher(selectedPath);
-
-                // Debug Log
-                logManager.LogDebug($"[ucOverrideNamesPanel] cb_BaseDatePath_SelectedIndexChanged -> {selectedPath} 설정");
+                
+                if (settingsManager.IsDebugMode)
+                {
+                    // Debug Log
+                    logManager.LogDebug($"[ucOverrideNamesPanel] cb_BaseDatePath_SelectedIndexChanged -> {selectedPath} 설정");
+                }
             }
         }
 
@@ -324,8 +350,11 @@ namespace ITM_Agent.ucPanel
 
         private void btn_BaseClear_Click(object sender, EventArgs e)
         {
-            // Debug Log
-            logManager.LogDebug("[ucOverrideNamesPanel] btn_BaseClear_Click() - BaseDatePath 초기화");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log
+                logManager.LogDebug("[ucOverrideNamesPanel] btn_BaseClear_Click() - BaseDatePath 초기화");
+            }
 
             cb_BaseDatePath.SelectedIndex = -1;
             settingsManager.RemoveSection("SelectedBaseDatePath"); // 저장된 값 삭제
@@ -337,8 +366,11 @@ namespace ITM_Agent.ucPanel
 
         private void Btn_SelectFolder_Click(object sender, EventArgs e)
         {
-            // Debug Log
-            logManager.LogDebug("[ucOverrideNamesPanel] Btn_SelectFolder_Click() 호출");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log
+                logManager.LogDebug("[ucOverrideNamesPanel] Btn_SelectFolder_Click() 호출");
+            }
 
             var baseFolder = settingsManager.GetFoldersFromSection("[BaseFolder]").FirstOrDefault()
                              ?? AppDomain.CurrentDomain.BaseDirectory;
@@ -360,7 +392,10 @@ namespace ITM_Agent.ucPanel
                     else
                     {
                         MessageBox.Show("해당 폴더는 이미 추가되어 있습니다.", "알림", MessageBoxButtons.OK, MessageBoxIcon.Information);
-                        logManager.LogDebug("[ucOverrideNamesPanel] 이미 추가된 폴더 선택됨");
+                        if (settingsManager.IsDebugMode)
+                        {
+                            logManager.LogDebug("[ucOverrideNamesPanel] 이미 추가된 폴더 선택됨");
+                        }
                     }
                 }
             }
@@ -368,8 +403,11 @@ namespace ITM_Agent.ucPanel
 
         private void Btn_Remove_Click(object sender, EventArgs e)
         {
-            // Debug Log
-            logManager.LogDebug("[ucOverrideNamesPanel] Btn_Remove_Click() 호출");
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug Log
+                logManager.LogDebug("[ucOverrideNamesPanel] Btn_Remove_Click() 호출");
+            }
 
             if (lb_TargetComparePath.SelectedItems.Count > 0)
             {
@@ -393,7 +431,10 @@ namespace ITM_Agent.ucPanel
             else
             {
                 MessageBox.Show("삭제할 항목을 선택하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                logManager.LogDebug("[ucOverrideNamesPanel] 삭제할 항목 미선택");
+                if (settingsManager.IsDebugMode)
+                {
+                    logManager.LogDebug("[ucOverrideNamesPanel] 삭제할 항목 미선택");
+                }
             }
         }
 
@@ -407,47 +448,63 @@ namespace ITM_Agent.ucPanel
 
         #region 기존 메서드(읽기/처리 로직) 변경 없이 재사용
 
-        private void CreateBaselineInfoFile(string filePath, DateTime dateTime)
+        private string CreateBaselineInfoFile(string filePath, DateTime dateTime)
         {
-            // Debug Log
-            logManager.LogDebug($"[ucOverrideNamesPanel] CreateBaselineInfoFile() 호출 - 대상 파일: {filePath}");
-        
+            if (settingsManager.IsDebugMode)
+            {
+                // Debug: 메서드 호출
+                logManager.LogDebug($"[ucOverrideNamesPanel] CreateBaselineInfoFile() 호출 - 대상: {Path.GetFileName(filePath)}");
+            }
+            
+            // 기준 풀더 유효성 검사
             string baseFolder = configPanel.BaseFolderPath; 
             if (string.IsNullOrEmpty(baseFolder) || !Directory.Exists(baseFolder))
             {
                 logManager.LogError("[ucOverrideNamesPanel] 기준 폴더가 설정되지 않았거나 존재하지 않습니다.");
-                return;
+                return null;
             }
-        
-            string baselineFolder = Path.Combine(baseFolder, "Baseline");
+            
+            // Baseline 폴더 경로 준비
+            string baselineFolder = System.IO.Path.Combine(baseFolder, "Baseline");
             if (!Directory.Exists(baselineFolder))
             {
                 Directory.CreateDirectory(baselineFolder);
-                logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 폴더가 없어서 생성했습니다: {baselineFolder}");
+                logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 폴더 생성: {baselineFolder}");
             }
-        
-            string originalFileName = Path.GetFileNameWithoutExtension(filePath);
+            
+            // 새로운 .info 파일명 생성
+            string originalFileName = System.IO.Path.GetFileNameWithoutExtension(filePath);
             string newFileName = $"{dateTime:yyyyMMdd_HHmmss}_{originalFileName}.info";
-            string newFilePath = Path.Combine(baselineFolder, newFileName);
+            string newFilePath = System.IO.Path.Combine(baselineFolder, newFileName);
         
             try
             {
-                // 파일 접근 테스트
-                using (var fileStream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                // 파일 잠김 해제 확인을 위해 읽기 시도
+                using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
                 {
-                    // 단순 읽기 후 닫기
+                    // 테스트 용도로만 열고 바로 닫습니다.
                 }
         
-                // 빈 파일 생성
-                using (File.Create(newFilePath))
+                // 빈 .info 파일 생성
+                using (File.Create(newFilePath)) { }
+                
+                // 성공 시 경로 반환
+                return newFilePath;
+            }
+            catch (IOException ioEx) when (ioEx.Message.Contains("다른 프로세스에서 사용 중"))
+            {
+                if (settingsManager. IsDebugMode)
                 {
-                    // **실제 .info 파일이 만들어진 순간**에만 "Baseline 파일 생성 성공" 로그 출력
-                    logManager.LogEvent($"[ucOverrideNamesPanel] Baseline 파일 생성 성공: {newFilePath}");
+                    // 잠금 충돌은 Debug 레벨로만 기록
+                    logManager.LogDebug($"[ucOverrideNamesPanel] 잠금 충돌: {System.IO.Path.GetFileName(filePath)} - 재시도 예정.");
                 }
+                return null;
             }
             catch (Exception ex)
             {
-                logManager.LogError($"[ucOverrideNamesPanel] 파일 처리 중 오류가 발생했습니다: {ex.Message}\n파일: {filePath}");
+                // 이 외의 진짜 실패는 Error 레벨로 기록
+                logManager.LogError($"[ucOverrideNamesPanel] .info 파일 생성 실패: {ex.Message}\n대상 파일: {filePath}");
+                return null;                                                                                                                                                                                                         
             }
         }
 
@@ -467,8 +524,31 @@ namespace ITM_Agent.ucPanel
             }
         }
 
-        private bool WaitForFileReady(string filePath, int maxRetries = 10, int delayMilliseconds = 500)
+        private bool WaitForFileReady(string filePath, int maxRetries = 30, int delayMilliseconds = 500)
         {
+            int retries = 0;
+            while (retries < maxRetries)
+            {
+                try
+                {
+                    using (var stream = File.Open(filePath, FileMode.Open, FileAccess.Read, FileShare.Read, FileShare.ReadWrite))
+                    {
+                        // 파일 열기에 성공했으므로 준비 완료
+                        return true;
+                    }
+                }
+                catch (IOException ioEx)
+                {
+                    if (settingsManager.IsDebugMode)
+                    {
+                        // 잠김 충돌은 Debug로만 기록하고 재시도
+                        logManager.LogDebug($"[ucOverrideNamesPanel] 파일 잠김 대기 중: {System.IO.Path.GetFileName(filePath)} " +
+                        $"(시도 {retries + 1}/{maxRetries}): {ioEx.Message}");
+                    }
+                    Thread.Sleep(delayMilliseconds);
+                    retries++;
+                }
+            }
             // Debug Log
             logManager.LogDebug($"[ucOverrideNamesPanel] WaitForFileReady() 호출 - 파일 준비 대기: {filePath}");
 
