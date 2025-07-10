@@ -15,7 +15,7 @@ namespace ITM_Agent.Services
     {
         private readonly LogManager logManager; // 로깅 관리자
         private string _outputFolder;
-
+        private readonly bool isDebugMode;
         private string OutputFolder
         {
             get => _outputFolder;
@@ -26,7 +26,6 @@ namespace ITM_Agent.Services
                     logManager.LogError($"[PdfMergeManager] Output folder does not exist: {value}");
                     throw new DirectoryNotFoundException("Output folder does not exist.");
                 }
-
                 _outputFolder = value;
             }
         }
@@ -61,7 +60,7 @@ namespace ITM_Agent.Services
                     return;
                 }
         
-                // 출력 경로 폴더 확인
+                // 출력 폴더 및 파일 경로 폴더 준비
                 string pdfDirectory = System.IO.Path.GetDirectoryName(outputPdfPath);
                 if (string.IsNullOrEmpty(pdfDirectory))
                 {
@@ -75,71 +74,53 @@ namespace ITM_Agent.Services
                     logManager.LogEvent($"[PdfMergeManager] Created directory: {pdfDirectory}");
                 }
         
-                logManager.LogEvent($"[PdfMergeManager] Starting MergeImagesToPdf with custom page sizes. Output: {outputPdfPath}, Images: {imagePaths.Count}");
+                // -> System.IO.Path로 명시
+                string fileName = System.IO.Path.GetFileName(outputPdfPath);
+                int imageCount = imagePaths.Count;
+                
+                logManager.LogEvent(
+                    $"[PdfMergeManager] Starting MergeImagesToPdf. " +
+                    $"Output: {fileName}, Images: {imageCount} -> Successfully created PDF"
+                );
         
-                // PDF 작성 시작
-                using (var pdfWriter = new PdfWriter(outputPdfPath))
-                using (var pdfDocument = new PdfDocument(pdfWriter))
-                using (var document = new Document(pdfDocument))
+                // PDF 생성
+                using (var Writer = new PdfWriter(outputPdfPath))
+                using (var pdfDoc = new PdfDocument(writer))
+                using (var document = new Document(pdfDoc))
                 {
-                    // 문서 여백을 0으로 설정 (이미지를 페이지 끝까지 꽉 채우려면 필요)
                     document.SetMargins(0, 0, 0, 0);
-        
                     for (int i = 0; i < imagePaths.Count; i++)
                     {
-                        string filePath = imagePaths[i];
+                        string imgPath = imagePaths[i];
                         try
                         {
                             // 이미지 로드
-                            var imageData = ImageDataFactory.Create(filePath);
-                            var image = new Image(imageData);
-                            float imgWidthPx = image.GetImageWidth();
-                            float imgHeightPx = image.GetImageHeight();
-        
-                            // --------------------------
-                            // (1) 페이지 크기 설정 (픽셀 그대로 사용)
-                            //     만약 DPI 변환을 원하면, 예: pageWidthPt = imgWidthPx * 72f / dpi;
-                            // --------------------------
-                            float pageWidthPt = imgWidthPx;
-                            float pageHeightPt = imgHeightPx;
-                            PageSize customSize = new PageSize(pageWidthPt, pageHeightPt);
-        
-                            // (i > 0)일 때는 새 페이지로 넘어가야 함
-                            // (처음 페이지는 문서 생성 시 자동 생성)
+                            var imgData = ImageDataFactory.Create(imgPath);
+                            var img = new Image(imgData);
+                            float w = img.GetImageWidth(), h = img.GetImageHeight();
+                            var pageSize = new PageSize(w, h);
+                            
                             if (i > 0)
                             {
-                                // 페이지 넘어가기 (AreaBreak)
                                 document.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
+                            pdfDoc.SetDefaultPageSize(pageSize);
+                            img.SetAutoScale(false);
+                            img.SetFixedPosition(0, 0);
+                            img.SetWidth(w);
+                            img.SetHeight(h);
+                            document.Add(img);
+                            if (isDebugMode)
+                            {
+                                logManager.LogDebug($"[PdfMergeManager] Added page {i + 1}: {imgPath} ({w} X {h})");
                             }
-        
-                            // 현재 페이지 사이즈를 변경
-                            // (주의: AreaBreak 이후에 SetDefaultPageSize를 해야 해당 페이지가 해당 크기 적용)
-                            pdfDocument.SetDefaultPageSize(customSize);
-        
-                            // --------------------------
-                            // (2) 이미지 크기/위치 설정
-                            // --------------------------
-                            // autoScale(false) 후, 이미지 크기를 "페이지 전체"에 맞춤
-                            image.SetAutoScale(false);
-                            image.SetFixedPosition(0, 0);
-                            image.SetWidth(pageWidthPt);
-                            image.SetHeight(pageHeightPt);
-        
-                            // 이미지 배치
-                            document.Add(image);
-        
-                            logManager.LogDebug($"[PdfMergeManager] Added image as page {i+1}: {filePath} (size: {imgWidthPx} x {imgHeightPx})");
                         }
                         catch (Exception exImg)
                         {
-                            logManager.LogError($"[PdfMergeManager] Error adding image '{filePath}' to PDF: {exImg.Message}");
+                            logManager.LogError($"[PdfMergeManager] Error adding image '{imgPath}': {exImg.Message}");
                         }
                     }
-        
                     document.Close();
                 }
-        
-                logManager.LogEvent($"[PdfMergeManager] Successfully created PDF: {outputPdfPath}");
             }
             catch (Exception ex)
             {
