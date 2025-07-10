@@ -60,7 +60,7 @@ namespace ITM_Agent.Services
                     return;
                 }
         
-                // 출력 폴더 및 파일 경로 폴더 준비
+                // 출력 폴더 및 파일 경로 준비
                 string pdfDirectory = System.IO.Path.GetDirectoryName(outputPdfPath);
                 if (string.IsNullOrEmpty(pdfDirectory))
                 {
@@ -84,7 +84,7 @@ namespace ITM_Agent.Services
                 );
         
                 // PDF 생성
-                using (var Writer = new PdfWriter(outputPdfPath))
+                using (var writer = new PdfWriter(outputPdfPath))
                 using (var pdfDoc = new PdfDocument(writer))
                 using (var document = new Document(pdfDoc))
                 {
@@ -101,7 +101,6 @@ namespace ITM_Agent.Services
                             var pageSize = new PageSize(w, h);
                             
                             if (i > 0)
-                            {
                                 document.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
                             pdfDoc.SetDefaultPageSize(pageSize);
                             img.SetAutoScale(false);
