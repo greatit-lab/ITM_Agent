@@ -139,17 +139,21 @@ namespace ITM_Agent.ucPanel
         private void OnImageFileChanged(object sender, FileSystemEventArgs e)
         {
             if (!isRunning) return;
-
+            
             // 폴더 / 임시파일 등 스킵
             if (!File.Exists(e.FullPath)) return;
-
+            
             string fileNameWithoutExt = Path.GetFileNameWithoutExtension(e.FullPath);
-
+            
             // 1) _#1_ 이 들어있으면 무시
             if (fileNameWithoutExt.Contains("_#1_"))
             {
-                // 로그 예시
-                logManager.LogDebug($"[ucImageTransPanel] Skip file (contains _#1_): {e.FullPath}");
+                if (settingsManager.IsDebugMode)
+                {
+                    logManager.LogDebug(
+                        $"[ucImageTransPanel] Skip file (contains _#1_): {e.FullPath}"
+                    );
+                }
                 return;
             }
 
