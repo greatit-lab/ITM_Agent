@@ -37,57 +37,59 @@ namespace ITM_Agent
         // MainForm.cs 상단 (다른 user control 변수들과 함께)
         private ucUploadPanel ucUploadPanel;
         private ucPluginPanel ucPluginPanel;
-
+        
+        
         public MainForm(SettingsManager settingsManager)
         {
-            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
-            InitializeComponent();
-
-            // 이벤트 핸들러를 생성자에서 설정
-            this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped", Color.Red);
-
-            InitializeUserControls();
-            RegisterMenuEvents();
-
-            string baseDir = AppDomain.CurrentDomain.BaseDirectory;
-            //settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
-
-            // settingsManager 인스턴스를 생성자 인자로 전달
-            ucSc1 = new ucPanel.ucConfigurationPanel(settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel); // ucConfigPanel 전달
-
-            logManager = new LogManager(baseDir);
-
-            // fileWatcherManager 생성 시 isDebugMode 전달
-            fileWatcherManager = new FileWatcherManager(settingsManager, logManager, isDebugMode);
-            eqpidManager = new EqpidManager(settingsManager, logManager, AppVersion);
-
-            // icon 설정
-            SetFormIcon();
-
-            this.Text = $"ITM Agent - {AppVersion}";
-            this.MaximizeBox = false;
-
-            InitializeTrayIcon();
-            this.FormClosing += MainForm_FormClosing;
-
-            eqpidManager.InitializeEqpid();
-            // Eqpid 초기화 완료 후 eqpid 값 가져오기
-            string eqpid = settingsManager.GetEqpid();
-            if (!string.IsNullOrEmpty(eqpid))
-            {
-                ProceedWithMainFunctionality(eqpid);
-            }
-
-            fileWatcherManager.InitializeWatchers();
-
-            btn_Run.Click += btn_Run_Click;
-            btn_Stop.Click += btn_Stop_Click;
-            btn_Quit.Click += btn_Quit_Click;
-
-            UpdateUIBasedOnSettings();
+           this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+           this.settingsManager = settingsManager;
+        
+           InitializeComponent();
+        
+           // 폼 핸들이 생성된 직후 상태 표시(Stopped, 빨간색)
+           this.HandleCreated += (sender, e) => UpdateMainStatus("Stopped", Color.Red);
+        
+           string baseDir = AppDomain.CurrentDomain.BaseDirectory;
+           logManager = new LogManager(baseDir);
+        
+           InitializeUserControls();
+           RegisterMenuEvents();
+        
+           // 설정 패널
+           ucSc1 = new ucPanel.ucConfigurationPanel(settingsManager);
+           // Override Names 패널 (Designer에서 배치된 ucConfigPanel 컨트롤 인스턴스 전달)
+           ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager,this.ucConfigPanel,this.logManager,this.settingsManager.IsDebugMode);
+        
+           // FileWatcherManager 생성 (SettingsManager, LogManager, 디버그 모드 플래그)
+           fileWatcherManager = new FileWatcherManager(settingsManager, logManager, isDebugMode);
+           eqpidManager = new EqpidManager(settingsManager, logManager, AppVersion);
+        
+           // 아이콘 설정
+           SetFormIcon();
+        
+           this.Text = $"ITM Agent - {AppVersion}";
+           this.MaximizeBox = false;
+        
+           InitializeTrayIcon();
+           this.FormClosing += MainForm_FormClosing;
+        
+           // EQPID 초기화 및 메인 기능 진행
+           eqpidManager.InitializeEqpid();
+           string eqpid = settingsManager.GetEqpid();
+           if (!string.IsNullOrEmpty(eqpid))
+           {
+               ProceedWithMainFunctionality(eqpid);
+           }
+        
+           fileWatcherManager.InitializeWatchers();
+        
+           btn_Run.Click += btn_Run_Click;
+           btn_Stop.Click += btn_Stop_Click;
+           btn_Quit.Click += btn_Quit_Click;
+        
+           UpdateUIBasedOnSettings();
         }
-
+        
         private void SetFormIcon()
         {
             // 제목줄 아이콘 설정
@@ -439,18 +441,43 @@ namespace ITM_Agent
 
         private void InitializeUserControls()
         {
+            // 1) 가장 먼저 ucConfigPanel 생성
+            ucConfigPanel = new ucConfigurationPanel(settingsManager);
+        
+            // 2) 그 다음에 ucImageTransPanel 생성
+            ucImageTransPanel = new ucImageTransPanel(settingsManager,ucConfigPanel);     // ← null이 아닌, 방금 생성된 인스턴스를 전달
+        
+            // 3) 나머지 패널들 생성
+            ucPluginPanel = new ucPluginPanel(settingsManager);
+            ucUploadPanel = new ucUploadPanel(ucConfigPanel,ucPluginPanel,settingsManager);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager,ucConfigPanel,logManager,settingsManager.IsDebugMode);
+        
+            ucConfigurationPanel cfgPanel = this.ucConfigPanel;
+        
+            // 이 라인에서 ucOverrideNamesPanel을 생성합니다.
+        
+            ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
+        
+        
             // UserControl 초기화
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
-            
+        
             // ucPluginPanel을 ucUploadPanel보다 먼저 생성하여 NullReferenceException을 방지합니다.
             ucPluginPanel = new ucPluginPanel(settingsManager);
             ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager,cfgPanel,logManager,settingsManager.IsDebugMode);
+        
+            this.Controls.Add(ucOverrideNamesPanel);
+        
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
             //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
-
+        
+            // 신규 플러그인, 업로드 패널 생성
+            //ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
+            //ucPluginPanel = new ucPluginPanel(settingsManager);
+        
             ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
-            ucOverrideNamesPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
+            ucOverrideNamesPanel.InitializePanel(isRunning);
         }
 
         private void RegisterMenuEvents()
