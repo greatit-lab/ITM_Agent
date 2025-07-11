@@ -113,32 +113,39 @@ namespace ITM_Agent.Services
             }
         }
 
-        /// <summary>
-        /// 파일 용량 체크 후 5MB 초과 시 "_1" 파일로 회전 (기존 파일 이름 변경)
-        /// </summary>
+        // ================== 개선된 전체 메서드 ==================
         private void RotateLogFileIfNeeded(string filePath)
         {
-            if (File.Exists(filePath))
+            if (!File.Exists(filePath))
+                return;
+        
+            FileInfo fi = new FileInfo(filePath);
+        
+            // (1) 5 MB 이하이면 그대로 사용
+            if (fi.Length <= MAX_LOG_SIZE)
+                return;
+        
+            // (2) 확장자 / 기본 이름 분리
+            string extension   = fi.Extension;                               // ".log"
+            string withoutExt  = Path.GetFileNameWithoutExtension(filePath); // "20250711_event"
+        
+            // (3) 다음 회전 인덱스 계산
+            int index = 1;
+            string rotatedPath;
+            do
             {
-                FileInfo fi = new FileInfo(filePath);
-                if (fi.Length > MAX_LOG_SIZE)
-                {
-                    // "_1" 파일 이름 만들기
-                    string extension = fi.Extension; // ".log"
-                    string withoutExt = Path.GetFileNameWithoutExtension(filePath); // ex) "20250122_event"
-                    string rotatedName = withoutExt + "_1" + extension;            // ex) "20250122_event_1.log"
-                    string rotatedPath = Path.Combine(logFolderPath, rotatedName);
-
-                    // 만약 기존에 _1 파일이 있다면 삭제 (덮어쓰기)
-                    if (File.Exists(rotatedPath))
-                    {
-                        File.Delete(rotatedPath);
-                    }
-
-                    // 원본 파일 -> _1 파일로 이동
-                    File.Move(filePath, rotatedPath);
-                }
+                string rotatedName = $"{withoutExt}_{index}{extension}";     // ex) "20250711_event_3.log"
+                rotatedPath = Path.Combine(logFolderPath, rotatedName);
+                index++;
             }
+            while (File.Exists(rotatedPath));  // 존재하는 파일이 없을 때까지 증가
+        
+            // (4) 원본 → 새 인덱스 파일로 이동
+            File.Move(filePath, rotatedPath);
+        
+            // (5) 이후 WriteLogWithRotation() 가 호출되면서
+            //     같은 이름의 새로운 원본 로그(0번) 파일이 자동 생성되어
+            //     이어서 로그가 기록됨.
         }
     }
 }
