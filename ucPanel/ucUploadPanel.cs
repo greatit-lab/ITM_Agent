@@ -8,6 +8,8 @@ using System.Windows.Forms;
 using System.Threading.Tasks;
 using ITM_Agent.Plugins;
 using ITM_Agent.Services;
+using System.Text;
+using System.Threading;
 
 namespace ITM_Agent.ucPanel
 {
@@ -112,7 +114,7 @@ namespace ITM_Agent.ucPanel
             }
         }
         
-        // 선택된 업로드 폴더에서 파일 변화 감시 시작
+        // > 수정 전체 메서드 (원본은 주석 처리, 아래에 개선 코드 전체 제공)
         private void StartUploadFolderWatcher(string folderPath)
         {
             try
@@ -128,7 +130,6 @@ namespace ITM_Agent.ucPanel
                 if (!Directory.Exists(folderPath))
                 {
                     Directory.CreateDirectory(folderPath);
-                    logManager.LogEvent($"[UploadPanel] 폴더가 없어 새로 생성: {folderPath}");
                 }
         
                 // ④ 이전 Watcher 해제
@@ -137,14 +138,14 @@ namespace ITM_Agent.ucPanel
                 // ⑤ 새로운 Watcher 생성
                 uploadFolderWatcher = new FileSystemWatcher(folderPath)
                 {
-                    Filter               = "*.*",
+                    Filter = "*.*",
                     IncludeSubdirectories = false,
-                    NotifyFilter          = NotifyFilters.FileName
+                    NotifyFilter = NotifyFilters.FileName
                                             | NotifyFilters.Size
                                             | NotifyFilters.LastWrite,
                     EnableRaisingEvents   = true
                 };
-                uploadFolderWatcher.Created += UploadFolderWatcher_Created;
+                uploadFolderWatcher.Created += UploadFolderWatcher_Event;
         
                 logManager.LogEvent($"[UploadPanel] 폴더 감시 시작: {folderPath}");
             }
@@ -162,64 +163,67 @@ namespace ITM_Agent.ucPanel
         {
             try
             {
-                /* 0) 파일 잠금 해제 대기 (200 ms) */
-                System.Threading.Thread.Sleep(200);
+                /* 0) 잠금 해제 대기 (500 ms) */
+                System.Threading.Thread.Sleep(500);
                 
-                /* 1) 현재 UI에서 선택된 플러그인 이름을 가져옴 */
-                string pluginName = cb_FlatPlugin.Text.Trim();
+                /* 1) UI 컨트롤 값 안전 획득 (크로스 스레드 보호) */
+                string pluginName = null;
+                if (InvokeRequired)
+                    Invoke(new MethodInvoker(() => pluginName = cb_FlatPlugin.Text.Trim()));
+                else
+                    pluginName = cb_FlatPlugin.Text.Trim();
+                    
                 if (string.IsNullOrEmpty(pluginName))
                 {
-                    logManager.LogError("[UploadPanel] 플러그인을 선택하지 않았습니다.");
+                    logManager.LogError("[UploadPanel] 플러그인 미선택");
                     return;
                 }
                 
-                /* 2) pluginPanel 에 로드된 DLL 목록에서 매칭 */
-                var pluginItem = pluginPanel
-                    .GetLoadedPlugins()
-                    .FirstOrDefault(p => p.PluginName
-                                          .Equals(pluginName,
-                                                  StringComparison.OrdinalIgnoreCase));
-                
-                if (pluginItem == null)
+                /* 2) 로드된 플러그인 DLL 찾기 */
+                var item = pluginPanel.GetLoadedPlugins()
+                    .FirstOrDefault(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
+                if (item == null || !File.Exists(item.AssemblyPath))
                 {
-                    logManager.LogError($"[UploadPanel] '{pluginName}' 플러그인을 로드하지 못했습니다.");
+                    logManager.LogError($"[UploadPanel] 'DLL 없음 > {pluginName}");
                     return;
                 }
                 
                 /* 3) DLL 로드 & IOnto_WaferFlatData 구현 타입 검색 */
-                Assembly asm = Assembly.LoadFrom(pluginItem.AssemblyPath);
-                
-                // 네임스페이스를 모른다면 Reflection 문자열 검색 방식 사용
-                Type targetType = asm.GetTypes()
-                    .FirstOrDefault(t => t.GetInterface("Onto_WaferFlatDataLib.IOnto_WaferFlatData") != null
-                                      && !t.IsInterface && !t.IsAbstract);
-                
-                if (targetType == null)
+                var asm = Assembly.LoadFrom(item.AssemblyPath);
+                var tp = asm.GetTypes()
+                            .FirstOrDefault(t => t.GetInterfaces()
+                                .Any(i => i.Name == "IOnto_WaferFlatData")
+                                && !t.IsInterface && !t.IsAbstract);
+
+                if (tp == null)
                 {
-                    logManager.LogError($"[UploadPanel] IOnto_WaferFlatData 구현을 '{pluginName}' 에서 찾지 못했습니다.");
+                    logManager.LogError($"[UploadPanel] IOnto_WaferFlatData 구현 없음 > {pluginName}");
                     return;
                 }
+
+                object obj = Activator.CreateInstance(tp);
                 
-                /* 4) 인스턴스 생성 & 전처리+업로드 실행 */
-                object processor = Activator.CreateInstance(targetType);
+                MethodInfo mi = tp.GetMethod("ProcessAndUpload",
+                                  new[] { typeof(string), typeof(string) })   // (file, ini)
+                              ?? tp.GetMethod("ProcessAndUpload",
+                                  new[] { typeof(string) })                   // (file) or (folder)
+                              ?? throw new MissingMethodException("ProcessAndUpload not found");
                 
-                // MethodInfo 미리 가져오기(c# 7.3 호환)
-                MethodInfo mi = targetType.GetMethod("ProcessAndUpload",
-                                                      new[] { typeof(string) });
-                if (mi == null)
-                {
-                    logManager.LogError($"[UploadPanel] ProcessAndUpload 메서드를 '{pluginName}' 에서 찾지 못했습니다.");
-                    return;
-                }
-                
-                string watchFolder = cb_WaferFlat_Path.Text.Trim();
+                /& 5) 인수 구성 */
+                string filePath = e.FullPath;   // 감지된 파일
+                string settingsIni = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
+                                                  "Settings.ini");
+                object[] args = mi.GetParameters().Length == 2
+                                ? new object[] { filePath, settingsIni }
+                                : new object[] { filePath };    // 1-파라미터
+                /* 6) 호출 */
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 시작 > {pluginName}");
-                mi.Invoke(processor, new object[] { watchFolder });
+                mi.Invoke(obj, args);
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 완료 > {pluginName}");
             }
             catch (Exception ex)
             {
-                logManager.LogError("[UploadPanel] UploadFolderWatcher_Event 예외 : " + ex.Message);
+                logManager.LogError("[UploadPanel] UploadFolderWatcher_Event 예외 : " + ex);
             }
         }
         
