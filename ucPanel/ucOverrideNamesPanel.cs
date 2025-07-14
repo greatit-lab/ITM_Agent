@@ -44,7 +44,7 @@ namespace ITM_Agent.ucPanel
             InitializeComponent();
             this.settingsManager = settingsManager;
             this.logManager = logManager;
-            this.IsDebugMode = IsDebugMode;
+            this.isDebugMode = isDebugMode;
             
             this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
             this.configPanel = configPanel ?? throw new ArgumentNullException(nameof(configPanel));
@@ -769,7 +769,7 @@ namespace ITM_Agent.ucPanel
                         // 파일이 이미 없어진 경우: 완전 실패 아님 -> Debug 로그로만 기록
                         if (settingsManager.IsDebugMode)
                         {
-                            logManager.LogDebug($"{ucOverrideNamesPanel] 파일 이름 변경 실패(파일 없음): {fileName}, 이유: {fnfEx.Message}"});
+                            logManager.LogDebug($"[ucOverrideNamesPanel] 파일 이름 변경 실패(파일 없음): {fileName}. 이유: {fnfEx.Message}");
                         }
                         return null;
                     }
