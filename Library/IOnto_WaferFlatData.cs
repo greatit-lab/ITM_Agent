@@ -113,7 +113,7 @@ namespace Onto_WaferFlatDataLib
         {
             SimpleLogger.Debug($"PARSE ▶ {Path.GetFileName(filePath)}");
         
-            string raw = File.ReadAllText(filePath, Encoding.GetEncoding(949)); // cp949
+            string raw = ReadAllTextSafe(filePath, Encoding.GetEncoding(949)); // cp949
             var    lines = raw.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         
             /* ---- 1) Key–Value 메타 ---- */
