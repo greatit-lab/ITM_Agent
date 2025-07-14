@@ -30,73 +30,82 @@ namespace ITM_Agent.ucPanel
             LoadPluginsFromSettings();
         }
 
-        /// <summary>
-        /// btn_PlugAdd 클릭 이벤트 핸들러  
-        /// OpenFileDialog를 열어 DLL 파일을 선택한 후, 파일을 바이트 배열로 로드하여 중복 검사하고,  
-        /// 실행 경로 아래 "Library" 폴더에 DLL 파일을 복사하며, settings.ini의 [RegPlugins] 섹션에 기록합니다.
-        /// </summary>
-        // 예시: 플러그인 추가 버튼 클릭 이벤트
         private void btn_PlugAdd_Click(object sender, EventArgs e)
         {
-            OpenFileDialog openFileDialog = new OpenFileDialog
+            /* 1) 파일 선택 대화상자 (전통적 using 블록) */
+            using (OpenFileDialog open = new OpenFileDialog
             {
                 Filter = "DLL Files (*.dll)|*.dll|All Files (*.*)|*.*",
                 InitialDirectory = AppDomain.CurrentDomain.BaseDirectory
-            };
-
-            if (openFileDialog.ShowDialog() == DialogResult.OK)
+            })
             {
-                string selectedDllPath = openFileDialog.FileName;
+                if (open.ShowDialog() != DialogResult.OK) return;
+                string selectedDllPath = open.FileName;
+
                 try
                 {
-                    // 파일을 바이트 배열로 읽어서 메모리로 로드 (파일 잠금 방지)
-                    byte[] dllData = File.ReadAllBytes(selectedDllPath);
-                    Assembly asm = Assembly.Load(dllData);
+                    /* 2) Assembly 로드 & 중복 체크 */
+                    byte[] dllBytes = File.ReadAllBytes(selectedDllPath);
+                    Assembly asm = Assembly.Load(dllBytes);
                     string pluginName = asm.GetName().Name;
 
-                    // 이미 등록된 플러그인 검사
                     if (loadedPlugins.Any(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase)))
                     {
                         MessageBox.Show("이미 등록된 플러그인입니다.", "중복", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
 
-                    // 실행 경로 아래 "Library" 폴더가 없으면 생성
+                    /* 3) Library 폴더 준비 */
                     string libraryFolder = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Library");
-                    if (!Directory.Exists(libraryFolder))
-                    {
-                        Directory.CreateDirectory(libraryFolder);
-                    }
-
-                    // 선택한 DLL 파일을 Library 폴더로 복사 (동일 이름의 파일이 있는지 검사)
+                    if (!Directory.Exists(libraryFolder)) Directory.CreateDirectory(libraryFolder);
+                    
+                    /* 4) 플러그인 DLL 복사 */
                     string destDllPath = Path.Combine(libraryFolder, Path.GetFileName(selectedDllPath));
                     if (File.Exists(destDllPath))
                     {
-                        MessageBox.Show("이미 동일한 DLL 파일이 Library 폴더에 존재합니다.", "중복", MessageBoxButtons.OK, MessageBoxIcon.Information);
+                        MessageBox.Show("동일한 DLL 파일이 이미 존재합니다.", "중복", MessageBoxButtons.OK, MessageBoxIcon.Information);
                         return;
                     }
                     File.Copy(selectedDllPath, destDllPath);
 
-                    // PluginListItem 객체 생성 및 목록에 추가
-                    PluginListItem pluginItem = new PluginListItem
+                    /* 5) 참조 DLL 자동 복사 */
+                    foreach (AssemblyName refAsm in asm.GetReferencedAssemblies())
+                    {
+                        string refFile = refAsm.Name + ".dll";
+                        string srcRef = Path.Combine(Path.GetDirectoryName(selectedDllPath), refFile);
+                        string dstRef = Path.Combine(libraryFolder, refFile);
+                        
+                        if (File.Exists(srcRef) && !File.Exists(dstRef))
+                            File.Copy(srcRef, dstRef);
+                    }
+                    
+                    /* 6) 필수 NuGet DLL 강제 복사 (CodePages 등) */
+                    string[] mustHave = { "System.Text.Encoding.CodePages.dll" };
+                    foreach (var f in mustHave)
+                    {
+                        string src = Path.Combine(Path.GetDirectoryName(selectedDllPath), f);
+                        string dst = Path.Combine(libraryFolder, f);
+                        if (File.Exists(src) && !File.Exists(dst))
+                            File.Copy(src, dst);
+                    }
+                    /* 7) 목록 설정 등록 */
+                    var item = new PluginListItem
                     {
                         PluginName = pluginName,
                         AssemblyPath = destDllPath
                     };
-                    loadedPlugins.Add(pluginItem);
-                    lb_PluginList.Items.Add(pluginItem.PluginName);
-
-                    // settings.ini의 [RegPlugins] 섹션에 플러그인 정보 기록
-                    SavePluginInfoToSettings(pluginItem);
+                    loadedPlugins.Add(item);
+                    lb_PluginList.Items.Add(item.PluginName);
+                    SavePluginInfoToSettings(item);
                     logManager.LogEvent($"Plugin registered: {pluginName}");
                     PluginsChanged?.Invoke(this, EventArgs.Empty);     // ✅ 새로 추가
                 }
                 catch (Exception ex)
                 {
                     MessageBox.Show("플러그인 로드 오류: " + ex.Message, "오류", MessageBoxButtons.OK, MessageBoxIcon.Error);
-                    logManager.LogError("플러그인 로드 오류: " + ex.Message);
+                    logManager.LogError("플러그인 로드 오류: " + ex);
                 }
-            }
+            }   // using OpenFileDialog
         }
 
         /// <summary>
