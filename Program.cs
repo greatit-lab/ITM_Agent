@@ -1,8 +1,9 @@
 // Program.cs
 using ITM_Agent.Services;
 using System;
-using System.Windows.Forms;
 using System.IO;
+using System.Reflection;
+using System.Windows.Forms;
 
 namespace ITM_Agent
 {
@@ -14,15 +15,23 @@ namespace ITM_Agent
         [STAThread]
         static void Main()
         {
+            // 1) WinForms 공통 초기화
             Application.EnableVisualStyles();
             Application.SetCompatibleTextRenderingDefault(false);
-            //Application.Run(new MainForm());
 
-            // SettingsManager 인스턴스 생성
+            // 2) AssemblyResolve 훅 - BaseDir\Library 에서 의존 DLL 자동 로드
+            AppDomain.CurrentDomain.AssemblyResolve += (sender, args) =>
+            {
+                string asmFile = new AssemblyName(args.Name).Name + ".dll";
+                string libPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Library", asmFile);
+                return File.Exists(libPath) ? Assembly.LoadFrom(libPath) : null;
+            };
+            
+            // 3) SettingsManager 인스턴스 생성 (프로젝트 원본 코드 그대로 유지)
             string baseDir = AppDomain.CurrentDomain.BaseDirectory;
             var settingsManager = new SettingsManager(Path.Combine(baseDir, "Settings.ini"));
 
-            // MainForm 실행
+            // 4) 메인 폼 실행 (원본 코드 그대로)
             Application.Run(new MainForm(settingsManager));
         }
     }
