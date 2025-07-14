@@ -184,7 +184,7 @@ namespace ITM_Agent.ucPanel
                     .FirstOrDefault(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
                 if (item == null || !File.Exists(item.AssemblyPath))
                 {
-                    logManager.LogError($"[UploadPanel] 'DLL 없음 > {pluginName}");
+                    logManager.LogError($"[UploadPanel] DLL 없음 > {pluginName}");
                     return;
                 }
                 
@@ -209,7 +209,7 @@ namespace ITM_Agent.ucPanel
                                   new[] { typeof(string) })                   // (file) or (folder)
                               ?? throw new MissingMethodException("ProcessAndUpload not found");
                 
-                /& 5) 인수 구성 */
+                /* 5) 인수 구성 */
                 string filePath = e.FullPath;   // 감지된 파일
                 string settingsIni = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
                                                   "Settings.ini");
