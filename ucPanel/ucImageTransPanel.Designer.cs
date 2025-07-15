@@ -59,7 +59,7 @@ namespace ITM_Agent.ucPanel
             this.splitContainer2.Panel2.Controls.Add(this.groupBox2);
             //this.splitContainer2.Panel2.Paint += new System.Windows.Forms.PaintEventHandler(this.splitContainer2_Panel2_Paint);
             this.splitContainer2.Size = new System.Drawing.Size(632, 304);
-            this.splitContainer2.SplitterDistance = 128;
+            this.splitContainer2.SplitterDistance = 150;
             this.splitContainer2.TabIndex = 3;
             //
             // groupBox1
@@ -68,31 +68,31 @@ namespace ITM_Agent.ucPanel
             this.groupBox1.Controls.Add(this.btn_SetFolder);
             this.groupBox1.Controls.Add(this.label1);
             this.groupBox1.Controls.Add(this.btn_TimeClear);
-            this.groupBox1.Controls.Add(this.cb_WaitTime);
+            //this.groupBox1.Controls.Add(this.cb_WaitTime);
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Controls.Add(this.btn_FolderClear);
-            this.groupBox1.Controls.Add(this.cb_TargetImageFolder);
+            //this.groupBox1.Controls.Add(this.cb_TargetImageFolder);
             this.groupBox1.Location = new System.Drawing.Point(3, 18);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(624, 102);
+            this.groupBox1.Size = new System.Drawing.Size(624, 129);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "● Set a Condition";
             //
             // btn_SetTime
             //
-            this.btn_SetTime.Location = new System.Drawing.Point(373, 65);
+            this.btn_SetTime.Location = new System.Drawing.Point(420, 74);
             this.btn_SetTime.Name = "btn_SetTime";
-            this.btn_SetTime.Size = new System.Drawing.Size(127, 20);
+            this.btn_SetTime.Size = new System.Drawing.Size(96, 20);
             this.btn_SetTime.TabIndex = 12;
             this.btn_SetTime.Text = "Set Time";
             this.btn_SetTime.UseVisualStyleBackColor = true;
             //
             // btn_SetFolder
             //
-            this.btn_SetFolder.Location = new System.Drawing.Point(373, 22);
+            this.btn_SetFolder.Location = new System.Drawing.Point(420, 23);
             this.btn_SetFolder.Name = "btn_SetFolder";
-            this.btn_SetFolder.Size = new System.Drawing.Size(127, 20);
+            this.btn_SetFolder.Size = new System.Drawing.Size(96, 20);
             this.btn_SetFolder.TabIndex = 11;
             this.btn_SetFolder.Text = "Set Folder";
             this.btn_SetFolder.UseVisualStyleBackColor = true;
@@ -100,7 +100,7 @@ namespace ITM_Agent.ucPanel
             // label1
             //
             this.label1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label1.Location = new System.Drawing.Point(18, 69);
+            this.label1.Location = new System.Drawing.Point(18, 78);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(146, 22);
             this.label1.TabIndex = 10;
@@ -108,9 +108,9 @@ namespace ITM_Agent.ucPanel
             //
             // btn_TimeClear
             //
-            this.btn_TimeClear.Location = new System.Drawing.Point(506, 65);
+            this.btn_TimeClear.Location = new System.Drawing.Point(522, 74);
             this.btn_TimeClear.Name = "btn_TimeClear";
-            this.btn_TimeClear.Size = new System.Drawing.Size(112, 20);
+            this.btn_TimeClear.Size = new System.Drawing.Size(96, 20);
             this.btn_TimeClear.TabIndex = 9;
             this.btn_TimeClear.Text = "Clear";
             this.btn_TimeClear.UseVisualStyleBackColor = true;
@@ -118,9 +118,9 @@ namespace ITM_Agent.ucPanel
             // cb_WaitTime
             //
             this.cb_WaitTime.FormattingEnabled = true;
-            this.cb_WaitTime.Location = new System.Drawing.Point(170, 65);
+            this.cb_WaitTime.Location = new System.Drawing.Point(151, 74);
             this.cb_WaitTime.Name = "cb_WaitTime";
-            this.cb_WaitTime.Size = new System.Drawing.Size(184, 20);
+            this.cb_WaitTime.Size = new System.Drawing.Size(112, 20);
             this.cb_WaitTime.TabIndex = 8;
             //
             // label3
@@ -134,9 +134,9 @@ namespace ITM_Agent.ucPanel
             //
             // btn_FolderClear
             //
-            this.btn_FolderClear.Location = new System.Drawing.Point(506, 23);
+            this.btn_FolderClear.Location = new System.Drawing.Point(522, 23);
             this.btn_FolderClear.Name = "btn_FolderClear";
-            this.btn_FolderClear.Size = new System.Drawing.Size(112, 20);
+            this.btn_FolderClear.Size = new System.Drawing.Size(96, 20);
             this.btn_FolderClear.TabIndex = 6;
             this.btn_FolderClear.Text = "Clear";
             this.btn_FolderClear.UseVisualStyleBackColor = true;
@@ -144,18 +144,18 @@ namespace ITM_Agent.ucPanel
             // cb_TargetImageFolder
             //
             this.cb_TargetImageFolder.FormattingEnabled = true;
-            this.cb_TargetImageFolder.Location = new System.Drawing.Point(170, 23);
+            this.cb_TargetImageFolder.Location = new System.Drawing.Point(151, 23);
             this.cb_TargetImageFolder.Name = "cb_TargetImageFolder";
-            this.cb_TargetImageFolder.Size = new System.Drawing.Size(184, 20);
+            this.cb_TargetImageFolder.Size = new System.Drawing.Size(249, 20);
             this.cb_TargetImageFolder.TabIndex = 0;
             //
             // groupBox2
             //
             this.groupBox2.Controls.Add(this.lb_ImageSaveFolder);
             this.groupBox2.Controls.Add(this.btn_SelectOutputFolder);
-            this.groupBox2.Location = new System.Drawing.Point(3, 6);
+            this.groupBox2.Location = new System.Drawing.Point(3, 18);
             this.groupBox2.Name = "groupBox2";
-            this.groupBox2.Size = new System.Drawing.Size(624, 156);
+            this.groupBox2.Size = new System.Drawing.Size(624, 122);
             this.groupBox2.TabIndex = 0;
             this.groupBox2.TabStop = false;
             this.groupBox2.Text = "● Image Save Folder";
