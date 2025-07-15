@@ -51,9 +51,11 @@ namespace ITM_Agent.ucPanel
             this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;
             btn_FlatSet.Click               += btn_FlatSet_Click;
 
-            // 4) UI 항목 로드
-            LoadTargetFolderItems();
-            LoadPluginItems();
+            /* 4) UI 항목 로드 */
+            LoadTargetFolderItems();   // ConfigPanel ➜ Folder 목록
+            LoadPluginItems();         // PluginPanel ➜ Plugin 목록
+
+            /* 5) Settings.ini 복원 (UploadSetting 포함) */
             LoadWaferFlatSettings();
             LoadUploadSettings();
 
