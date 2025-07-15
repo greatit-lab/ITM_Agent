@@ -441,42 +441,35 @@ namespace ITM_Agent
 
         private void InitializeUserControls()
         {
-            // 1) 가장 먼저 ucConfigPanel 생성
+            // 1) 설정(분류) 패널 – 다른 패널들이 참조하므로 가장 먼저
             ucConfigPanel = new ucConfigurationPanel(settingsManager);
         
-            // 2) 그 다음에 ucImageTransPanel 생성
-            ucImageTransPanel = new ucImageTransPanel(settingsManager,ucConfigPanel);     // ← null이 아닌, 방금 생성된 인스턴스를 전달
-        
-            // 3) 나머지 패널들 생성
+            // 2) 플러그인 목록 패널 – UploadPanel 에서 참조
             ucPluginPanel = new ucPluginPanel(settingsManager);
-            ucUploadPanel = new ucUploadPanel(ucConfigPanel,ucPluginPanel,settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager,ucConfigPanel,logManager,settingsManager.IsDebugMode);
         
-            ucConfigurationPanel cfgPanel = this.ucConfigPanel;
+            // 3) Override Names 패널 – UploadPanel 보다 먼저 생성
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(
+                settingsManager,
+                ucConfigPanel,
+                logManager,
+                settingsManager.IsDebugMode);
         
-            // 이 라인에서 ucOverrideNamesPanel을 생성합니다.
-        
+            // 4) 이미지 병합(PDF 변환) 패널
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
         
+            // 5) 업로드 패널 – OverrideNamesPanel 참조 추가됨 (4번째 인자)
+            ucUploadPanel = new ucUploadPanel(
+                ucConfigPanel,
+                ucPluginPanel,
+                settingsManager,
+                ucOverrideNamesPanel);
         
-            // UserControl 초기화
-            ucConfigPanel = new ucConfigurationPanel(settingsManager);
-        
-            // ucPluginPanel을 ucUploadPanel보다 먼저 생성하여 NullReferenceException을 방지합니다.
-            ucPluginPanel = new ucPluginPanel(settingsManager);
-            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager,cfgPanel,logManager,settingsManager.IsDebugMode);
-        
+            // 6) 필요한 패널 중 디자이너에 배치되지 않은 것만 컨트롤 컬렉션에 추가
+            //    (OverrideNamesPanel 은 메뉴에서 바로 표시될 수 있도록 미리 Add)
             this.Controls.Add(ucOverrideNamesPanel);
         
-            ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
-            //ucUploadDataPanel = new ucScreen4();     // ucScreen4.cs 공유
-        
-            // 신규 플러그인, 업로드 패널 생성
-            //ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager);
-            //ucPluginPanel = new ucPluginPanel(settingsManager);
-        
-            ucConfigPanel.InitializePanel(isRunning); // 초기화 시 상태 동기화
+            // 7) 실행 상태 동기화 – 프로그램 시작 시 Running 여부에 맞게 버튼/기능 잠금
+            ucConfigPanel.InitializePanel(isRunning);
             ucOverrideNamesPanel.InitializePanel(isRunning);
         }
 
