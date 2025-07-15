@@ -58,24 +58,24 @@ namespace ITM_Agent.ucPanel
             // label1
             //
             this.label1.AutoSize = true;
-            this.label1.Location = new System.Drawing.Point(18, 30);
+            this.label1.Location = new System.Drawing.Point(18, 8);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(41, 12);
+            this.label1.Size = new System.Drawing.Size(57, 12);
             this.label1.TabIndex = 2;
-            this.label1.Text = "Regex";
+            this.label1.Text = "▶ Regex";
             //
             // tb_RegInput
             //
-            this.tb_RegInput.Location = new System.Drawing.Point(104, 25);
+            this.tb_RegInput.Location = new System.Drawing.Point(20, 25);
             this.tb_RegInput.Name = "tb_RegInput";
-            this.tb_RegInput.Size = new System.Drawing.Size(220, 21);
+            this.tb_RegInput.Size = new System.Drawing.Size(304, 21);
             this.tb_RegInput.TabIndex = 3;
             //
             // tb_RegFolder
             //
-            this.tb_RegFolder.Location = new System.Drawing.Point(104, 79);
+            this.tb_RegFolder.Location = new System.Drawing.Point(20, 79);
             this.tb_RegFolder.Name = "tb_RegFolder";
-            this.tb_RegFolder.Size = new System.Drawing.Size(150, 21);
+            this.tb_RegFolder.Size = new System.Drawing.Size(234, 21);
             this.tb_RegFolder.TabIndex = 4;
             //
             // btn_RegCancel
@@ -90,20 +90,20 @@ namespace ITM_Agent.ucPanel
             // label2
             //
             this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(17, 84);
+            this.label2.Location = new System.Drawing.Point(17, 62);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(80, 12);
+            this.label2.Size = new System.Drawing.Size(96, 12);
             this.label2.TabIndex = 6;
-            this.label2.Text = "Target Folder";
+            this.label2.Text = "▶ Target Folder";
             //
             // label3
             //
             this.label3.AutoSize = true;
-            this.label3.Location = new System.Drawing.Point(189, 57);
+            this.label3.Location = new System.Drawing.Point(148, 57);
             this.label3.Name = "label3";
-            this.label3.Size = new System.Drawing.Size(43, 12);
+            this.label3.Size = new System.Drawing.Size(53, 12);
             this.label3.TabIndex = 7;
-            this.label3.Text = "¿¿¿";
+            this.label3.Text = "▽▽▽▽";
             //
             // ucScreen1_Reg
             //
@@ -118,7 +118,7 @@ namespace ITM_Agent.ucPanel
             this.Controls.Add(this.label1);
             this.Controls.Add(this.btn_RegApply);
             this.Controls.Add(this.btn_RegSelectFolder);
-            this.Name = "ucScreen1_Reg";
+            this.Name = "RegexConfigForm";
             this.ResumeLayout(false);
             this.PerformLayout();
         }
