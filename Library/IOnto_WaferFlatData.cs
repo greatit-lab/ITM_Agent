@@ -8,6 +8,7 @@ using System.Text;
 using System.Text.RegularExpressions;
 using MySql.Data.MySqlClient;
 using ConnectInfo;
+using System.Threading;
 
 namespace Onto_WaferFlatDataLib
 {
@@ -105,32 +106,79 @@ namespace Onto_WaferFlatDataLib
         #region === 외부 호출 ===
         public void ProcessAndUpload(string filePath)
         {
+            /* 1) 첫 호출 기록 */
             SimpleLogger.Event($"ProcessAndUpload(file) ▶ {filePath}");
-            if (!File.Exists(filePath))
+        
+            /* 2) 파일 준비가 될 때까지 재시도 */
+            if (!WaitForFileReady(filePath, 20, 500))
             {
-                SimpleLogger.Error($"File NOT FOUND ▶ {filePath}");
+                // 10 초(20×0.5 s) 대기 후에도 준비 안 되면 “Warning”만 남기고 종료
+                SimpleLogger.Event($"SKIP – file still not ready ▶ {filePath}");
                 return;
             }
+        
+            /* 3) 정상 처리 */
             string eqpid = GetEqpidFromSettings("Settings.ini");
-            try { ProcessFile(filePath, eqpid); }
-            catch (Exception ex) { SimpleLogger.Error(ex.Message); }
+            try
+            {
+                ProcessFile(filePath, eqpid);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Unhandled EX ▶ {ex.Message}");
+            }
         }
         
-        /* ② UploadPanel이 2-파라미터로 호출할 때 */
+        /* UploadPanel 에서 2-파라미터로 호출할 때 */
         public void ProcessAndUpload(string filePath, string settingsPath = "Settings.ini")
         {
             SimpleLogger.Event($"ProcessAndUpload(file,ini) ▶ {filePath}");
-            if (!File.Exists(filePath))
+        
+            if (!WaitForFileReady(filePath, 20, 500))
             {
-                SimpleLogger.Error($"File NOT FOUND ▶ {filePath}");
+                SimpleLogger.Event($"SKIP – file still not ready ▶ {filePath}");
                 return;
             }
-            string eqpid = GetEqpidFromSettings(settingsPath);
-            try { ProcessFile(filePath, eqpid); }
-            catch (Exception ex) { SimpleLogger.Error(ex.Message); }
-        }
         
+            string eqpid = GetEqpidFromSettings(settingsPath);
+            try
+            {
+                ProcessFile(filePath, eqpid);
+            }
+            catch (Exception ex)
+            {
+                SimpleLogger.Error($"Unhandled EX ▶ {ex.Message}");
+            }
+        }
         #endregion
+        
+        /* -----------------------------------------------------------------
+         * 파일 Ready 헬퍼 – FileWatcherManager·OverrideNamesPanel 에서
+         * 이미 사용 중인 패턴을 그대로 차용 (동일 알고리즘) :contentReference[oaicite:1]{index=1}
+         * ----------------------------------------------------------------*/
+        private bool WaitForFileReady(string path, int maxRetries = 10, int delayMs = 500)
+        {
+            for (int i = 0; i < maxRetries; i++)
+            {
+                if (File.Exists(path))
+                {
+                    /* 공유 잠금이 풀렸는지 확인 */
+                    try
+                    {
+                        using (var fs = File.Open(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite))
+                        {
+                            return true;            // 파일이 존재하고 잠겨 있지 않음
+                        }
+                    }
+                    catch (IOException)
+                    {
+                        /* 여전히 잠겨 있음 – 재시도 */
+                    }
+                }
+                Thread.Sleep(delayMs);
+            }
+            return false;                            // 최종 실패
+        }
         
         #region === 파일 처리 ===
         private void ProcessFile(string filePath, string eqpid)
