@@ -88,28 +88,45 @@ namespace ITM_Agent.Services
             WriteLogWithRotation(logLine, fileName);
         }
 
-        /// <summary>
-        /// 로그 기록 시, 파일 용량이 5MB 초과되면 기존 파일을 *_1.log 로 회전 후 새 파일에 기록
-        /// </summary>
         private void WriteLogWithRotation(string message, string fileName)
         {
             string filePath = Path.Combine(logFolderPath, fileName);
-
+        
             try
             {
-                // (1) 파일 용량 확인 및 회전(로테이션) 처리
+                // (1) 5 MB 초과 시 회전
                 RotateLogFileIfNeeded(filePath);
-
-                // (2) 회전 처리 이후, 최종 파일에 쓰기
-                using (var writer = new StreamWriter(filePath, true))
+        
+                // (2) FileShare.ReadWrite 로 열기  ➜  다른 쓰기 스트림과 공존
+                const int MAX_RETRY = 3;
+                for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
                 {
-                    writer.WriteLine(message);
+                    try
+                    {
+                        using (var fs = new FileStream(
+                                   filePath,
+                                   FileMode.OpenOrCreate,
+                                   FileAccess.Write,
+                                   FileShare.ReadWrite))          // 핵심 변경
+                        {
+                            fs.Seek(0, SeekOrigin.End);          // 항상 Append
+                            using (var sw = new StreamWriter(fs, Encoding.UTF8))
+                            {
+                                sw.WriteLine(message);
+                            }
+                        }
+                        return;                                   // 성공 시 종료
+                    }
+                    catch (IOException) when (attempt < MAX_RETRY)
+                    {
+                        // 잠시 후 재시도
+                        Thread.Sleep(250);
+                    }
                 }
             }
             catch (Exception ex)
             {
-                // 심각한 문제 시 콘솔에 찍어보기
-                Console.WriteLine($"Failed to write log: {ex.Message}");
+                Console.WriteLine($"Failed to write log after retries: {ex.Message}");
             }
         }
 
