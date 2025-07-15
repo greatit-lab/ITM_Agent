@@ -180,15 +180,19 @@ namespace Onto_WaferFlatDataLib
             return false;                            // 최종 실패
         }
         
-        #region === 파일 처리 ===
         private void ProcessFile(string filePath, string eqpid)
         {
             SimpleLogger.Debug($"PARSE ▶ {Path.GetFileName(filePath)}");
         
-            string raw = ReadAllTextSafe(filePath, Encoding.GetEncoding(949)); // cp949
+            /* ---------------------------------------------------- *
+             * 0) 파일 읽기
+             * ---------------------------------------------------- */
+            string raw   = ReadAllTextSafe(filePath, Encoding.GetEncoding(949)); // CP949
             var    lines = raw.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None);
         
-            /* ---- 1) Key–Value 메타 ---- */
+            /* ---------------------------------------------------- *
+             * 1) Key–Value 메타 영역 파싱
+             * ---------------------------------------------------- */
             var meta = new Dictionary<string, string>();
             foreach (var ln in lines)
             {
@@ -201,18 +205,21 @@ namespace Onto_WaferFlatDataLib
                 }
             }
         
-            /* ---- 2) Wafer·DateTime ---- */
+            /* 1-1) WaferNo, DateTime 추출 */
             int? waferNo = null;
             if (meta.TryGetValue("Wafer ID", out string waferId))
             {
                 var m = Regex.Match(waferId, @"W(\d+)");
                 if (m.Success && int.TryParse(m.Groups[1].Value, out int w)) waferNo = w;
             }
+        
             DateTime dtVal = DateTime.MinValue;
             if (meta.TryGetValue("Date and Time", out string dtStr))
                 DateTime.TryParse(dtStr, out dtVal);
         
-            /* ---- 3) 헤더 찾기 ---- */
+            /* ---------------------------------------------------- *
+             * 2) 헤더 위치 탐색
+             * ---------------------------------------------------- */
             int hdrIdx = Array.FindIndex(lines, l =>
                          l.TrimStart().StartsWith("Point#", StringComparison.OrdinalIgnoreCase));
             if (hdrIdx == -1)
@@ -221,24 +228,42 @@ namespace Onto_WaferFlatDataLib
                 return;
             }
         
-            /* 3-1) 헤더 정규화 ― (탆) 토큰 제거 추가 */
-            Func<string, string> clean = h => h.Replace("(no Cal)", "_noCal")
-                                               .Replace("(mm)", "")
-                                               .Replace("(탆)", "")        // ★ 추가
-                                               .Replace("Die X", "DieX")
-                                               .Replace("Die Y", "DieY")
-                                               .Trim();
+            /* 2-1) 헤더 정규화 함수 */
+            string NormalizeHeader(string h)
+            {
+                h = h.Replace("(no Cal)", "_noCal")
+                     .Replace("(no Cal.)", "_noCal")
+                     .Replace("(Cal)", "_CAL")
+                     .Replace("(mm)", "")
+                     .Replace("(탆)", "")
+                     .Replace("Die X", "DieX")
+                     .Replace("Die Y", "DieY")
+                     .Trim();
         
-            var headers = lines[hdrIdx].Split(',').Select(clean).ToList();
-            var rows    = new List<Dictionary<string, object>>();
+                h = Regex.Replace(h, @"\s+", " ");   // 다중 공백 1개로
+                h = h.Replace(" ", "_");             // 공백 → 밑줄
+                h = Regex.Replace(h, @"[#/:\-]", ""); // 특수문자 제거
+                return h;
+            }
         
-            /* ---- 4) 데이터 라인 파싱 ---- */
+            /* 2-2) 헤더 리스트 & 매핑 사전 */
+            var headers      = lines[hdrIdx].Split(',').Select(NormalizeHeader).ToList();
+            var headerIndex  = headers.Select((h, idx) => new { h, idx })
+                                      .ToDictionary(x => x.h, x => x.idx);
+        
+            /* ---------------------------------------------------- *
+             * 3) 데이터 파싱
+             * ---------------------------------------------------- */
+            var rows = new List<Dictionary<string, object>>();
+        
             for (int i = hdrIdx + 1; i < lines.Length; i++)
             {
                 if (string.IsNullOrWhiteSpace(lines[i])) continue;
+        
                 var vals = lines[i].Split(',').Select(v => v.Trim()).ToArray();
                 if (vals.Length < headers.Count) continue;
         
+                /* 3-1) 기본 메타 컬럼 */
                 var row = new Dictionary<string, object>
                 {
                     ["CassetteRCP"] = meta.ContainsKey("Cassette Recipe Name") ? meta["Cassette Recipe Name"] : "",
@@ -250,23 +275,43 @@ namespace Onto_WaferFlatDataLib
                     ["Film"]        = meta.ContainsKey("Film Name") ? meta["Film Name"] : ""
                 };
         
+                /* ---------- 🛠 OLD 인덱스 고정 로직 (주석) ----------
                 int tmpInt; double tmpDbl;
                 row["Point"] = (vals.Length > 0 && int.TryParse(vals[0], out tmpInt)) ? (object)tmpInt : DBNull.Value;
                 row["MSE"]   = (vals.Length > 1 && double.TryParse(vals[1], out tmpDbl)) ? (object)tmpDbl : DBNull.Value;
+                for (int col = 2; col < headers.Count && col < vals.Length; col++) { … }
+                ---------------------------------------------------- */
         
-                for (int col = 2; col < headers.Count && col < vals.Length; col++)
+                /* ---------- ✅ NEW 헤더명 매핑 로직 ---------- */
+                int tmpInt; double tmpDbl;
+                foreach (var kv in headerIndex)   // kv.Key = 컬럼명, kv.Value = 인덱스
                 {
-                    string k = headers[col];
-                    string v = vals[col];
+                    string colName = kv.Key;
+                    int    idx     = kv.Value;
+                    string rawVal  = (idx < vals.Length) ? vals[idx] : "";
         
-                    if (new[] { "DieRow","DieCol","DieNum","DiePointTag" }.Contains(k)
-                        && int.TryParse(v, out tmpInt))
-                        row[k] = tmpInt;
-                    else if (double.TryParse(v, out tmpDbl))
-                        row[k] = tmpDbl;
+                    if (string.IsNullOrEmpty(rawVal))
+                    {
+                        row[colName] = DBNull.Value;
+                        continue;
+                    }
+        
+                    /* 숫자형/문자형 판단 */
+                    if (new[] { "Point", "DieRow", "DieCol", "DieNum", "DiePointTag" }.Contains(colName)
+                        && int.TryParse(rawVal, out tmpInt))
+                    {
+                        row[colName] = tmpInt;
+                    }
+                    else if (double.TryParse(rawVal, out tmpDbl))
+                    {
+                        row[colName] = tmpDbl;
+                    }
                     else
-                        row[k] = DBNull.Value;
+                    {
+                        row[colName] = rawVal;   // 문자형
+                    }
                 }
+        
                 rows.Add(row);
             }
         
@@ -276,7 +321,9 @@ namespace Onto_WaferFlatDataLib
                 return;
             }
         
-            /* ---- 5) DataTable 생성 ---- */
+            /* ---------------------------------------------------- *
+             * 4) DataTable 생성 & DB 업로드
+             * ---------------------------------------------------- */
             DataTable dt = new DataTable();
             foreach (var k in rows[0].Keys) dt.Columns.Add(k, typeof(object));
             dt.Columns.Add("Eqpid", typeof(string));
@@ -291,9 +338,9 @@ namespace Onto_WaferFlatDataLib
         
             UploadToMySQL(dt);
             SimpleLogger.Event($"{Path.GetFileName(filePath)} ▶ rows={dt.Rows.Count}");
+        
             try { File.Delete(filePath); } catch { /* ignore */ }
         }
-        #endregion
         
         #region === DB Upload ===
         private void UploadToMySQL(DataTable dt)
