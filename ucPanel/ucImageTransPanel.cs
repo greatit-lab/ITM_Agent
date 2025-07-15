@@ -13,6 +13,7 @@ namespace ITM_Agent.ucPanel
 {
     public partial class ucImageTransPanel : UserControl
     {
+        private static readonly HashSet<string> mergedBaseNames = new HashSet<string>();  // 중복 병합 방지
         private readonly LogManager logManager;
         private readonly PdfMergeManager pdfMergeManager;
         private readonly SettingsManager settingsManager;
@@ -265,91 +266,68 @@ namespace ITM_Agent.ucPanel
             }
             return 30; // 기본 30초
         }
-
         #endregion
 
-        #region ====== 병합 로직 ( _1 → 1페이지, _2 → 2페이지 ) ======
-
-        /// <summary>
-        /// 예: ABC_1.jpg 파일이 감지되었다면
-        /// - baseName = ABC
-        /// - pageNum = 1
-        /// 같은 baseName + "_숫자" 이미지들(ABC_2, ABC_3...)를 오름차순 병합
-        /// </summary>
         private void MergeImagesForBaseName(string filePath)
         {
-            if (!File.Exists(filePath))
+            // 0) baseName 파싱 (파일이 이미 삭제돼도 이름만으로 가능)
+            string fnNoExt = Path.GetFileNameWithoutExtension(filePath);
+            var m0 = Regex.Match(fnNoExt, @"^(?<base>.+)_(?<page>\d+)$");
+            if (!m0.Success) return;                        // 패턴 미일치 → 무시
+        
+            string baseName = m0.Groups["base"].Value;      // 예: ABC
+            string folder   = Path.GetDirectoryName(filePath);
+        
+            // 0-1) 이미 병합된 baseName이면 SKIP
+            lock (mergedBaseNames)
             {
-                logManager.LogError($"[ucImageTransPanel] MergeImagesForBaseName - file not found: {filePath}");
-                return;
-            }
-
-            string folder = Path.GetDirectoryName(filePath);
-            string fileNameNoExt = Path.GetFileNameWithoutExtension(filePath);
-            string ext = Path.GetExtension(filePath).ToLower();
-
-            // 정규식으로 baseName, pageNum 추출
-            // ^(?<base>.+)_(?<page>\d+)$
-            var match = Regex.Match(fileNameNoExt, @"^(?<base>.+)_(?<page>\d+)$");
-            if (!match.Success)
-            {
-                // 패턴 미일치
-                return;
-            }
-            string baseName = match.Groups["base"].Value;     // ABC
-            // int pageNum = int.Parse(match.Groups["page"].Value);  // 사용하지 않아도 됨
-
-            // 폴더 내에서 *.jpg, *.jpeg, *.png, *.tif, *.tiff 등등 찾기
-            string[] exts = { ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
-            var allImages = Directory.GetFiles(folder, "*.*", SearchOption.TopDirectoryOnly)
-                                     .Where(f => exts.Contains(Path.GetExtension(f).ToLower()))
-                                     .ToList();
-
-            // 동일 baseName + "_숫자" 패턴인 파일만 수집
-            // 예: ABC_2.jpg → baseName=ABC, page=2
-            var list = new List<(string path, int page)>();
-            var pattern = new Regex($"^{Regex.Escape(baseName)}_(?<pg>\\d+)$", RegexOptions.IgnoreCase);
-
-            foreach (var img in allImages)
-            {
-                string fnNoExt = Path.GetFileNameWithoutExtension(img); // "ABC_2"
-                var m = pattern.Match(fnNoExt);
-                if (m.Success)
+                if (mergedBaseNames.Contains(baseName))
                 {
-                    if (int.TryParse(m.Groups["pg"].Value, out int pgNum))
-                    {
-                        list.Add((img, pgNum));
-                    }
+                    if (settingsManager.IsDebugMode)
+                        logManager.LogDebug($"[ucImageTransPanel] Skip duplicate merge: {baseName}");
+                    return;
                 }
+                mergedBaseNames.Add(baseName);
             }
-
-            if (list.Count == 0)
+        
+            // 1) 병합 대상 이미지 수집 (존재 파일만)
+            string[] exts = { ".jpg", ".jpeg", ".png", ".tif", ".tiff" };
+            var imgList = Directory.GetFiles(folder, "*.*", SearchOption.TopDirectoryOnly)
+                                   .Where(p => exts.Contains(Path.GetExtension(p).ToLower()))
+                                   .Select(p =>
+                                   {
+                                       var m = Regex.Match(Path.GetFileNameWithoutExtension(p),
+                                                           $"^{Regex.Escape(baseName)}_(?<pg>\\d+)$",
+                                                           RegexOptions.IgnoreCase);
+                                       return (path: p, ok: m.Success,
+                                               page: m.Success && int.TryParse(m.Groups["pg"].Value, out int n) ? n : -1);
+                                   })
+                                   .Where(x => x.ok)
+                                   .OrderBy(x => x.page)
+                                   .Select(x => x.path)
+                                   .ToList();
+        
+            if (imgList.Count == 0)
             {
-                logManager.LogEvent($"[ucImageTransPanel] No matching images for baseName '{baseName}' in: {folder}");
-                return;
+                if (settingsManager.IsDebugMode)
+                    logManager.LogDebug($"[ucImageTransPanel] No images found for base '{baseName}' (이미 삭제되었을 수 있음).");
+                return;                                     // 이미지가 전부 삭제된 경우에도 Error 로그 남기지 않음
             }
-
-            // 페이지번호 오름차순 정렬
-            list = list.OrderBy(x => x.page).ToList();
-
-            // PDF 출력 경로
+        
+            // 2) PDF 출력 경로 확인
             string outputFolder = settingsManager.GetValueFromSection("ImageTrans", "SaveFolder");
             if (string.IsNullOrEmpty(outputFolder) || !Directory.Exists(outputFolder))
             {
                 logManager.LogError("[ucImageTransPanel] Invalid output folder - cannot create PDF");
                 return;
             }
-
             string outputPdfPath = Path.Combine(outputFolder, $"{baseName}.pdf");
-
-            // PdfMergeManager 호출
-            var imagePaths = list.Select(x => x.path).ToList();
-            pdfMergeManager.MergeImagesToPdf(imagePaths, outputPdfPath);
-
+        
+            // 3) PDF 병합 실행 (MergeImagesToPdf 내부에서 이미지 삭제)
+            pdfMergeManager.MergeImagesToPdf(imgList, outputPdfPath);
+        
             logManager.LogEvent($"[ucImageTransPanel] Created PDF for baseName '{baseName}': {outputPdfPath}");
         }
-
-        #endregion
 
         #region ====== 기존 UI/설정 메서드 ======
 
