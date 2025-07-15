@@ -60,10 +60,10 @@ namespace ITM_Agent.ucPanel
             this.lb_BaseFolder = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
+            this.lb_RegexList = new System.Windows.Forms.ListBox();
             this.btn_RegRemove = new System.Windows.Forms.Button();
             this.btn_RegEdit = new System.Windows.Forms.Button();
             this.btn_RegAdd = new System.Windows.Forms.Button();
-            this.lb_RegexList = new System.Windows.Forms.ListBox();
             this.tabControl1.SuspendLayout();
             this.tabPage1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer2)).BeginInit();
@@ -184,7 +184,7 @@ namespace ITM_Agent.ucPanel
             this.label1.AutoSize = true;
             this.label1.Location = new System.Drawing.Point(13, 9);
             this.label1.Name = "label1";
-            this.label1.Size = new System.Drawing.Size(99, 12);
+            this.label1.Size = new System.Drawing.Size(95, 12);
             this.label1.TabIndex = 0;
             this.label1.Text = ">Target Folders";
             //
@@ -221,7 +221,7 @@ namespace ITM_Agent.ucPanel
             this.label2.AutoSize = true;
             this.label2.Location = new System.Drawing.Point(10, 9);
             this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(109, 12);
+            this.label2.Size = new System.Drawing.Size(105, 12);
             this.label2.TabIndex = 2;
             this.label2.Text = ">Exclude Folders";
             //
@@ -278,48 +278,48 @@ namespace ITM_Agent.ucPanel
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "● Regular Expressions";
             //
-            // btn_RegRemove
-            //
-            this.btn_RegRemove.Location = new System.Drawing.Point(515, 98);
-            this.btn_RegRemove.Name = "btn_RegRemove";
-            this.btn_RegRemove.Size = new System.Drawing.Size(89, 33);
-            this.btn_RegRemove.TabIndex = 7;
-            this.btn_RegRemove.Text = "Remove";
-            this.btn_RegRemove.UseVisualStyleBackColor = true;
-            //
-            // btn_RegEdit
-            //
-            this.btn_RegEdit.Location = new System.Drawing.Point(515, 59);
-            this.btn_RegEdit.Name = "btn_RegEdit";
-            this.btn_RegEdit.Size = new System.Drawing.Size(89, 33);
-            this.btn_RegEdit.TabIndex = 5;
-            this.btn_RegEdit.Text = "Edit Regex";
-            this.btn_RegEdit.UseVisualStyleBackColor = true;
-            //
-            // btn_RegAdd
-            //
-            this.btn_RegAdd.Location = new System.Drawing.Point(515, 20);
-            this.btn_RegAdd.Name = "btn_RegAdd";
-            this.btn_RegAdd.Size = new System.Drawing.Size(89, 33);
-            this.btn_RegAdd.TabIndex = 4;
-            this.btn_RegAdd.Text = "Add Regex";
-            this.btn_RegAdd.UseVisualStyleBackColor = true;
-            //
             // lb_RegexList
             //
             this.lb_RegexList.FormattingEnabled = true;
             this.lb_RegexList.ItemHeight = 12;
             this.lb_RegexList.Location = new System.Drawing.Point(18, 20);
             this.lb_RegexList.Name = "lb_RegexList";
-            this.lb_RegexList.Size = new System.Drawing.Size(479, 220);
+            this.lb_RegexList.Size = new System.Drawing.Size(586, 172);
             this.lb_RegexList.TabIndex = 8;
             //
-            // ucScreen1
+            // btn_RegRemove
+            //
+            this.btn_RegRemove.Location = new System.Drawing.Point(433, 204);
+            this.btn_RegRemove.Name = "btn_RegRemove";
+            this.btn_RegRemove.Size = new System.Drawing.Size(171, 33);
+            this.btn_RegRemove.TabIndex = 7;
+            this.btn_RegRemove.Text = "Remove";
+            this.btn_RegRemove.UseVisualStyleBackColor = true;
+            //
+            // btn_RegEdit
+            //
+            this.btn_RegEdit.Location = new System.Drawing.Point(226, 204);
+            this.btn_RegEdit.Name = "btn_RegEdit";
+            this.btn_RegEdit.Size = new System.Drawing.Size(171, 33);
+            this.btn_RegEdit.TabIndex = 5;
+            this.btn_RegEdit.Text = "Edit Regex";
+            this.btn_RegEdit.UseVisualStyleBackColor = true;
+            //
+            // btn_RegAdd
+            //
+            this.btn_RegAdd.Location = new System.Drawing.Point(18, 204);
+            this.btn_RegAdd.Name = "btn_RegAdd";
+            this.btn_RegAdd.Size = new System.Drawing.Size(171, 33);
+            this.btn_RegAdd.TabIndex = 4;
+            this.btn_RegAdd.Text = "Add Regex";
+            this.btn_RegAdd.UseVisualStyleBackColor = true;
+            //
+            // ucConfigurationPanel
             //
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tabControl1);
-            this.Name = "ucScreen1";
+            this.Name = "ucConfigurationPanel";
             this.Size = new System.Drawing.Size(676, 310);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
