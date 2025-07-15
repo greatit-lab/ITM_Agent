@@ -1,6 +1,8 @@
 //Services\LogManager.cs
 using System;
 using System.IO;
+using System.Text;
+using System.Threading;
 
 namespace ITM_Agent.Services
 {
