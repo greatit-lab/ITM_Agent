@@ -946,7 +946,74 @@ namespace ITM_Agent.ucPanel
             }
             base.Dispose(disposing);
         }
-
         #endregion
+        
+        public string EnsureOverrideAndReturnPath(string originalPath, int timeoutMs = 180_000)
+        {
+            var sw = System.Diagnostics.Stopwatch.StartNew();
+        
+            // (1) Baseline 폴더 및 검색 패턴
+            string baselineFolder = Path.Combine(settingsManager.GetBaseFolder(), "Baseline");
+            string waferId = Path.GetFileNameWithoutExtension(originalPath).Split('_').First(); // PSD276.1
+            string pat = $"{waferId}*.info";                                                   // PSD276.1*.info
+        
+            string infoPath = null;
+        
+            // (2) 지정 시간(timeoutMs) 동안 .info 도착 대기
+            while (sw.ElapsedMilliseconds < timeoutMs)
+            {
+                var infos = Directory.GetFiles(baselineFolder, pat);
+                if (infos.Length > 0)
+                {
+                    infoPath = infos[0];           // 여러 개면 첫 번째 사용
+                    break;
+                }
+                System.Threading.Thread.Sleep(300);
+            }
+        
+            // (3) .info 없으면 rename skip → 원본 경로 반환
+            if (infoPath == null)
+            {
+                logManager.LogDebug($"[Override] .info 미발견, rename skip : {originalPath}");
+                return originalPath;
+            }
+        
+            // (4) .info 찾았으면 rename 시도
+            string renamed = TryRenameTargetFile(originalPath, infoPath);
+            return string.IsNullOrEmpty(renamed) ? originalPath : renamed;
+        }
+        
+        private string TryRenameTargetFile(string srcPath, string infoPath)
+        {
+            if (string.IsNullOrEmpty(infoPath))
+                return null;                                  // 방어 코드
+        
+            try
+            {
+                // ExtractBaselineData() 가 string[] 파라미터를 요구하므로 래핑
+                var baselineData = ExtractBaselineData(new[] { infoPath });
+        
+                // “_#1_” → “_C3W1_” 등, 실제 새 파일명 계산
+                string newName = ProcessTargetFile(srcPath, baselineData);
+        
+                if (!string.IsNullOrEmpty(newName))
+                {
+                    string dst = Path.Combine(Path.GetDirectoryName(srcPath), newName);
+        
+                    if (!File.Exists(dst))
+                    {
+                        File.Move(srcPath, dst);              // rename 실행
+                        LogFileRename(srcPath, dst);          // 로그 기록
+                    }
+                    return dst;                               // ✅ rename 성공
+                }
+            }
+            catch (Exception ex)
+            {
+                logManager.LogError($"[Override] Rename 실패: {ex.Message}");
+            }
+        
+            return null;                                      // 대상 파일 없음 → skip
+        }
     }
 }
