@@ -8,6 +8,7 @@ using iText.Layout;
 using iText.Layout.Element;
 using iText.Layout.Properties;
 using iText.Kernel.Geom;
+using IOPath = System.IO.Path;   // ← 이후 모든 경로 처리에 IOPath 사용
 
 namespace ITM_Agent.Services
 {
@@ -59,72 +60,91 @@ namespace ITM_Agent.Services
                     logManager.LogEvent("[PdfMergeManager] No images to merge. Aborting MergeImagesToPdf().");
                     return;
                 }
-        
-                // 출력 폴더 및 파일 경로 준비
-                string pdfDirectory = System.IO.Path.GetDirectoryName(outputPdfPath);
+
+                // ── 1) 출력 폴더 준비 ───────────────────────────────────────
+                string pdfDirectory = IOPath.GetDirectoryName(outputPdfPath);   // ← IOPath 사용
                 if (string.IsNullOrEmpty(pdfDirectory))
                 {
                     logManager.LogError($"[PdfMergeManager] Invalid outputPdfPath: {outputPdfPath}");
                     return;
                 }
-        
                 if (!Directory.Exists(pdfDirectory))
                 {
                     Directory.CreateDirectory(pdfDirectory);
                     logManager.LogEvent($"[PdfMergeManager] Created directory: {pdfDirectory}");
                 }
-        
-                // -> System.IO.Path로 명시
-                string fileName = System.IO.Path.GetFileName(outputPdfPath);
-                int imageCount = imagePaths.Count;
-                
-                logManager.LogEvent(
-                    $"[PdfMergeManager] Starting MergeImagesToPdf. " +
-                    $"Output: {fileName}, Images: {imageCount} -> Successfully created PDF"
-                );
-        
-                // PDF 생성
-                using (var writer = new PdfWriter(outputPdfPath))
-                using (var pdfDoc = new PdfDocument(writer))
+
+                string fileName   = IOPath.GetFileName(outputPdfPath);          // ← IOPath 사용
+                int    imageCount = imagePaths.Count;
+
+                logManager.LogEvent($"[PdfMergeManager] Starting MergeImagesToPdf. " +
+                                    $"Output: {fileName}, Images: {imageCount}");
+
+                // ── 2) PDF 생성 ────────────────────────────────────────────
+                using (var writer   = new PdfWriter(outputPdfPath))
+                using (var pdfDoc   = new PdfDocument(writer))
                 using (var document = new Document(pdfDoc))
                 {
                     document.SetMargins(0, 0, 0, 0);
+
                     for (int i = 0; i < imagePaths.Count; i++)
                     {
                         string imgPath = imagePaths[i];
                         try
                         {
-                            // 이미지 로드
                             var imgData = ImageDataFactory.Create(imgPath);
-                            var img = new Image(imgData);
+                            var img     = new Image(imgData);
                             float w = img.GetImageWidth(), h = img.GetImageHeight();
-                            var pageSize = new PageSize(w, h);
-                            
+
                             if (i > 0)
                                 document.Add(new AreaBreak(AreaBreakType.NEXT_PAGE));
-                            pdfDoc.SetDefaultPageSize(pageSize);
+
+                            pdfDoc.SetDefaultPageSize(new PageSize(w, h));
                             img.SetAutoScale(false);
                             img.SetFixedPosition(0, 0);
                             img.SetWidth(w);
                             img.SetHeight(h);
                             document.Add(img);
+
                             if (isDebugMode)
-                            {
-                                logManager.LogDebug($"[PdfMergeManager] Added page {i + 1}: {imgPath} ({w} X {h})");
-                            }
+                                logManager.LogDebug($"[PdfMergeManager] Added page {i + 1}: {imgPath} ({w}x{h})");
                         }
                         catch (Exception exImg)
                         {
                             logManager.LogError($"[PdfMergeManager] Error adding image '{imgPath}': {exImg.Message}");
                         }
                     }
-                    document.Close();
+                    document.Close();   // 반드시 Close 호출
                 }
+
+                // ── 3) 이미지 파일 삭제 ────────────────────────────────────
+                int delOk = 0, delFail = 0;
+                foreach (string imgPath in imagePaths)
+                {
+                    try
+                    {
+                        if (File.Exists(imgPath))
+                        {
+                            File.Delete(imgPath);
+                            delOk++;
+                            if (isDebugMode)
+                                logManager.LogDebug($"[PdfMergeManager] Deleted image file: {imgPath}");
+                        }
+                    }
+                    catch (Exception exDel)
+                    {
+                        delFail++;
+                        logManager.LogError($"[PdfMergeManager] Failed to delete '{imgPath}': {exDel.Message}");
+                    }
+                }
+
+                logManager.LogEvent($"[PdfMergeManager] Merge completed. " +
+                                    $"Images merged: {imageCount}, deleted: {delOk}, delete-failed: {delFail}");
             }
             catch (Exception ex)
             {
                 logManager.LogError($"[PdfMergeManager] MergeImagesToPdf failed. Exception: {ex.Message}");
-                throw;
+                throw;  // 상위 호출부로 재전달
             }
         }
     }
