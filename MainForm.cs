@@ -448,21 +448,13 @@ namespace ITM_Agent
             ucPluginPanel = new ucPluginPanel(settingsManager);
         
             // 3) Override Names 패널 – UploadPanel 보다 먼저 생성
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(
-                settingsManager,
-                ucConfigPanel,
-                logManager,
-                settingsManager.IsDebugMode);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel, logManager, settingsManager.IsDebugMode);
         
             // 4) 이미지 병합(PDF 변환) 패널
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
         
             // 5) 업로드 패널 – OverrideNamesPanel 참조 추가됨 (4번째 인자)
-            ucUploadPanel = new ucUploadPanel(
-                ucConfigPanel,
-                ucPluginPanel,
-                settingsManager,
-                ucOverrideNamesPanel);
+            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager, ucOverrideNamesPanel);
         
             // 6) 필요한 패널 중 디자이너에 배치되지 않은 것만 컨트롤 컬렉션에 추가
             //    (OverrideNamesPanel 은 메뉴에서 바로 표시될 수 있도록 미리 Add)
