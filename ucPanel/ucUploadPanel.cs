@@ -174,8 +174,11 @@ namespace ITM_Agent.ucPanel
         
         private void UploadFolderWatcher_Event(object sender, FileSystemEventArgs e)
         {
-            /* 0) FileSystemWatcher 이벤트 직후 파일 잠김 대비 */
-            Thread.Sleep(300);
+            /// 파일 생성 직후 잠금 해제까지 살짝 대기
+            Thread.Sleep(200);
+        
+            uploadQueue.Enqueue(e.FullPath);
+            logManager.LogEvent($"[UploadPanel] 대기 큐에 추가 : {e.FullPath}");
         
             string rawPath = e.FullPath;        // 원본 *.dat 경로
         
