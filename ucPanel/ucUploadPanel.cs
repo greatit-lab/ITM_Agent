@@ -1,25 +1,30 @@
 // ucPanel\ucUploadPanel.cs
+using ITM_Agent.Plugins;
+using ITM_Agent.Services;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Windows.Forms;
-using System.Threading.Tasks;
-using ITM_Agent.Plugins;
-using ITM_Agent.Services;
 using System.Text;
 using System.Threading;
+using System.Threading.Tasks;
+using System.Windows.Forms;
 
 namespace ITM_Agent.ucPanel
 {
     public partial class ucUploadPanel : UserControl
     {
+        private readonly ConcurrentQueue<string> uploadQueue = new ConcurrentQueue<string>();
+        private readonly CancellationTokenSource ctsUpload = new CancellationTokenSource();
+        
         // 외부에서 주입받는 참조
         private ucConfigurationPanel configPanel;
         private ucPluginPanel pluginPanel;
         private SettingsManager settingsManager;
         private LogManager logManager;
+        private readonly ucOverrideNamesPanel overridePanel;
 
         // 업로드 대상 폴더 감시용 FileSystemWatcher
         private FileSystemWatcher uploadFolderWatcher;
@@ -29,24 +34,31 @@ namespace ITM_Agent.ucPanel
         private const string KeyFolder = "WaferFlatFolder";  // 폴더 키
         private const string KeyPlugin = "FilePlugin";  // 플러그인 키
         
-        public ucUploadPanel(ucConfigurationPanel configPanel, ucPluginPanel pluginPanel, SettingsManager settingsManager)
+        public ucUploadPanel(ucConfigurationPanel configPanel, ucPluginPanel pluginPanel, SettingsManager settingsManager, ucOverrideNamesPanel ovPanel)
         {
             InitializeComponent();
-            this.configPanel = configPanel;
-            this.pluginPanel = pluginPanel;
-            this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;  // 구독
-            this.settingsManager = settingsManager;
+
+            // 1) 의존성 주입
+            this.configPanel     = configPanel   ?? throw new ArgumentNullException(nameof(configPanel));
+            this.pluginPanel     = pluginPanel   ?? throw new ArgumentNullException(nameof(pluginPanel));
+            this.settingsManager = settingsManager ?? throw new ArgumentNullException(nameof(settingsManager));
+            this.overridePanel   = ovPanel;
+
+            // 2) 서비스 초기화
             logManager = new LogManager(AppDomain.CurrentDomain.BaseDirectory);
 
-            // 반드시 이벤트 먼저 연결
-            btn_FlatSet.Click += btn_FlatSet_Click;
-            
+            // 3) 이벤트 연결
+            this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;
+            btn_FlatSet.Click               += btn_FlatSet_Click;
+
+            // 4) UI 항목 로드
             LoadTargetFolderItems();
             LoadPluginItems();
-            
-            LoadWaferFlatSettings();  // 방금 만든 복원 로직
-            
+            LoadWaferFlatSettings();
             LoadUploadSettings();
+
+            // 🔶 파일 대기 큐를 소비하는 비동기 작업을 백그라운드로 실행합니다.
+            Task.Run(() => ConsumeUploadQueueAsync(ctsUpload.Token));
         }
         
         private void LoadUploadSettings()
@@ -158,72 +170,89 @@ namespace ITM_Agent.ucPanel
             }
         }
         
-        // FileSystemWatcher 이벤트 처리 - 파일 변화 감지 시 지정 플러그인 호출 (리플렉션 사용)
         private void UploadFolderWatcher_Event(object sender, FileSystemEventArgs e)
         {
+            /* 0) FileSystemWatcher 이벤트 직후 파일 잠김 대비 */
+            Thread.Sleep(300);
+        
+            string rawPath = e.FullPath;        // 원본 *.dat 경로
+        
+            /* 1) OverrideNamesPanel에서 선처리 (.info 생성·Rename) */
+            string readyPath = overridePanel?.EnsureOverrideAndReturnPath(rawPath, 10_000);
+            if (string.IsNullOrEmpty(readyPath))
+            {
+                logManager.LogError($"[UploadPanel] Override 미완료 → Upload 보류 : {rawPath}");
+                return;
+            }
+        
+            /* 2) UI 스레드 안전하게 플러그인 이름 취득 */
+            string pluginName = string.Empty;
+            if (InvokeRequired)
+                Invoke(new MethodInvoker(() => pluginName = cb_FlatPlugin.Text.Trim()));
+            else
+                pluginName = cb_FlatPlugin.Text.Trim();
+        
+            if (string.IsNullOrEmpty(pluginName))
+            {
+                logManager.LogError("[UploadPanel] 플러그인이 선택되지 않았습니다.");
+                return;
+            }
+        
+            /* 3) Assembly 경로 확인 */
+            var item = pluginPanel.GetLoadedPlugins()
+                        .FirstOrDefault(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
+            if (item == null || !File.Exists(item.AssemblyPath))
+            {
+                logManager.LogError($"[UploadPanel] 플러그인 DLL을 찾을 수 없습니다: {pluginName}");
+                return;
+            }
+        
             try
             {
-                /* 0) 잠금 해제 대기 (500 ms) */
-                System.Threading.Thread.Sleep(500);
-                
-                /* 1) UI 컨트롤 값 안전 획득 (크로스 스레드 보호) */
-                string pluginName = null;
-                if (InvokeRequired)
-                    Invoke(new MethodInvoker(() => pluginName = cb_FlatPlugin.Text.Trim()));
-                else
-                    pluginName = cb_FlatPlugin.Text.Trim();
-                    
-                if (string.IsNullOrEmpty(pluginName))
+                /* 4) DLL 메모리 로드(잠금 방지) */
+                byte[] dllBytes = File.ReadAllBytes(item.AssemblyPath);
+                Assembly asm    = Assembly.Load(dllBytes);
+        
+                /* 5) ‘ProcessAndUpload’ 메서드를 가진 첫 번째 public 클래스 탐색 */
+                Type targetType = asm.GetTypes()
+                    .FirstOrDefault(t =>
+                        t.IsClass && !t.IsAbstract &&
+                        t.GetMethods(BindingFlags.Instance | BindingFlags.Public)
+                         .Any(m => m.Name == "ProcessAndUpload"));
+        
+                if (targetType == null)
                 {
-                    logManager.LogError("[UploadPanel] 플러그인 미선택");
+                    logManager.LogError($"[UploadPanel] ProcessAndUpload 메서드를 가진 타입이 없습니다: {pluginName}");
                     return;
                 }
-                
-                /* 2) 로드된 플러그인 DLL 찾기 */
-                var item = pluginPanel.GetLoadedPlugins()
-                    .FirstOrDefault(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
-                if (item == null || !File.Exists(item.AssemblyPath))
+        
+                /* 6) 인스턴스 생성 (매개변수 없는 생성자 가정) */
+                object pluginObj = Activator.CreateInstance(targetType);
+        
+                /* 7) 메서드 오버로드(1파라미터 / 2파라미터) 확인 */
+                MethodInfo mi = targetType.GetMethod("ProcessAndUpload",
+                                new[] { typeof(string), typeof(string) })   // (file, ini)
+                            ?? targetType.GetMethod("ProcessAndUpload",
+                                new[] { typeof(string) });                  // (file) 또는 (folder)
+                if (mi == null)
                 {
-                    logManager.LogError($"[UploadPanel] DLL 없음 > {pluginName}");
+                    logManager.LogError($"[UploadPanel] ProcessAndUpload 메서드를 찾지 못했습니다: {pluginName}");
                     return;
                 }
-                
-                /* 3) DLL 로드 & IOnto_WaferFlatData 구현 타입 검색 */
-                var asm = Assembly.LoadFrom(item.AssemblyPath);
-                var tp = asm.GetTypes()
-                            .FirstOrDefault(t => t.GetInterfaces()
-                                .Any(i => i.Name == "IOnto_WaferFlatData")
-                                && !t.IsInterface && !t.IsAbstract);
-
-                if (tp == null)
-                {
-                    logManager.LogError($"[UploadPanel] IOnto_WaferFlatData 구현 없음 > {pluginName}");
-                    return;
-                }
-
-                object obj = Activator.CreateInstance(tp);
-                
-                MethodInfo mi = tp.GetMethod("ProcessAndUpload",
-                                  new[] { typeof(string), typeof(string) })   // (file, ini)
-                              ?? tp.GetMethod("ProcessAndUpload",
-                                  new[] { typeof(string) })                   // (file) or (folder)
-                              ?? throw new MissingMethodException("ProcessAndUpload not found");
-                
-                /* 5) 인수 구성 */
-                string filePath = e.FullPath;   // 감지된 파일
-                string settingsIni = Path.Combine(AppDomain.CurrentDomain.BaseDirectory,
-                                                  "Settings.ini");
+        
+                /* 8) 인수 구성 후 호출 */
+                string settingsIni = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini");
                 object[] args = mi.GetParameters().Length == 2
-                                ? new object[] { filePath, settingsIni }
-                                : new object[] { filePath };    // 1-파라미터
-                /* 6) 호출 */
+                                ? new object[] { readyPath, settingsIni }
+                                : new object[] { readyPath };
+        
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 시작 > {pluginName}");
-                mi.Invoke(obj, args);
+                mi.Invoke(pluginObj, args);
                 logManager.LogEvent($"[UploadPanel] 플러그인 실행 완료 > {pluginName}");
             }
             catch (Exception ex)
             {
-                logManager.LogError("[UploadPanel] UploadFolderWatcher_Event 예외 : " + ex);
+                logManager.LogError($"[UploadPanel] 플러그인 실행 실패: {ex.GetBaseException().Message}");
             }
         }
         
@@ -400,6 +429,125 @@ namespace ITM_Agent.ucPanel
             }
         
             cb_FlatPlugin.EndUpdate();
+        }
+        
+        private async Task ConsumeUploadQueueAsync(CancellationToken token)
+        {
+            while (!token.IsCancellationRequested)
+            {
+                try
+                {
+                    // (0) 큐가 비어 있으면 잠시 대기
+                    if (!uploadQueue.TryDequeue(out var rawPath))
+                    {
+                        await Task.Delay(300, token);
+                        continue;
+                    }
+        
+                    // (1) OverrideNamesPanel 선처리 (.info 대기 & rename)
+                    string readyPath = overridePanel != null
+                        ? overridePanel.EnsureOverrideAndReturnPath(rawPath, 180_000)
+                        : rawPath;                           // 패널이 없으면 그대로 진행
+        
+                    // readyPath 는 null 이 아님 (.info 없이도 rename skip 처리됨)
+        
+                    // (2) 플러그인 이름 확보 (UI 스레드 안전)
+                    string pluginName = string.Empty;
+                    if (InvokeRequired)
+                        Invoke(new MethodInvoker(() => pluginName = cb_FlatPlugin.Text.Trim()));
+                    else
+                        pluginName = cb_FlatPlugin.Text.Trim();
+        
+                    if (string.IsNullOrEmpty(pluginName))
+                    {
+                        logManager.LogError("[UploadPanel] 플러그인이 선택되지 않았습니다.");
+                        continue;                           // 다음 파일 처리
+                    }
+        
+                    // (3) DLL 경로 확인
+                    var pluginItem = pluginPanel.GetLoadedPlugins()
+                        .FirstOrDefault(p => p.PluginName.Equals(pluginName, StringComparison.OrdinalIgnoreCase));
+        
+                    if (pluginItem == null || !File.Exists(pluginItem.AssemblyPath))
+                    {
+                        logManager.LogError($"[UploadPanel] DLL을 찾을 수 없습니다: {pluginName}");
+                        continue;
+                    }
+        
+                    // (4) 플러그인 실행 (리플렉션 호출)
+                    string err;
+                    if (!TryRunProcessAndUpload(pluginItem.AssemblyPath, readyPath, out err))
+                    {
+                        logManager.LogError($"[UploadPanel] 업로드 실패: {Path.GetFileName(readyPath)} - {err}");
+                    }
+                    else
+                    {
+                        logManager.LogEvent($"[UploadPanel] 업로드 완료: {readyPath}");
+                    }
+                }
+                catch (TaskCanceledException)
+                {
+                    // 취소 토큰으로 정상 종료
+                    break;
+                }
+                catch (Exception ex)
+                {
+                    logManager.LogError($"[UploadPanel] 소비자 Task 오류: {ex.GetBaseException().Message}");
+                }
+            }
+        }
+        
+        private bool TryRunProcessAndUpload(string dllPath, string readyPath, out string err)
+        {
+            err = null;
+        
+            try
+            {
+                /* (1) DLL을 메모리로만 로드해 파일 잠금 방지 */
+                byte[] dllBytes = File.ReadAllBytes(dllPath);
+                Assembly asm    = Assembly.Load(dllBytes);
+        
+                /* (2) ‘ProcessAndUpload’ 메서드를 가진 타입 검색 */
+                Type targetType = asm.GetTypes()
+                    .FirstOrDefault(t => t.IsClass && !t.IsAbstract &&
+                                         t.GetMethods(BindingFlags.Public | BindingFlags.Instance)
+                                          .Any(m => m.Name == "ProcessAndUpload"));
+        
+                if (targetType == null)
+                {
+                    err = "ProcessAndUpload() 메서드를 가진 타입 없음";
+                    return false;
+                }
+        
+                /* (3) 인스턴스 생성 */
+                object pluginObj = Activator.CreateInstance(targetType);
+        
+                /* (4) 2-파라미터 → 1-파라미터 순으로 메서드 찾기 */
+                MethodInfo mi = targetType.GetMethod("ProcessAndUpload",
+                                new[] { typeof(string), typeof(string) }) ??
+                                targetType.GetMethod("ProcessAndUpload",
+                                new[] { typeof(string) });
+        
+                if (mi == null)
+                {
+                    err = "호출 가능한 ProcessAndUpload() 오버로드 없음";
+                    return false;
+                }
+        
+                /* (5) 인자 배열 준비 후 Invoke */
+                string settingsIni = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini");
+                object[] args = mi.GetParameters().Length == 2
+                                ? new object[] { readyPath, settingsIni }
+                                : new object[] { readyPath };
+        
+                mi.Invoke(pluginObj, args);
+                return true;                        // ✔ 성공
+            }
+            catch (Exception ex)
+            {
+                err = ex.GetBaseException().Message;
+                return false;                       // ✖ 실패
+            }
         }
     }
 }
