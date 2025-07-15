@@ -23,12 +23,39 @@ namespace Onto_WaferFlatDataLib
     
         private static void Write(string suffix, string msg)
         {
-            lock (_sync)
+            lock (_sync)                                         // 클래스 내부 동시성
             {
-                if (!Directory.Exists(_logDir)) Directory.CreateDirectory(_logDir);
-                string line =
-                    $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} [Onto_WaferFlatData] {msg}{Environment.NewLine}";
-                File.AppendAllText(GetPath(suffix), line, Encoding.UTF8);
+                if (!Directory.Exists(_logDir))
+                    Directory.CreateDirectory(_logDir);
+        
+                string filePath = GetPath(suffix);
+                string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} " +
+                              $"[Onto_WaferFlatData] {msg}{Environment.NewLine}";
+        
+                const int MAX_RETRY = 3;
+                for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
+                {
+                    try
+                    {
+                        using (var fs = new FileStream(
+                                   filePath,
+                                   FileMode.OpenOrCreate,
+                                   FileAccess.Write,
+                                   FileShare.ReadWrite))        // 핵심 변경
+                        {
+                            fs.Seek(0, SeekOrigin.End);        // Append 모드
+                            using (var sw = new StreamWriter(fs, Encoding.UTF8))
+                            {
+                                sw.Write(line);
+                            }
+                        }
+                        return;                                 // 성공 시 종료
+                    }
+                    catch (IOException) when (attempt < MAX_RETRY)
+                    {
+                        Thread.Sleep(250);                      // 잠시 대기 후 재시도
+                    }
+                }
             }
         }
 
@@ -66,10 +93,7 @@ namespace Onto_WaferFlatDataLib
                 }
             }
         }
-        
-        
-        public string PluginName => "Onto_WaferFlatData";
-        
+
         static Onto_WaferFlatData()                           // ← 추가
         {
             // .NET Core/5+/6+/8+ 에서 CP949 등 코드 페이지 인코딩 사용 가능하게 등록
