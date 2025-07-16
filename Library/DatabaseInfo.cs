@@ -29,6 +29,7 @@ namespace ConnectInfo
                 SslMode = MySqlSslMode.Disabled,    // MySqlSslMode.None => Disabled 로 변경
                 CharacterSet = "utf8"
             };
+            return csb.ConnectionString;
         }
         
         /* C# 7.3 호환: 전통적 using 블록 */
