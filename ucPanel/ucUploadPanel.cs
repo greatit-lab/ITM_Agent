@@ -50,6 +50,7 @@ namespace ITM_Agent.ucPanel
             // 3) 이벤트 연결
             this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;
             btn_FlatSet.Click               += btn_FlatSet_Click;
+            btn_FlatClear.Click += btn_FlatClear_Clicks;
 
             /* 4) UI 항목 로드 */
             LoadTargetFolderItems();   // ConfigPanel ➜ Folder 목록
@@ -314,6 +315,32 @@ namespace ITM_Agent.ucPanel
         
             // (6) 폴더 감시 시작
             StartUploadFolderWatcher(folderPath);
+        }
+        
+        private void btn_FlatCleaer_Click(object sender, EventArgs e)
+        {
+            /* ① 콤보박스 선택 해제 */
+            cb_WaferFlat_Path.SelectedIndex = -1;
+            cb_WaferFlat_Path.Text          = string.Empty;
+            cb_FlatPlugin.SelectedIndex     = -1;
+            cb_FlatPlugin.Text              = string.Empty;
+        
+            /* ② 폴더 감시 중지 및 객체 해제 */
+            if (uploadFolderWatcher != null)
+            {
+                uploadFolderWatcher.EnableRaisingEvents = false;
+                uploadFolderWatcher.Dispose();
+                uploadFolderWatcher = null;
+            }
+        
+            /* ③ Settings.ini - DBItem 키 삭제 */
+            // UploadSection = "UploadSetting", UploadKey = "DBItem"
+            settingsManager.RemoveKeyFromSection(UploadSection, UploadKey);   // SettingsManager 구현 확인
+            logManager.LogEvent("[ucUploadPanel] UploadSetting/DBItem 삭제");  // Event Log
+        
+            /* ④ 사용자 안내 */
+            MessageBox.Show("Wafer-Flat 업로드 설정이 초기화되었습니다.",
+                            "초기화 완료", MessageBoxButtons.OK, MessageBoxIcon.Information);
         }
 
         /// <summary>
