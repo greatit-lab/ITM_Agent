@@ -53,7 +53,7 @@ namespace ITM_Agent.ucPanel
             this.pluginPanel.PluginsChanged += PluginPanel_PluginsChanged;
         
             btn_FlatSet.Click += btn_FlatSet_Click;
-            btn_FlatClear.Click += btn_FlatCleaer_Click;
+            btn_FlatClear.Click += btn_FlatClear_Click;
         
             btn_PreAlignSet.Click += btn_PreAlignSet_Click;   // ★ 추가
             btn_PreAlignClear.Click += btn_PreAlignClear_Click; // ★ 추가
@@ -86,29 +86,42 @@ namespace ITM_Agent.ucPanel
         /* --- 헬퍼 : 공통 파서 ---------------------------------------------- */
         private void RestoreUploadSetting(string itemName, string valueLine)
         {
-            // "Folder : D:\data, Plugin : Onto_WaferFlatData" 형식
+            // valueLine: "Folder : F:\TEST\ITM_Agent\wf, Plugin : Onto_WaferFlatData"
             string[] parts = valueLine.Split(',');
             if (parts.Length < 2) return;
         
-            string folderPath = parts[0].Split(':')[1].Trim();
-            string pluginName = parts[1].Split(':')[1].Trim();
+            // (1) 폴더 경로
+            int colonFolder = parts[0].IndexOf(':');
+            string folderPath = colonFolder >= 0
+                                ? parts[0].Substring(colonFolder + 1).Trim()
+                                : string.Empty;
+        
+            // (2) 플러그인
+            int colonPlugin = parts[1].IndexOf(':');
+            string pluginName = colonPlugin >= 0
+                                ? parts[1].Substring(colonPlugin + 1).Trim()
+                                : string.Empty;
         
             if (itemName == "WaferFlat")
             {
-                if (!cb_WaferFlat_Path.Items.Contains(folderPath)) cb_WaferFlat_Path.Items.Add(folderPath);
+                if (!cb_WaferFlat_Path.Items.Contains(folderPath))
+                    cb_WaferFlat_Path.Items.Add(folderPath);
                 cb_WaferFlat_Path.Text = folderPath;
         
-                if (!cb_FlatPlugin.Items.Contains(pluginName)) cb_FlatPlugin.Items.Add(pluginName);
+                if (!cb_FlatPlugin.Items.Contains(pluginName))
+                    cb_FlatPlugin.Items.Add(pluginName);
                 cb_FlatPlugin.Text = pluginName;
         
                 StartUploadFolderWatcher(folderPath);
             }
-            else // PreAlign
+            else  // PreAlign
             {
-                if (!cb_PreAlign_Path.Items.Contains(folderPath)) cb_PreAlign_Path.Items.Add(folderPath);
+                if (!cb_PreAlign_Path.Items.Contains(folderPath))
+                    cb_PreAlign_Path.Items.Add(folderPath);
                 cb_PreAlign_Path.Text = folderPath;
         
-                if (!cb_PreAlignPlugin.Items.Contains(pluginName)) cb_PreAlignPlugin.Items.Add(pluginName);
+                if (!cb_PreAlignPlugin.Items.Contains(pluginName))
+                    cb_PreAlignPlugin.Items.Add(pluginName);
                 cb_PreAlignPlugin.Text = pluginName;
         
                 StartPreAlignFolderWatcher(folderPath);
