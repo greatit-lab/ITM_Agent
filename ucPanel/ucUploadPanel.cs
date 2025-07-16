@@ -581,5 +581,44 @@ namespace ITM_Agent.ucPanel
                 return false;                       // ✖ 실패
             }
         }
+        
+        public void UpdateStatusOnRun(bool isRunning)
+        {
+            // Run 상태이면 모든 조작 컨트롤을 잠그고,
+            // Stopped/Ready 상태이면 다시 활성화합니다.
+            SetControlsEnabled(!isRunning);
+        }
+        
+        private void SetControlsEnabled(bool enabled)
+        {
+            // 버튼
+            btn_FlatSet.Enabled = enabled;
+            btn_FlatClear.Enabled = enabled;
+            btn_PreAlignSet.Enabled = enabled;
+            btn_ImgSet.Enabled = enabled;
+            btn_ImgClear.Enabled = enabled;
+            btn_ErrSet.Enabled = enabled;
+            btn_ErrClear.Enabled = enabled;
+            btn_EvSet.Enabled = enabled;
+            btn_EvClear.Enabled = enabled;
+            btn_WaveSet.Enabled = enabled;
+            btn_WaveClear.Enabled = enabled;
+        
+            // 콤보박스(폴더 경로)
+            cb_WaferFlat_Path.Enabled = enabled;
+            cb_PreAlign_Path.Enabled = enabled;
+            cb_ImgPath.Enabled = enabled;
+            cb_ErrPath.Enabled = enabled;
+            cb_EvPath.Enabled = enabled;
+            cb_WavePath.Enabled = enabled;
+
+            // 콤보박스(플러그-인 선택)
+            cb_FlatPlugin.Enabled = enabled;
+            cb_PreAlignPlugin.Enabled = enabled;
+            cb_ImagePlugin.Enabled = enabled;
+            cb_ErrPlugin.Enabled = enabled;
+            cb_EvPlugin.Enabled = enabled;
+            cb_WavePlugin.Enabled = enabled;
+        }
     }
 }
