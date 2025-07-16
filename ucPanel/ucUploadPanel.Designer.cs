@@ -146,7 +146,7 @@ namespace ITM_Agent.ucPanel
             //
             this.label4.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label4.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label4.Location = new System.Drawing.Point(253, 80);
+            this.label4.Location = new System.Drawing.Point(253, 39);
             this.label4.Name = "label4";
             this.label4.Size = new System.Drawing.Size(25, 22);
             this.label4.TabIndex = 33;
@@ -374,7 +374,7 @@ namespace ITM_Agent.ucPanel
             //
             // cb_EvPlugin
             //
-            this.cb_Evlugin.FormattingEnabled = true;
+            this.cb_EvPlugin.FormattingEnabled = true;
             this.cb_EvPlugin.Location = new System.Drawing.Point(283, 207);
             this.cb_EvPlugin.Name = "cb_EvPlugin";
             this.cb_EvPlugin.Size = new System.Drawing.Size(175, 20);
