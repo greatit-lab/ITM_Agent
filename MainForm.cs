@@ -183,58 +183,52 @@ namespace ITM_Agent
 
         private void UpdateMainStatus(string status, Color color)
         {
-            ts_Status.Text = status;
+            ts_Status.Text   = status;
             ts_Status.ForeColor = color;
-
-            // --- UserControl 상태 동기화 ---
+        
+            // --- 모든 UserControl에 상태 전달 ---------------------
             ucOverrideNamesPanel?.UpdateStatus(status);
-            bool isRunning = (status == "Running...");
+            bool isRunning = status == "Running...";
             ucConfigPanel?.UpdateStatusOnRun(isRunning);
             ucOverrideNamesPanel?.UpdateStatusOnRun(isRunning);
             ucImageTransPanel?.UpdateStatusOnRun(isRunning);
-
-            // 디버그 모드
+        
+            // ★★★ 추가 : Upload 패널 동기화 ★★★
+            ucUploadPanel?.UpdateStatusOnRun(isRunning);
+        
+            // 디버그 체크박스
             cb_DebugMode.Enabled = !isRunning;
-
+        
             logManager.LogEvent($"Status updated to: {status}");
             if (isDebugMode)
                 logManager.LogDebug($"Status updated to: {status}. Running state: {isRunning}");
-
-            // --- 여기부터 상태 문자열별로 버튼 활성화 설정 ---
+        
+            // --- 버튼/메뉴/트레이 항목 Enable 처리 ----------------
             if (status == "Stopped!")
             {
-                // Stopped 상태: Run/Stop 비활성, Quit 활성
-                btn_Run.Enabled = false;
+                btn_Run.Enabled  = false;
                 btn_Stop.Enabled = false;
                 btn_Quit.Enabled = true;
             }
             else if (status == "Ready to Run")
             {
-                // Ready 상태: Run, Quit 활성 / Stop 비활성
-                btn_Run.Enabled = true;
+                btn_Run.Enabled  = true;
                 btn_Stop.Enabled = false;
                 btn_Quit.Enabled = true;
             }
             else if (status == "Running...")
             {
-                // Running 상태: Stop 활성 / Run, Quit 비활성
-                btn_Run.Enabled = false;
+                btn_Run.Enabled  = false;
                 btn_Stop.Enabled = true;
                 btn_Quit.Enabled = false;
             }
             else
             {
-                // 혹시 다른 문자열 상태가 들어왔을 때
-                btn_Run.Enabled = false;
+                btn_Run.Enabled  = false;
                 btn_Stop.Enabled = false;
                 btn_Quit.Enabled = false;
             }
-
-            // ★ 기존에 아래처럼 한 줄로 처리하던 'btn_Run.Enabled = !isRunning;' 등은 지워주세요.
-            //    btn_Run.Enabled = !isRunning;   
-            //    btn_Stop.Enabled = isRunning;   
-            //    btn_Quit.Enabled = !isRunning;
-
+        
             UpdateTrayMenuStatus();
             UpdateMenuItemsState(isRunning);
             UpdateButtonsState();
