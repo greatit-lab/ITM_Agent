@@ -336,55 +336,77 @@ namespace Onto_WaferFlatDataLib
                 dt.Rows.Add(dr);
             }
         
-            UploadToMySQL(dt);
-            SimpleLogger.Event($"{Path.GetFileName(filePath)} ▶ rows={dt.Rows.Count}");
+            // ★ 수정 : 파일명을 함께 전달
+            UploadToMySQL(dt, Path.GetFileName(filePath));
         
+            SimpleLogger.Event($"{Path.GetFileName(filePath)} ▶ rows={dt.Rows.Count}");
             try { File.Delete(filePath); } catch { /* ignore */ }
         }
         
         #region === DB Upload ===
-        private void UploadToMySQL(DataTable dt)
+        private void UploadToMySQL(DataTable dt, string srcFile)
         {
             var dbInfo = DatabaseInfo.CreateDefault();
-            using var conn = new MySqlConnection(dbInfo.GetConnectionString());
-            conn.Open();
-            using var tx = conn.BeginTransaction();
-        
-            var cols = dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray();
-            string sql = $"INSERT INTO wf_flat ({string.Join(",", cols)})" +
-                         $" VALUES ({string.Join(",", cols.Select(c => "@" + c))})";
-        
-            using var cmd = new MySqlCommand(sql, conn, tx);
-            foreach (var c in cols) cmd.Parameters.Add(new MySqlParameter("@" + c, DBNull.Value));
-        
-            int ok = 0;
-            try
+            using (var conn = new MySqlConnection(dbInfo.GetConnectionString()))
             {
-                foreach (DataRow r in dt.Rows)
+                conn.Open();
+                using (var tx = conn.BeginTransaction())
                 {
-                    foreach (var c in cols) cmd.Parameters["@" + c].Value = r[c] ?? DBNull.Value;
-                    cmd.ExecuteNonQuery();
-                    ok++;
+                    var cols = dt.Columns.Cast<DataColumn>().Select(c => c.ColumnName).ToArray();
+                    string sql = $"INSERT INTO wf_flat ({string.Join(",", cols)}) " +
+                                 $"VALUES ({string.Join(",", cols.Select(c => "@" + c))})";
+        
+                    using (var cmd = new MySqlCommand(sql, conn, tx))
+                    {
+                        foreach (var c in cols)
+                            cmd.Parameters.Add(new MySqlParameter("@" + c, DBNull.Value));
+        
+                        int ok = 0;
+                        try
+                        {
+                            foreach (DataRow r in dt.Rows)
+                            {
+                                foreach (var c in cols)
+                                    cmd.Parameters["@" + c].Value = r[c] ?? DBNull.Value;
+        
+                                cmd.ExecuteNonQuery();
+                                ok++;
+                            }
+                            tx.Commit();
+                            SimpleLogger.Debug($"DB OK ▶ {ok} rows");
+                        }
+                        /* ───── 중복 키(1062) 전용 ───── */
+                        catch (MySqlException mex) when (mex.Number == 1062)
+                        {
+                            tx.Rollback();
+        
+                            // ① 자세한 내용은 Debug 로그
+                            SimpleLogger.Debug($"Duplicate entry skipped ▶ {mex.Message}");
+        
+                            // ② Error 로그는 “업로드 생략” 한 줄만
+                            SimpleLogger.Error(
+                                $"동일한 데이터가 이미 등록되어 업로드가 생략되었습니다 ▶ {srcFile}");
+                        }
+                        /* ───── 기타 MySQL 오류 ───── */
+                        catch (MySqlException mex)
+                        {
+                            tx.Rollback();
+                            var sb = new StringBuilder()
+                                .AppendLine($"MySQL ERRNO={mex.Number}")
+                                .AppendLine($"Message={mex.Message}")
+                                .AppendLine("SQL=" + sql);
+                            foreach (MySqlParameter p in cmd.Parameters)
+                                sb.AppendLine($"{p.ParameterName}={p.Value}");
+                            SimpleLogger.Error("DB FAIL ▶ " + sb);
+                        }
+                        /* ───── 그 외 예외 ───── */
+                        catch (Exception ex)
+                        {
+                            tx.Rollback();
+                            SimpleLogger.Error("DB FAIL ▶ " + ex);
+                        }
+                    }
                 }
-                tx.Commit();
-                SimpleLogger.Debug($"DB OK ▶ {ok} rows");
-            }
-            catch (MySqlException mex)
-            {
-                tx.Rollback();
-                /* ▼▼ 상세 정보 기록 ▼▼ */
-                var sb = new StringBuilder();
-                sb.AppendLine($"MySQL ERRNO={mex.Number}");
-                sb.AppendLine($"Message={mex.Message}");
-                sb.AppendLine("SQL=" + sql);
-                foreach (var p in cmd.Parameters.Cast<MySqlParameter>())
-                    sb.AppendLine($"{p.ParameterName}={p.Value}");
-                SimpleLogger.Error("DB FAIL ▶ " + sb.ToString());
-            }
-            catch (Exception ex)
-            {
-                tx.Rollback();
-                SimpleLogger.Error("DB FAIL ▶ " + ex);
             }
         }
         #endregion
