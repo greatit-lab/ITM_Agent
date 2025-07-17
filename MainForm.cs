@@ -538,7 +538,10 @@ namespace ITM_Agent
         {
             isDebugMode = cb_DebugMode.Checked;
             settingsManager.IsDebugMode = isDebugMode; // SettingsManager에 상태 업데이트
-
+            
+            /* ★ 전역 플래그 연동 : 모든 LogManager 인스턴스가 즉시 반영 */
+            LogManager.GlobalDebugEnabled = isDebugMode;
+            
             fileWatcherManager.UpdateDebugMode(isDebugMode);
 
             if (isDebugMode)
@@ -549,6 +552,7 @@ namespace ITM_Agent
             else
             {
                 logManager.LogEvent("Debug Mode: Disabled");
+                /* Debug OFF 상태에서도 호출 자체는 가능하지만, LogDebug() 내부에서 무시됨 */
                 logManager.LogDebug("Debug mode disabled.");
             }
         }
