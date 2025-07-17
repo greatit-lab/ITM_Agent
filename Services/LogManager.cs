@@ -15,6 +15,17 @@ namespace ITM_Agent.Services
         private readonly string logFolderPath;
         private const long MAX_LOG_SIZE = 5 * 1024 * 1024; // 5MB
 
+        /* ────────────────────────────────────────────────────────────── */
+        /* ★ 추가 : 모든 인스턴스에서 공유하는 Debug 전역 플래그           */
+        /* ────────────────────────────────────────────────────────────── */
+        private static volatile bool _globalDebugEnabled = false;
+        public  static bool  GlobalDebugEnabled          // MainForm 등에서 ON/OFF
+        {
+            get => _globalDebugEnabled;
+            set => _globalDebugEnabled = value;
+        }
+        /* ────────────────────────────────────────────────────────────── */
+
         public LogManager(string baseDir)
         {
             logFolderPath = Path.Combine(baseDir, "Logs");
@@ -64,17 +75,16 @@ namespace ITM_Agent.Services
             WriteLogWithRotation(logLine, logFileName);
         }
 
-        /// <summary>
-        /// (디버그 로그) 단계별 상세한 정보 기록.
-        /// 5MB 초과 시 "yyyyMMdd_debug_1.log"로 회전.
-        /// </summary>
+        /* ★★ 수정 : 전역 플래그가 켜졌을 때만 기록 ★★ */
         public void LogDebug(string message)
         {
-            string timestamp = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
-            string logFileName = $"{DateTime.Now:yyyyMMdd}_debug.log";
-            string logLine = $"{timestamp} [Debug] {message}";
+            if (!GlobalDebugEnabled) return;          // Debug OFF → 바로 반환
 
-            WriteLogWithRotation(logLine, logFileName);
+            string ts  = DateTime.Now.ToString("yyyy-MM-dd HH:mm:ss.fff");
+            string log = $"{ts} [Debug] {message}";
+            string fileName = $"{DateTime.Now:yyyyMMdd}_debug.log";
+
+            WriteLogWithRotation(log, fileName);
         }
 
         /// <summary>
