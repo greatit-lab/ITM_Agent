@@ -12,59 +12,63 @@ using System.Threading;
 
 namespace Onto_WaferFlatDataLib
 {
-    /*──────────────────────── Logger (수정 버전) ────────────────────────*/
+    /*──────────────────────── Logger (개선 버전) ────────────────────────*/
     internal static class SimpleLogger
     {
-        private static readonly object _sync  = new object();
+        /* (1) ── 전역 Debug 모드 플래그 ──────────────────────────────── */
+        private static volatile bool _debugEnabled = false;
+        public  static void  SetDebugMode(bool enable) => _debugEnabled = enable;
+
+        /* (2) ── 공통 경로 & 동시성 ─────────────────────────────────── */
+        private static readonly object _sync = new object();
         private static readonly string _logDir =
             Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Logs");
-    
+
         private static string GetPath(string suffix) =>
             Path.Combine(_logDir, $"{DateTime.Now:yyyyMMdd}_{suffix}.log");
-    
+
+        /* (3) ── 노출 API ──────────────────────────────────────────── */
+        public static void Event(string msg) => Write("event", msg);
+        public static void Error(string msg) => Write("error", msg);
+        public static void Debug(string msg)
+        {            // Debug 모드일 때만 기록
+            if (_debugEnabled) Write("debug", msg);
+        }
+
+        /* (4) ── 내부 공통 쓰기 ─────────────────────────────────────── */
         private static void Write(string suffix, string msg)
         {
-            lock (_sync)                                         // 클래스 내부 동시성
+            lock (_sync)
             {
                 if (!Directory.Exists(_logDir))
                     Directory.CreateDirectory(_logDir);
-        
+
                 string filePath = GetPath(suffix);
-                string line = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} " +
-                              $"[Onto_WaferFlatData] {msg}{Environment.NewLine}";
-        
+                string line     = $"{DateTime.Now:yyyy-MM-dd HH:mm:ss.fff} " +
+                                  $"[Onto_WaferFlatData] {msg}{Environment.NewLine}";
+
                 const int MAX_RETRY = 3;
-                for (int attempt = 1; attempt <= MAX_RETRY; attempt++)
+                for (int i = 1; i <= MAX_RETRY; i++)
                 {
                     try
                     {
-                        using (var fs = new FileStream(
-                                   filePath,
-                                   FileMode.OpenOrCreate,
-                                   FileAccess.Write,
-                                   FileShare.ReadWrite))        // 핵심 변경
+                        using (var fs = new FileStream(filePath,
+                                  FileMode.OpenOrCreate, FileAccess.Write,
+                                  FileShare.ReadWrite))
                         {
-                            fs.Seek(0, SeekOrigin.End);        // Append 모드
+                            fs.Seek(0, SeekOrigin.End);
                             using (var sw = new StreamWriter(fs, Encoding.UTF8))
-                            {
                                 sw.Write(line);
-                            }
                         }
-                        return;                                 // 성공 시 종료
+                        return;
                     }
-                    catch (IOException) when (attempt < MAX_RETRY)
-                    {
-                        Thread.Sleep(250);                      // 잠시 대기 후 재시도
-                    }
+                    catch (IOException) when (i < MAX_RETRY)
+                    {   Thread.Sleep(250); }
                 }
             }
         }
-
-        public static void Event(string msg) => Write("event",  msg);
-        public static void Error(string msg) => Write("error",  msg);
-        public static void Debug(string msg) => Write("debug",  msg);
     }
-    /*────────────────────────────────────────────────────────────────────*/
+    /*──────────────────────────────────────────────────────────────────*/
 
     public interface IOnto_WaferFlatData
     {
