@@ -235,18 +235,26 @@ namespace Onto_WaferFlatDataLib
             /* 2-1) 헤더 정규화 함수 */
             string NormalizeHeader(string h)
             {
-                h = h.Replace("(no Cal)", "_noCal")
-                     .Replace("(no Cal.)", "_noCal")
-                     .Replace("(Cal)", "_CAL")
-                     .Replace("(mm)", "")
-                     .Replace("(탆)", "")
-                     .Replace("Die X", "DieX")
-                     .Replace("Die Y", "DieY")
-                     .Trim();
-        
-                h = Regex.Replace(h, @"\s+", " ");   // 다중 공백 1개로
-                h = h.Replace(" ", "_");             // 공백 → 밑줄
-                h = Regex.Replace(h, @"[#/:\-]", ""); // 특수문자 제거
+                // ① (no Cal), (no cal), (no Cal.), (no cal.) 등을 대소문자 구분 없이 _noCal 로 치환
+                h = Regex.Replace(
+                        h,
+                        @"\(\s*no\s*cal\.?\s*\)",  // 괄호 안 no cal + 선택적 마침표
+                        "_noCal",
+                        RegexOptions.IgnoreCase
+                    )
+                    // ② (Cal)은 기존대로 처리
+                    .Replace("(Cal)", "_CAL")
+                    .Replace("(mm)", "")
+                    .Replace("(탆)", "")
+                    .Replace("Die X", "DieX")
+                    .Replace("Die Y", "DieY")
+                    .Trim();
+            
+                // ③ 공백·특수문자 처리
+                h = Regex.Replace(h, @"\s+", " ");    // 다중 공백 → 단일 공백
+                h = h.Replace(" ", "_");              // 공백 → 밑줄
+                h = Regex.Replace(h, @"[#/:\-]", ""); // #, /, :, - 제거
+            
                 return h;
             }
         
