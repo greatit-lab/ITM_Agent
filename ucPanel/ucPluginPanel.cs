@@ -89,13 +89,17 @@ namespace ITM_Agent.ucPanel
                             File.Copy(src, dst);
                     }
                     /* 7) 목록 설정 등록 */
+                    var version = asm.GetName().Version.ToString();  // 어셈블리 버전 추출
                     var item = new PluginListItem
                     {
-                        PluginName = pluginName,
-                        AssemblyPath = destDllPath
+                        PluginName  = pluginName,
+                        PluginVersion = version,     // ★ 설정
+                        AssemblyPath= destDllPath
                     };
+                    
                     loadedPlugins.Add(item);
-                    lb_PluginList.Items.Add(item.PluginName);
+                    //lb_PluginList.Items.Add(item.PluginName);
+                    lb_PluginList.Items.Add(item.ToString());  // ★ 버전 포함 표시
                     SavePluginInfoToSettings(item);
                     logManager.LogEvent($"Plugin registered: {pluginName}");
                     PluginsChanged?.Invoke(this, EventArgs.Empty);     // ✅ 새로 추가
