@@ -85,7 +85,7 @@ namespace ITM_Agent
         
            btn_Run.Click += btn_Run_Click;
            btn_Stop.Click += btn_Stop_Click;
-           btn_Quit.Click += btn_Quit_Click;
+           // btn_Quit.Click += btn_Quit_Click; // 중복 등록 코드 삭제
         
            UpdateUIBasedOnSettings();
         }
@@ -114,10 +114,12 @@ namespace ITM_Agent
             runItem = new ToolStripMenuItem("Run", null, (sender, e) => btn_Run.PerformClick());
             trayMenu.Items.Add(runItem);
 
+            // Stop 메뉴 클릭 시 btn_Stop_Click 이벤트 호출
             stopItem = new ToolStripMenuItem("Stop", null, (sender, e) => btn_Stop.PerformClick());
             trayMenu.Items.Add(stopItem);
 
-            quitItem = new ToolStripMenuItem("Quit", null, (sender, e) => PerformQuit());
+            // Quit 메뉴 클릭 시 btn_Quit_Click 이벤트 호출
+            quitItem = new ToolStripMenuItem("Quit", null, (sender, e) => btn_Quit.PerformClick());
             trayMenu.Items.Add(quitItem);
 
             trayIcon = new NotifyIcon
@@ -277,28 +279,44 @@ namespace ITM_Agent
 
         private void btn_Stop_Click(object sender, EventArgs e)
         {
-            logManager.LogEvent("Stop button clicked.");
+            // 경고창 표시
+            DialogResult result = MessageBox.Show(
+                "프로그램을 중지하시겠습니까?\n모든 파일 감시 및 업로드 기능이 중단됩니다.",
+                "작업 중지 확인",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Warning);
 
-            fileWatcherManager.StopWatchers(); // 모니터 중지
-            isRunning = false; // 현재 Running 상태 false
-
-            // 이제 Ready 상태인지 확인
-            bool isReady = ucConfigPanel.IsReadyToRun();
-            if (isReady)
+            // 'Yes'를 선택한 경우에만 중지
+            if (result == DialogResult.Yes)
             {
-                // 모든 조건이 충족되었다면 "Ready to Run"
-                UpdateMainStatus("Ready to Run", Color.Green);
+                logManager.LogEvent("Stop button clicked and confirmed.");
+
+                fileWatcherManager.StopWatchers(); // 모니터 중지
+                isRunning = false; // 현재 Running 상태 false
+
+                // 이제 Ready 상태인지 확인
+                bool isReady = ucConfigPanel.IsReadyToRun();
+                if (isReady)
+                {
+                    // 모든 조건이 충족되었다면 "Ready to Run"
+                    UpdateMainStatus("Ready to Run", Color.Green);
+                }
+                else
+                {
+                    // 아니면 "Stopped!"
+                    UpdateMainStatus("Stopped!", Color.Red);
+                }
+
+                // ucConfigPanel, ucOverrideNamesPanel 등 동기화
+                ucConfigPanel.InitializePanel(isRunning);
+                ucOverrideNamesPanel.InitializePanel(isRunning);
             }
             else
             {
-                // 아니면 "Stopped!"
-                UpdateMainStatus("Stopped!", Color.Red);
+                logManager.LogEvent("Stop action was canceled by the user.");
             }
-
-            // ucConfigPanel, ucOverrideNamesPanel 등 동기화
-            ucConfigPanel.InitializePanel(isRunning);
-            ucOverrideNamesPanel.InitializePanel(isRunning);
         }
+
 
         private void UpdateButtonsState()
         {
@@ -311,14 +329,20 @@ namespace ITM_Agent
 
         private void btn_Quit_Click(object sender, EventArgs e)
         {
-            if (ts_Status.Text == "Running...")
-            {
-                // 실행 중인 작업 강제 중지
-                btn_Stop.PerformClick(); // Stop 버튼 동작 호출
-            }
+            // 종료 확인창 표시
+            DialogResult result = MessageBox.Show(
+                "프로그램을 완전히 종료하시겠습니까?",
+                "종료 확인",
+                MessageBoxButtons.YesNo,
+                MessageBoxIcon.Question);
 
-            PerformQuit(); // 종료 실행
+            // 'Yes'를 선택한 경우에만 종료
+            if (result == DialogResult.Yes)
+            {
+                PerformQuit(); // 실제 종료 로직 호출
+            }
         }
+
 
         private void PerformQuit()
         {
@@ -424,14 +448,10 @@ namespace ITM_Agent
 
         private void QuitMenuItem_Click(object sender, EventArgs e)
         {
-            if (ts_Status.Text == "Running...")
-            {
-                MessageBox.Show("실행 중에는 종료할 수 없습니다. 작업을 중지하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
-                return;
-            }
-
-            Application.Exit();
+            // Quit 버튼 클릭 시 btn_Quit_Click 호출
+            btn_Quit.PerformClick();
         }
+
 
         private void InitializeUserControls()
         {
