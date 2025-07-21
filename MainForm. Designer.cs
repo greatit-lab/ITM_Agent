@@ -35,11 +35,9 @@ namespace ITM_Agent
         private System.Windows.Forms.ToolStripMenuItem quitToolStripMenuItem;
         private System.Windows.Forms.ToolStripMenuItem tsm_OverrideNames;
         private System.Windows.Forms.ToolStripMenuItem tsm_ImageTrans;
-        private System.Windows.Forms.ToolStripMenuItem tsm_UploadData;
         private System.Windows.Forms.ToolStripMenuItem 도움말ToolStripMenuItem1;
         private System.Windows.Forms.ToolStripMenuItem 내용ToolStripMenuItem1;
         private System.Windows.Forms.SplitContainer splitContainer3;
-        private System.Windows.Forms.CheckBox cb_DebugMode;
         private System.Windows.Forms.Button btn_Quit;
         private System.Windows.Forms.Button btn_Stop;
         private System.Windows.Forms.Button btn_Run;
@@ -68,14 +66,11 @@ namespace ITM_Agent
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem4;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem5;
         private System.Windows.Forms.ToolStripMenuItem toolStripMenuItem6;
-        private System.Windows.Forms.ToolStripMenuItem tsm_Plugin;
-        private System.Windows.Forms.ToolStripMenuItem pluginListToolStripMenuItem;
-        
+
         #region Windows Form 디자이너에서 생성한 코드
 
         private void InitializeComponent()
         {
-            this.cb_DebugMode = new System.Windows.Forms.CheckBox();
             this.menuStrip1 = new System.Windows.Forms.MenuStrip();
             this.파일ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.newToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -96,6 +91,8 @@ namespace ITM_Agent
             this.toolStripMenuItem4 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem5 = new System.Windows.Forms.ToolStripMenuItem();
             this.toolStripMenuItem6 = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_Plugin = new System.Windows.Forms.ToolStripMenuItem();
+            this.tsm_PluginList = new System.Windows.Forms.ToolStripMenuItem();
             this.도움말ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.내용ToolStripMenuItem1 = new System.Windows.Forms.ToolStripMenuItem();
             this.newConfigurationToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
@@ -118,8 +115,6 @@ namespace ITM_Agent
             this.lb_ExcludeList = new System.Windows.Forms.ListBox();
             this.lb_RegexList = new System.Windows.Forms.ListBox();
             this.lb_TargetFolders = new System.Windows.Forms.ListBox();
-            this.tsm_Plugin = new System.Windows.Forms.ToolStripMenuItem();
-            this.pluginListToolStripMenuItem = new System.Windows.Forms.ToolStripMenuItem();
             this.menuStrip1.SuspendLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).BeginInit();
             this.splitContainer3.Panel1.SuspendLayout();
@@ -127,17 +122,6 @@ namespace ITM_Agent
             this.splitContainer3.SuspendLayout();
             this.statusStrip1.SuspendLayout();
             this.SuspendLayout();
-            //
-            // cb_DebugMode
-            //
-            this.cb_DebugMode.AutoSize = true;
-            this.cb_DebugMode.Location = new System.Drawing.Point(569, 12);
-            this.cb_DebugMode.Name = "cb_DebugMode";
-            this.cb_DebugMode.Size = new System.Drawing.Size(96, 16);
-            this.cb_DebugMode.TabIndex = 0;
-            this.cb_DebugMode.Text = "Debug Mode";
-            this.cb_DebugMode.UseVisualStyleBackColor = true;
-            this.cb_DebugMode.CheckedChanged += new System.EventHandler(this.cb_DebugMode_CheckedChanged);  // 이벤트 연결
             //
             // menuStrip11
             //
@@ -227,18 +211,18 @@ namespace ITM_Agent
             // tsm_Categorize
             //
             this.tsm_Categorize.Name = "tsm_Categorize";
-            this.tsm_Categorize.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Categorize.Size = new System.Drawing.Size(131, 22);
             this.tsm_Categorize.Text = "Categorize";
             //
             // toolStripSeparator9
             //
             this.toolStripSeparator9.Name = "toolStripSeparator9";
-            this.toolStripSeparator9.Size = new System.Drawing.Size(177, 6);
+            this.toolStripSeparator9.Size = new System.Drawing.Size(128, 6);
             //
             // tsm_Option
             //
             this.tsm_Option.Name = "tsm_Option";
-            this.tsm_Option.Size = new System.Drawing.Size(180, 22);
+            this.tsm_Option.Size = new System.Drawing.Size(131, 22);
             this.tsm_Option.Text = "Option";
             //
             // tsm_Onto
@@ -256,19 +240,19 @@ namespace ITM_Agent
             // tsm_OverrideNames
             //
             this.tsm_OverrideNames.Name = "tsm_OverrideNames";
-            this.tsm_OverrideNames.Size = new System.Drawing.Size(180, 22);
+            this.tsm_OverrideNames.Size = new System.Drawing.Size(160, 22);
             this.tsm_OverrideNames.Text = "Override Names";
             //
             // tsm_ImageTrans
             //
             this.tsm_ImageTrans.Name = "tsm_ImageTrans";
-            this.tsm_ImageTrans.Size = new System.Drawing.Size(180, 22);
+            this.tsm_ImageTrans.Size = new System.Drawing.Size(160, 22);
             this.tsm_ImageTrans.Text = "Image Trans";
             //
             // tsm_UploadData
             //
             this.tsm_UploadData.Name = "tsm_UploadData";
-            this.tsm_UploadData.Size = new System.Drawing.Size(180, 22);
+            this.tsm_UploadData.Size = new System.Drawing.Size(160, 22);
             this.tsm_UploadData.Text = "Upload Data";
             //
             // tsm_Nova
@@ -286,20 +270,34 @@ namespace ITM_Agent
             // toolStripMenuItem4
             //
             this.toolStripMenuItem4.Name = "toolStripMenuItem4";
-            this.toolStripMenuItem4.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem4.Size = new System.Drawing.Size(160, 22);
             this.toolStripMenuItem4.Text = "Override Names";
             //
             // toolStripMenuItem5
             //
             this.toolStripMenuItem5.Name = "toolStripMenuItem5";
-            this.toolStripMenuItem5.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem5.Size = new System.Drawing.Size(160, 22);
             this.toolStripMenuItem5.Text = "Image Trans";
             //
             // toolStripMenuItem6
             //
             this.toolStripMenuItem6.Name = "toolStripMenuItem6";
-            this.toolStripMenuItem6.Size = new System.Drawing.Size(180, 22);
+            this.toolStripMenuItem6.Size = new System.Drawing.Size(160, 22);
             this.toolStripMenuItem6.Text = "Upload Data";
+            //
+            // tsm_Plugin
+            //
+            this.tsm_Plugin.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
+              this.pluginList});
+            this.tsm_Plugin.Name = "tsm_Plugin";
+            this.tsm_Plugin.Size = new System.Drawing.Size(53, 20);
+            this.tsm_Plugin.Text = "Plugin";
+            //
+            // tsm_PluginList
+            //
+            this.tsm_PluginList.Name = "tsm_PluginList";
+            this.tsm_PluginList.Size = new System.Drawing.Size(130, 22);
+            this.tsm_PluginList.Text = "Plugin List";
             //
             // 도움말ToolStripMenuItem1
             //
@@ -314,7 +312,7 @@ namespace ITM_Agent
             // 내용ToolStripMenuItem1
             //
             this.내용ToolStripMenuItem1.Name = "내용ToolStripMenuItem1";
-            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(180, 22);
+            this.내용ToolStripMenuItem1.Size = new System.Drawing.Size(146, 22);
             this.내용ToolStripMenuItem1.Text = "Information...";
             //
             // newConfigurationToolStripMenuItem
@@ -355,6 +353,8 @@ namespace ITM_Agent
             // splitContainer3
             //
             this.splitContainer3.Dock = System.Windows.Forms.DockStyle.Fill;
+            this.splitContainer3.FixedPanel = System.Windows.Forms.FixedPanel.Panel2;
+            this.splitContainer3.IsSplitterFixed = true;
             this.splitContainer3.Location = new System.Drawing.Point(0, 24);
             this.splitContainer3.Name = "splitContainer3";
             this.splitContainer3.Orientation = System.Windows.Forms.Orientation.Horizontal;
@@ -366,12 +366,12 @@ namespace ITM_Agent
             //
             // splitContainer3.Panel2
             //
-            this.splitContainer3.Panel2.Controls.Add(this.cb_DebugMode);
             this.splitContainer3.Panel2.Controls.Add(this.btn_Quit);
             this.splitContainer3.Panel2.Controls.Add(this.btn_Stop);
             this.splitContainer3.Panel2.Controls.Add(this.btn_Run);
+            this.splitContainer3.Panel2MinSize = 50;
             this.splitContainer3.Size = new System.Drawing.Size(676, 385);
-            this.splitContainer3.SplitterDistance = 303;
+            this.splitContainer3.SplitterDistance = 330;
             this.splitContainer3.TabIndex = 10;
             //
             // lb_eqpid
@@ -386,14 +386,14 @@ namespace ITM_Agent
             // pMain
             //
             this.pMain.Dock = System.Windows.Forms.DockStyle.Bottom;
-            this.pMain.Location = new System.Drawing.Point(0, 0);
+            this.pMain.Location = new System.Drawing.Point(0, -5);
             this.pMain.Name = "pMain";
-            this.pMain.Size = new System.Drawing.Size(676, 303);
+            this.pMain.Size = new System.Drawing.Size(676, 335);
             this.pMain.TabIndex = 0;
             //
             // btn_Quit
             //
-            this.btn_Quit.Location = new System.Drawing.Point(457, 34);
+            this.btn_Quit.Location = new System.Drawing.Point(457, 6);
             this.btn_Quit.Name = "btn_Quit";
             this.btn_Quit.Size = new System.Drawing.Size(208, 39);
             this.btn_Quit.TabIndex = 11;
@@ -403,7 +403,7 @@ namespace ITM_Agent
             //
             // btn_Stop
             //
-            this.btn_Stop.Location = new System.Drawing.Point(235, 34);
+            this.btn_Stop.Location = new System.Drawing.Point(235, 6);
             this.btn_Stop.Name = "btn_Stop";
             this.btn_Stop.Size = new System.Drawing.Size(208, 39);
             this.btn_Stop.TabIndex = 10;
@@ -412,7 +412,7 @@ namespace ITM_Agent
             //
             // btn_Run
             //
-            this.btn_Run.Location = new System.Drawing.Point(12, 34);
+            this.btn_Run.Location = new System.Drawing.Point(12, 6);
             this.btn_Run.Name = "btn_Run";
             this.btn_Run.Size = new System.Drawing.Size(208, 39);
             this.btn_Run.TabIndex = 9;
@@ -490,25 +490,9 @@ namespace ITM_Agent
             this.lb_TargetFolders.Size = new System.Drawing.Size(120, 88);
             this.lb_TargetFolders.TabIndex = 11;
             //
-            // tsm_Plugin
-            //
-            this.tsm_Plugin.DropDownItems.AddRange(new System.Windows.Forms.ToolStripItem[] {
-              this.pluginListToolStripMenuItem});
-            this.tsm_Plugin.Name = "tsm_Plugin";
-            this.tsm_Plugin.Size = new System.Drawing.Size(53, 20);
-            this.tsm_Plugin.Text = "Plugin";
-            //
-            // pluginListToolStripMenuItem
-            //
-            this.pluginListToolStripMenuItem.Name = "pluginListToolStripMenuItem";
-            this.pluginListToolStripMenuItem.Size = new System.Drawing.Size(180, 22);
-            this.pluginListToolStripMenuItem.Text = "Plugin List";         
-            //
             // MainForm
             //
             // 창 핸들이 생성된 후 UpdateMainStatus 실행
-            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle; // 크기 고정
-            this.StartPosition = FormStartPosition.CenterScreen; // 화면 중앙 정렬
             this.AutoScaleDimensions = new System.Drawing.SizeF(7F, 12F);
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.ClientSize = new System.Drawing.Size(676, 431);
@@ -520,8 +504,10 @@ namespace ITM_Agent
             this.Controls.Add(this.lb_ExcludeList);
             this.Controls.Add(this.lb_RegexList);
             this.Controls.Add(this.lb_TargetFolders);
+            this.FormBorderStyle = System.Windows.Forms.FormBorderStyle.FixedSingle;
             this.MainMenuStrip = this.menuStrip1;
             this.Name = "MainForm";
+            this.StartPosition = System.Windows.Forms.FormStartPosition.CenterScreen;
             this.Text = "ITM Agent";
             this.Load += new System.EventHandler(this.MainForm_Load);
             this.menuStrip1.ResumeLayout(false);
@@ -529,7 +515,6 @@ namespace ITM_Agent
             this.splitContainer3.Panel1.ResumeLayout(false);
             this.splitContainer3.Panel1.PerformLayout();
             this.splitContainer3.Panel2.ResumeLayout(false);
-            this.splitContainer3.Panel2.PerformLayout();
             ((System.ComponentModel.ISupportInitialize)(this.splitContainer3)).EndInit();
             this.splitContainer3.ResumeLayout(false);
             this.statusStrip1.ResumeLayout(false);
@@ -538,5 +523,9 @@ namespace ITM_Agent
             this.PerformLayout();
         }
         #endregion
+        
+        private ToolStripMenuItem tsm_Plugin;
+        private ToolStripMenuItem tsm_PluginList;
+        private ToolStripMenuItem tsm_UploadData;
     }
 }
