@@ -85,7 +85,7 @@ namespace ITM_Agent
         
            btn_Run.Click += btn_Run_Click;
            btn_Stop.Click += btn_Stop_Click;
-           // btn_Quit.Click += btn_Quit_Click; // 중복 등록 코드 삭제
+           btn_Quit.Click += btn_Quit_Click;
         
            UpdateUIBasedOnSettings();
         }
@@ -114,12 +114,10 @@ namespace ITM_Agent
             runItem = new ToolStripMenuItem("Run", null, (sender, e) => btn_Run.PerformClick());
             trayMenu.Items.Add(runItem);
 
-            // Stop 메뉴 클릭 시 btn_Stop_Click 이벤트 호출
             stopItem = new ToolStripMenuItem("Stop", null, (sender, e) => btn_Stop.PerformClick());
             trayMenu.Items.Add(stopItem);
 
-            // Quit 메뉴 클릭 시 btn_Quit_Click 이벤트 호출
-            quitItem = new ToolStripMenuItem("Quit", null, (sender, e) => btn_Quit.PerformClick());
+            quitItem = new ToolStripMenuItem("Quit", null, (sender, e) => PerformQuit());
             trayMenu.Items.Add(quitItem);
 
             trayIcon = new NotifyIcon
@@ -187,7 +185,10 @@ namespace ITM_Agent
         {
             ts_Status.Text   = status;
             ts_Status.ForeColor = color;
-        
+            
+            /* ---------- 런닝 상태 판정 로직 ---------- */
+            bool isRunning = status.StartsWith("Running");    // ← 핵심 수정
+            
             // --- 모든 UserControl에 상태 전달 ---------------------
             ucOverrideNamesPanel?.UpdateStatus(status);
             bool isRunning = status == "Running...";
@@ -199,7 +200,7 @@ namespace ITM_Agent
             ucUploadPanel?.UpdateStatusOnRun(isRunning);
         
             // 디버그 체크박스
-            cb_DebugMode.Enabled = !isRunning;
+            // cb_DebugMode.Enabled = !isRunning;
         
             logManager.LogEvent($"Status updated to: {status}");
             if (isDebugMode)
@@ -218,7 +219,7 @@ namespace ITM_Agent
                 btn_Stop.Enabled = false;
                 btn_Quit.Enabled = true;
             }
-            else if (status == "Running...")
+            else if (isRunning)                     // ← 핵심 수정
             {
                 btn_Run.Enabled  = false;
                 btn_Stop.Enabled = true;
@@ -279,44 +280,28 @@ namespace ITM_Agent
 
         private void btn_Stop_Click(object sender, EventArgs e)
         {
-            // 경고창 표시
-            DialogResult result = MessageBox.Show(
-                "프로그램을 중지하시겠습니까?\n모든 파일 감시 및 업로드 기능이 중단됩니다.",
-                "작업 중지 확인",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Warning);
+            logManager.LogEvent("Stop button clicked.");
 
-            // 'Yes'를 선택한 경우에만 중지
-            if (result == DialogResult.Yes)
+            fileWatcherManager.StopWatchers(); // 모니터 중지
+            isRunning = false; // 현재 Running 상태 false
+
+            // 이제 Ready 상태인지 확인
+            bool isReady = ucConfigPanel.IsReadyToRun();
+            if (isReady)
             {
-                logManager.LogEvent("Stop button clicked and confirmed.");
-
-                fileWatcherManager.StopWatchers(); // 모니터 중지
-                isRunning = false; // 현재 Running 상태 false
-
-                // 이제 Ready 상태인지 확인
-                bool isReady = ucConfigPanel.IsReadyToRun();
-                if (isReady)
-                {
-                    // 모든 조건이 충족되었다면 "Ready to Run"
-                    UpdateMainStatus("Ready to Run", Color.Green);
-                }
-                else
-                {
-                    // 아니면 "Stopped!"
-                    UpdateMainStatus("Stopped!", Color.Red);
-                }
-
-                // ucConfigPanel, ucOverrideNamesPanel 등 동기화
-                ucConfigPanel.InitializePanel(isRunning);
-                ucOverrideNamesPanel.InitializePanel(isRunning);
+                // 모든 조건이 충족되었다면 "Ready to Run"
+                UpdateMainStatus("Ready to Run", Color.Green);
             }
             else
             {
-                logManager.LogEvent("Stop action was canceled by the user.");
+                // 아니면 "Stopped!"
+                UpdateMainStatus("Stopped!", Color.Red);
             }
-        }
 
+            // ucConfigPanel, ucOverrideNamesPanel 등 동기화
+            ucConfigPanel.InitializePanel(isRunning);
+            ucOverrideNamesPanel.InitializePanel(isRunning);
+        }
 
         private void UpdateButtonsState()
         {
@@ -329,20 +314,14 @@ namespace ITM_Agent
 
         private void btn_Quit_Click(object sender, EventArgs e)
         {
-            // 종료 확인창 표시
-            DialogResult result = MessageBox.Show(
-                "프로그램을 완전히 종료하시겠습니까?",
-                "종료 확인",
-                MessageBoxButtons.YesNo,
-                MessageBoxIcon.Question);
-
-            // 'Yes'를 선택한 경우에만 종료
-            if (result == DialogResult.Yes)
+            if (ts_Status.Text == "Running...")
             {
-                PerformQuit(); // 실제 종료 로직 호출
+                // 실행 중인 작업 강제 중지
+                btn_Stop.PerformClick(); // Stop 버튼 동작 호출
             }
-        }
 
+            PerformQuit(); // 종료 실행
+        }
 
         private void PerformQuit()
         {
@@ -448,10 +427,14 @@ namespace ITM_Agent
 
         private void QuitMenuItem_Click(object sender, EventArgs e)
         {
-            // Quit 버튼 클릭 시 btn_Quit_Click 호출
-            btn_Quit.PerformClick();
-        }
+            if (ts_Status.Text == "Running...")
+            {
+                MessageBox.Show("실행 중에는 종료할 수 없습니다. 작업을 중지하세요.", "경고", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+                return;
+            }
 
+            Application.Exit();
+        }
 
         private void InitializeUserControls()
         {
@@ -462,19 +445,24 @@ namespace ITM_Agent
             ucPluginPanel = new ucPluginPanel(settingsManager);
         
             // 3) Override Names 패널 – UploadPanel 보다 먼저 생성
-            ucOverrideNamesPanel = new ucOverrideNamesPanel(settingsManager, ucConfigPanel, logManager, settingsManager.IsDebugMode);
+            ucOverrideNamesPanel = new ucOverrideNamesPanel(
+                settingsManager, ucConfigPanel, logManager, settingsManager.IsDebugMode);
         
             // 4) 이미지 병합(PDF 변환) 패널
             ucImageTransPanel = new ucImageTransPanel(settingsManager, ucConfigPanel);
         
             // 5) 업로드 패널 – OverrideNamesPanel 참조 추가됨 (4번째 인자)
-            ucUploadPanel = new ucUploadPanel(ucConfigPanel, ucPluginPanel, settingsManager, ucOverrideNamesPanel);
+            ucUploadPanel = new ucUploadPanel(
+                ucConfigPanel, ucPluginPanel, settingsManager, ucOverrideNamesPanel);
         
-            // 6) 필요한 패널 중 디자이너에 배치되지 않은 것만 컨트롤 컬렉션에 추가
-            //    (OverrideNamesPanel 은 메뉴에서 바로 표시될 수 있도록 미리 Add)
+            // 6) **새 옵션 패널 생성**
+            ucOptionPanel = new ucOptionPanel(settingsManager);
+            ucOptionPanel.DebugModeChanged += OptionPanel_DebugModeChanged;
+        
+            // 7) 필요한 패널 중 디자이너에 배치되지 않은 것만 컨트롤 컬렉션에 추가
             this.Controls.Add(ucOverrideNamesPanel);
         
-            // 7) 실행 상태 동기화 – 프로그램 시작 시 Running 여부에 맞게 버튼/기능 잠금
+            // 8) 실행 상태 동기화
             ucConfigPanel.InitializePanel(isRunning);
             ucOverrideNamesPanel.InitializePanel(isRunning);
         }
@@ -483,21 +471,38 @@ namespace ITM_Agent
         {
             // Common -> Categorize
             tsm_Categorize.Click += (s, e) => ShowUserControl(ucConfigPanel);
-
+        
             // ONTO -> Override Names
             tsm_OverrideNames.Click += (s, e) => ShowUserControl(ucOverrideNamesPanel);
-
+        
             // ONTO -> Image Trans
             tsm_ImageTrans.Click += (s, e) => ShowUserControl(ucImageTransPanel);
-
+        
             // ONTO -> Upload Data
-            //tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadDataPanel);
-            
-            // 신규 메뉴 - Upload Data 메뉴 클릭 시 ucUploadPanel 표시
             tsm_UploadData.Click += (s, e) => ShowUserControl(ucUploadPanel);
-            
-            // 신규 메뉴 - Plugin 메뉴 클릭 시 ucPluginPanel 표시
+        
+            // Common -> Plugin
             tsm_PluginList.Click += (s, e) => ShowUserControl(ucPluginPanel);
+        
+            // **새 옵션 메뉴**
+            tsm_Option.Click += (s, e) => ShowUserControl(ucOptionPanel);
+        }
+
+        private void OptionPanel_DebugModeChanged(bool isDebug)
+        {
+            isDebugMode = isDebug;                               // 내부 플래그
+            fileWatcherManager.UpdateDebugMode(isDebugMode);     // FileSystemWatcher 즉시 반영
+        
+            if (isDebugMode)
+            {
+                logManager.LogEvent("Debug Mode: Enabled");
+                logManager.LogDebug("Debug mode enabled.");
+            }
+            else
+            {
+                logManager.LogEvent("Debug Mode: Disabled");
+                logManager.LogDebug("Debug mode disabled.");
+            }
         }
 
         private void ShowUserControl(UserControl control)
@@ -552,29 +557,6 @@ namespace ITM_Agent
             : this(new SettingsManager(Path.Combine(AppDomain.CurrentDomain.BaseDirectory, "Settings.ini")))
         {
             // 추가 동작 없음
-        }
-
-        private void cb_DebugMode_CheckedChanged(object sender, EventArgs e)
-        {
-            isDebugMode = cb_DebugMode.Checked;
-            settingsManager.IsDebugMode = isDebugMode; // SettingsManager에 상태 업데이트
-            
-            /* ★ 전역 플래그 연동 : 모든 LogManager 인스턴스가 즉시 반영 */
-            LogManager.GlobalDebugEnabled = isDebugMode;
-            
-            fileWatcherManager.UpdateDebugMode(isDebugMode);
-
-            if (isDebugMode)
-            {
-                logManager.LogEvent("Debug Mode: Enabled");
-                logManager.LogDebug("Debug mode enabled.");
-            }
-            else
-            {
-                logManager.LogEvent("Debug Mode: Disabled");
-                /* Debug OFF 상태에서도 호출 자체는 가능하지만, LogDebug() 내부에서 무시됨 */
-                logManager.LogDebug("Debug mode disabled.");
-            }
         }
     }
 }
