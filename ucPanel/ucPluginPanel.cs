@@ -186,55 +186,55 @@ namespace ITM_Agent.ucPanel
                 relativePath);                       //  ← Library\Onto_WaferFlatData.dll
         }
 
-        /// <summary>
-        /// settings.ini의 [RegPlugins] 섹션에서 저장된 플러그인 정보를 읽어와 로드합니다.
-        /// </summary>
         private void LoadPluginsFromSettings()
         {
-            // GetFoldersFromSection은 단순히 라인 목록을 반환하므로, 직접 파싱해야 합니다.
+            // ① [RegPlugins] 섹션 라인 전체 읽기
             var pluginEntries = settingsManager.GetFoldersFromSection("[RegPlugins]");
-            foreach (var entry in pluginEntries)
+            foreach (string entry in pluginEntries)
             {
-                // "PluginName = AssemblyPath" 형식의 문자열을 '=' 기준으로 분리합니다.
+                // "PluginName = AssemblyPath" 형식 파싱
                 string[] parts = entry.Split(new[] { '=' }, 2);
-                if (parts.Length == 2)
+                if (parts.Length != 2) continue;
+        
+                string iniKeyName   = parts[0].Trim();   // INI에 기록된 키(=플러그인명)
+                string assemblyPath = parts[1].Trim();   // 상대 or 절대 경로
+        
+                // ② 상대 경로 → 절대 경로 변환
+                if (!Path.IsPathRooted(assemblyPath))
+                    assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyPath);
+        
+                if (!File.Exists(assemblyPath))
                 {
-                    string pluginName = parts[0].Trim();
-                    string assemblyPath = parts[1].Trim();
-                    
-                    // (1) 상대 경로면 실행 폴더와 결합
-                    if (!Path.IsPathRooted(assemblyPath))
-                        assemblyPath = Path.Combine(AppDomain.CurrentDomain.BaseDirectory, assemblyPath);
-                    
-                    if (!File.Exists(assemblyPath))
+                    logManager.LogError($"플러그인 DLL을 찾을 수 없습니다: {assemblyPath}");
+                    continue;
+                }
+        
+                try
+                {
+                    /* ③ DLL 메모리 로드 → 파일 잠금 방지 */
+                    byte[] dllBytes = File.ReadAllBytes(assemblyPath);
+                    Assembly asm    = Assembly.Load(dllBytes);
+        
+                    /* ④ 어셈블리 메타데이터 추출 */
+                    string asmName    = asm.GetName().Name;              // 실제 어셈블리 이름
+                    string asmVersion = asm.GetName().Version.ToString();// 버전 문자열
+        
+                    /* ⑤ PluginListItem 구성 */
+                    var item = new PluginListItem
                     {
-                        logManager.LogError($"플러그인 DLL을 찾을 수 없습니다: {assemblyPath}");
-                        continue;
-                    }
-                    
-                    try
-                    {
-                        // 메모리 로드 → 파일 잠금 방지
-                        byte[] dllData = File.ReadAllBytes(assemblyPath);
-                        Assembly asm   = Assembly.Load(dllData);
-                    
-                        // (2) INI 키와 어셈블리 이름이 달라도 무조건 등록
-                        string asmName = asm.GetName().Name;
-                    
-                        PluginListItem item = new PluginListItem
-                        {
-                            PluginName   = asmName,          // UI에는 실제 어셈블리 이름 표시
-                            AssemblyPath = assemblyPath
-                        };
-                        loadedPlugins.Add(item);
-                        lb_PluginList.Items.Add(item.PluginName);
-                    
-                        logManager.LogEvent($"Plugin auto-loaded: {asmName}");
-                    }
-                    catch (Exception ex)
-                    {
-                        logManager.LogError($"플러그인 로드 실패: {ex.Message}");
-                    }
+                        PluginName    = asmName,
+                        PluginVersion = asmVersion,
+                        AssemblyPath  = assemblyPath
+                    };
+        
+                    loadedPlugins.Add(item);                 // 내부 리스트 보존
+                    lb_PluginList.Items.Add(item.ToString()); // "Name (v1.2.3.4)" 형식 표시
+        
+                    logManager.LogEvent($"Plugin auto-loaded: {item.ToString()}");
+                }
+                catch (Exception ex)
+                {
+                    logManager.LogError($"플러그인 로드 실패: {ex.Message}");
                 }
             }
         }
