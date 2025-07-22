@@ -51,13 +51,13 @@ namespace ITM_Agent.ucPanel
             this.btn_TargetFolder = new System.Windows.Forms.Button();
             this.lb_TargetList = new System.Windows.Forms.ListBox();
             this.label1 = new System.Windows.Forms.Label();
+            this.groupBox2 = new System.Windows.Forms.GroupBox();
+            this.btn_BaseFolder = new System.Windows.Forms.Button();
+            this.lb_BaseFolder = new System.Windows.Forms.Label();
             this.btn_ExcludeRemove = new System.Windows.Forms.Button();
             this.btn_ExcludeFolder = new System.Windows.Forms.Button();
             this.lb_ExcludeList = new System.Windows.Forms.ListBox();
             this.label2 = new System.Windows.Forms.Label();
-            this.groupBox2 = new System.Windows.Forms.GroupBox();
-            this.btn_BaseFolder = new System.Windows.Forms.Button();
-            this.lb_BaseFolder = new System.Windows.Forms.Label();
             this.tabPage2 = new System.Windows.Forms.TabPage();
             this.groupBox3 = new System.Windows.Forms.GroupBox();
             this.lb_RegexList = new System.Windows.Forms.ListBox();
@@ -87,7 +87,7 @@ namespace ITM_Agent.ucPanel
             this.tabControl1.Location = new System.Drawing.Point(12, 6);
             this.tabControl1.Name = "tabControl1";
             this.tabControl1.SelectedIndex = 0;
-            this.tabControl1.Size = new System.Drawing.Size(653, 299);
+            this.tabControl1.Size = new System.Drawing.Size(653, 330);
             this.tabControl1.TabIndex = 14;
             //
             // tabPage1
@@ -96,7 +96,7 @@ namespace ITM_Agent.ucPanel
             this.tabPage1.Location = new System.Drawing.Point(4, 22);
             this.tabPage1.Name = "tabPage1";
             this.tabPage1.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage1.Size = new System.Drawing.Size(645, 273);
+            this.tabPage1.Size = new System.Drawing.Size(645, 304);
             this.tabPage1.TabIndex = 0;
             this.tabPage1.Text = "Categorize";
             this.tabPage1.UseVisualStyleBackColor = true;
@@ -114,8 +114,8 @@ namespace ITM_Agent.ucPanel
             // splitContainer2.Panel2
             //
             this.splitContainer2.Panel2.Controls.Add(this.groupBox2);
-            this.splitContainer2.Size = new System.Drawing.Size(632, 264);
-            this.splitContainer2.SplitterDistance = 201;
+            this.splitContainer2.Size = new System.Drawing.Size(632, 293);
+            this.splitContainer2.SplitterDistance = 235;
             this.splitContainer2.TabIndex = 1;
             //
             // groupBox1
@@ -123,7 +123,7 @@ namespace ITM_Agent.ucPanel
             this.groupBox1.Controls.Add(this.splitContainer1);
             this.groupBox1.Location = new System.Drawing.Point(3, 9);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(624, 187);
+            this.groupBox1.Size = new System.Drawing.Size(624, 223);
             this.groupBox1.TabIndex = 1;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "● Folders to Monitor";
@@ -147,13 +147,13 @@ namespace ITM_Agent.ucPanel
             this.splitContainer1.Panel2.Controls.Add(this.btn_ExcludeFolder);
             this.splitContainer1.Panel2.Controls.Add(this.lb_ExcludeList);
             this.splitContainer1.Panel2.Controls.Add(this.label2);
-            this.splitContainer1.Size = new System.Drawing.Size(618, 167);
+            this.splitContainer1.Size = new System.Drawing.Size(618, 203);
             this.splitContainer1.SplitterDistance = 307;
             this.splitContainer1.TabIndex = 0;
             //
             // btn_TargetRemove
             //
-            this.btn_TargetRemove.Location = new System.Drawing.Point(160, 140);
+            this.btn_TargetRemove.Location = new System.Drawing.Point(160, 170);
             this.btn_TargetRemove.Name = "btn_TargetRemove";
             this.btn_TargetRemove.Size = new System.Drawing.Size(133, 23);
             this.btn_TargetRemove.TabIndex = 3;
@@ -162,7 +162,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_TargetFolder
             //
-            this.btn_TargetFolder.Location = new System.Drawing.Point(15, 140);
+            this.btn_TargetFolder.Location = new System.Drawing.Point(15, 170);
             this.btn_TargetFolder.Name = "btn_TargetFolder";
             this.btn_TargetFolder.Size = new System.Drawing.Size(133, 23);
             this.btn_TargetFolder.TabIndex = 2;
@@ -176,7 +176,7 @@ namespace ITM_Agent.ucPanel
             this.lb_TargetList.Location = new System.Drawing.Point(15, 24);
             this.lb_TargetList.Name = "lb_TargetList";
             this.lb_TargetList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.lb_TargetList.Size = new System.Drawing.Size(278, 112);
+            this.lb_TargetList.Size = new System.Drawing.Size(278, 136);
             this.lb_TargetList.TabIndex = 1;
             //
             // label1
@@ -188,48 +188,11 @@ namespace ITM_Agent.ucPanel
             this.label1.TabIndex = 0;
             this.label1.Text = ">Target Folders";
             //
-            // btn_ExcludeRemove
-            //
-            this.btn_ExcludeRemove.Location = new System.Drawing.Point(157, 140);
-            this.btn_ExcludeRemove.Name = "btn_ExcludeRemove";
-            this.btn_ExcludeRemove.Size = new System.Drawing.Size(133, 23);
-            this.btn_ExcludeRemove.TabIndex = 5;
-            this.btn_ExcludeRemove.Text = "Remove";
-            this.btn_ExcludeRemove.UseVisualStyleBackColor = true;
-            //
-            // btn_ExcludeFolder
-            //
-            this.btn_ExcludeFolder.Location = new System.Drawing.Point(12, 140);
-            this.btn_ExcludeFolder.Name = "btn_ExcludeFolder";
-            this.btn_ExcludeFolder.Size = new System.Drawing.Size(133, 23);
-            this.btn_ExcludeFolder.TabIndex = 4;
-            this.btn_ExcludeFolder.Text = "Select Folders";
-            this.btn_ExcludeFolder.UseVisualStyleBackColor = true;
-            //
-            // lb_ExcludeList
-            //
-            this.lb_ExcludeList.FormattingEnabled = true;
-            this.lb_ExcludeList.ItemHeight = 12;
-            this.lb_ExcludeList.Location = new System.Drawing.Point(12, 24);
-            this.lb_ExcludeList.Name = "lb_ExcludeList";
-            this.lb_ExcludeList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
-            this.lb_ExcludeList.Size = new System.Drawing.Size(278, 112);
-            this.lb_ExcludeList.TabIndex = 3;
-            //
-            // label2
-            //
-            this.label2.AutoSize = true;
-            this.label2.Location = new System.Drawing.Point(10, 9);
-            this.label2.Name = "label2";
-            this.label2.Size = new System.Drawing.Size(105, 12);
-            this.label2.TabIndex = 2;
-            this.label2.Text = ">Exclude Folders";
-            //
             // groupBox2
             //
             this.groupBox2.Controls.Add(this.btn_BaseFolder);
             this.groupBox2.Controls.Add(this.lb_BaseFolder);
-            this.groupBox2.Location = new System.Drawing.Point(3, 6);
+            this.groupBox2.Location = new System.Drawing.Point(3, 3);
             this.groupBox2.Name = "groupBox2";
             this.groupBox2.Size = new System.Drawing.Size(624, 50);
             this.groupBox2.TabIndex = 0;
@@ -254,13 +217,50 @@ namespace ITM_Agent.ucPanel
             this.lb_BaseFolder.TabIndex = 0;
             this.lb_BaseFolder.Text = "label3";
             //
+            // btn_ExcludeRemove
+            //
+            this.btn_ExcludeRemove.Location = new System.Drawing.Point(157, 170);
+            this.btn_ExcludeRemove.Name = "btn_ExcludeRemove";
+            this.btn_ExcludeRemove.Size = new System.Drawing.Size(133, 23);
+            this.btn_ExcludeRemove.TabIndex = 5;
+            this.btn_ExcludeRemove.Text = "Remove";
+            this.btn_ExcludeRemove.UseVisualStyleBackColor = true;
+            //
+            // btn_ExcludeFolder
+            //
+            this.btn_ExcludeFolder.Location = new System.Drawing.Point(12, 170);
+            this.btn_ExcludeFolder.Name = "btn_ExcludeFolder";
+            this.btn_ExcludeFolder.Size = new System.Drawing.Size(133, 23);
+            this.btn_ExcludeFolder.TabIndex = 4;
+            this.btn_ExcludeFolder.Text = "Select Folders";
+            this.btn_ExcludeFolder.UseVisualStyleBackColor = true;
+            //
+            // lb_ExcludeList
+            //
+            this.lb_ExcludeList.FormattingEnabled = true;
+            this.lb_ExcludeList.ItemHeight = 12;
+            this.lb_ExcludeList.Location = new System.Drawing.Point(12, 24);
+            this.lb_ExcludeList.Name = "lb_ExcludeList";
+            this.lb_ExcludeList.SelectionMode = System.Windows.Forms.SelectionMode.MultiExtended;
+            this.lb_ExcludeList.Size = new System.Drawing.Size(278, 136);
+            this.lb_ExcludeList.TabIndex = 3;
+            //
+            // label2
+            //
+            this.label2.AutoSize = true;
+            this.label2.Location = new System.Drawing.Point(10, 9);
+            this.label2.Name = "label2";
+            this.label2.Size = new System.Drawing.Size(105, 12);
+            this.label2.TabIndex = 2;
+            this.label2.Text = ">Exclude Folders";
+            //
             // tabPage2
             //
             this.tabPage2.Controls.Add(this.groupBox3);
             this.tabPage2.Location = new System.Drawing.Point(4, 22);
             this.tabPage2.Name = "tabPage2";
             this.tabPage2.Padding = new System.Windows.Forms.Padding(3);
-            this.tabPage2.Size = new System.Drawing.Size(645, 273);
+            this.tabPage2.Size = new System.Drawing.Size(645, 304);
             this.tabPage2.TabIndex = 1;
             this.tabPage2.Text = "Regex";
             this.tabPage2.UseVisualStyleBackColor = true;
@@ -273,7 +273,7 @@ namespace ITM_Agent.ucPanel
             this.groupBox3.Controls.Add(this.btn_RegAdd);
             this.groupBox3.Location = new System.Drawing.Point(9, 15);
             this.groupBox3.Name = "groupBox3";
-            this.groupBox3.Size = new System.Drawing.Size(624, 252);
+            this.groupBox3.Size = new System.Drawing.Size(624, 283);
             this.groupBox3.TabIndex = 2;
             this.groupBox3.TabStop = false;
             this.groupBox3.Text = "● Regular Expressions";
@@ -284,12 +284,12 @@ namespace ITM_Agent.ucPanel
             this.lb_RegexList.ItemHeight = 12;
             this.lb_RegexList.Location = new System.Drawing.Point(18, 20);
             this.lb_RegexList.Name = "lb_RegexList";
-            this.lb_RegexList.Size = new System.Drawing.Size(586, 172);
+            this.lb_RegexList.Size = new System.Drawing.Size(586, 208);
             this.lb_RegexList.TabIndex = 8;
             //
             // btn_RegRemove
             //
-            this.btn_RegRemove.Location = new System.Drawing.Point(433, 204);
+            this.btn_RegRemove.Location = new System.Drawing.Point(433, 238);
             this.btn_RegRemove.Name = "btn_RegRemove";
             this.btn_RegRemove.Size = new System.Drawing.Size(171, 33);
             this.btn_RegRemove.TabIndex = 7;
@@ -298,7 +298,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_RegEdit
             //
-            this.btn_RegEdit.Location = new System.Drawing.Point(226, 204);
+            this.btn_RegEdit.Location = new System.Drawing.Point(226, 238);
             this.btn_RegEdit.Name = "btn_RegEdit";
             this.btn_RegEdit.Size = new System.Drawing.Size(171, 33);
             this.btn_RegEdit.TabIndex = 5;
@@ -307,7 +307,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_RegAdd
             //
-            this.btn_RegAdd.Location = new System.Drawing.Point(18, 204);
+            this.btn_RegAdd.Location = new System.Drawing.Point(18, 238);
             this.btn_RegAdd.Name = "btn_RegAdd";
             this.btn_RegAdd.Size = new System.Drawing.Size(171, 33);
             this.btn_RegAdd.TabIndex = 4;
@@ -320,7 +320,7 @@ namespace ITM_Agent.ucPanel
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.tabControl1);
             this.Name = "ucConfigurationPanel";
-            this.Size = new System.Drawing.Size(676, 310);
+            this.Size = new System.Drawing.Size(676, 340);
             this.tabControl1.ResumeLayout(false);
             this.tabPage1.ResumeLayout(false);
             this.splitContainer2.Panel1.ResumeLayout(false);
