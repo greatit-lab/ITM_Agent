@@ -117,14 +117,14 @@ namespace ITM_Agent.ucPanel
             this.groupBox1.Controls.Add(this.label3);
             this.groupBox1.Location = new System.Drawing.Point(25, 21);
             this.groupBox1.Name = "groupBox1";
-            this.groupBox1.Size = new System.Drawing.Size(624, 276);
+            this.groupBox1.Size = new System.Drawing.Size(624, 305);
             this.groupBox1.TabIndex = 18;
             this.groupBox1.TabStop = false;
             this.groupBox1.Text = "● Database Uploading";
             //
             // btn_WaveClear
             //
-            this.btn_WaveClear.Location = new System.Drawing.Point(543, 248);
+            this.btn_WaveClear.Location = new System.Drawing.Point(543, 273);
             this.btn_WaveClear.Name = "btn_WaveClear";
             this.btn_WaveClear.Size = new System.Drawing.Size(75, 22);
             this.btn_WaveClear.TabIndex = 53;
@@ -135,7 +135,7 @@ namespace ITM_Agent.ucPanel
             // 
             this.label12.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label12.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label12.Location = new System.Drawing.Point(253, 251);
+            this.label12.Location = new System.Drawing.Point(253, 276);
             this.label12.Name = "label12";
             this.label12.Size = new System.Drawing.Size(25, 22);
             this.label12.TabIndex = 52;
@@ -144,7 +144,7 @@ namespace ITM_Agent.ucPanel
             // cb_WavePlugin
             //
             this.cb_WavePlugin.FormattingEnabled = true;
-            this.cb_WavePlugin.Location = new System.Drawing.Point(283, 249);
+            this.cb_WavePlugin.Location = new System.Drawing.Point(283, 274);
             this.cb_WavePlugin.Name = "cb_WavePlugin";
             this.cb_WavePlugin.Size = new System.Drawing.Size(175, 20);
             this.cb_WavePlugin.TabIndex = 51;
@@ -152,14 +152,14 @@ namespace ITM_Agent.ucPanel
             // cb_WavePath
             //
             this.cb_WavePath.FormattingEnabled = true;
-            this.cb_WavePath.Location = new System.Drawing.Point(30, 249);
+            this.cb_WavePath.Location = new System.Drawing.Point(30, 274);
             this.cb_WavePath.Name = "cb_WavePath";
             this.cb_WavePath.Size = new System.Drawing.Size(214, 20);
             this.cb_WavePath.TabIndex = 49;
             //
             // btn_WaveSet
             //
-            this.btn_WaveSet.Location = new System.Drawing.Point(465, 248);
+            this.btn_WaveSet.Location = new System.Drawing.Point(465, 273);
             this.btn_WaveSet.Name = "btn_WaveSet";
             this.btn_WaveSet.Size = new System.Drawing.Size(75, 22);
             this.btn_WaveSet.TabIndex = 50;
@@ -168,7 +168,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_EvClear
             //
-            this.btn_EvClear.Location = new System.Drawing.Point(543, 206);
+            this.btn_EvClear.Location = new System.Drawing.Point(543, 226);
             this.btn_EvClear.Name = "btn_EvClear";
             this.btn_EvClear.Size = new System.Drawing.Size(75, 22);
             this.btn_EvClear.TabIndex = 48;
@@ -179,7 +179,7 @@ namespace ITM_Agent.ucPanel
             // 
             this.label11.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label11.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label11.Location = new System.Drawing.Point(253, 209);
+            this.label11.Location = new System.Drawing.Point(253, 229);
             this.label11.Name = "label11";
             this.label11.Size = new System.Drawing.Size(25, 22);
             this.label11.TabIndex = 47;
@@ -188,7 +188,7 @@ namespace ITM_Agent.ucPanel
             // cb_EvPlugin
             //
             this.cb_EvPlugin.FormattingEnabled = true;
-            this.cb_EvPlugin.Location = new System.Drawing.Point(283, 207);
+            this.cb_EvPlugin.Location = new System.Drawing.Point(283, 227);
             this.cb_EvPlugin.Name = "cb_EvPlugin";
             this.cb_EvPlugin.Size = new System.Drawing.Size(175, 20);
             this.cb_EvPlugin.TabIndex = 46;
@@ -196,14 +196,14 @@ namespace ITM_Agent.ucPanel
             // cb_EvPath
             //
             this.cb_EvPath.FormattingEnabled = true;
-            this.cb_EvPath.Location = new System.Drawing.Point(30, 207);
+            this.cb_EvPath.Location = new System.Drawing.Point(30, 227);
             this.cb_EvPath.Name = "cb_EvPath";
             this.cb_EvPath.Size = new System.Drawing.Size(214, 20);
             this.cb_EvPath.TabIndex = 44;
             //
             // btn_EvSet
             //
-            this.btn_EvSet.Location = new System.Drawing.Point(465, 206);
+            this.btn_EvSet.Location = new System.Drawing.Point(465, 226);
             this.btn_EvSet.Name = "btn_EvSet";
             this.btn_EvSet.Size = new System.Drawing.Size(75, 22);
             this.btn_EvSet.TabIndex = 45;
@@ -212,7 +212,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_ErrClear
             //
-            this.btn_ErrClear.Location = new System.Drawing.Point(543, 163);
+            this.btn_ErrClear.Location = new System.Drawing.Point(543, 180);
             this.btn_ErrClear.Name = "btn_ErrClear";
             this.btn_ErrClear.Size = new System.Drawing.Size(75, 22);
             this.btn_ErrClear.TabIndex = 43;
@@ -223,7 +223,7 @@ namespace ITM_Agent.ucPanel
             // 
             this.label10.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label10.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label10.Location = new System.Drawing.Point(253, 166);
+            this.label10.Location = new System.Drawing.Point(253, 183);
             this.label10.Name = "label10";
             this.label10.Size = new System.Drawing.Size(25, 22);
             this.label10.TabIndex = 42;
@@ -232,7 +232,7 @@ namespace ITM_Agent.ucPanel
             // cb_ErrPlugin
             //
             this.cb_ErrPlugin.FormattingEnabled = true;
-            this.cb_ErrPlugin.Location = new System.Drawing.Point(283, 164);
+            this.cb_ErrPlugin.Location = new System.Drawing.Point(283, 181);
             this.cb_ErrPlugin.Name = "cb_ErrPlugin";
             this.cb_ErrPlugin.Size = new System.Drawing.Size(175, 20);
             this.cb_ErrPlugin.TabIndex = 41;
@@ -240,14 +240,14 @@ namespace ITM_Agent.ucPanel
             // cb_ErrPath
             //
             this.cb_ErrPath.FormattingEnabled = true;
-            this.cb_ErrPath.Location = new System.Drawing.Point(30, 164);
+            this.cb_ErrPath.Location = new System.Drawing.Point(30, 181);
             this.cb_ErrPath.Name = "cb_ErrPath";
             this.cb_ErrPath.Size = new System.Drawing.Size(214, 20);
             this.cb_ErrPath.TabIndex = 39;
             //
             // btn_ErrSet
             //
-            this.btn_ErrSet.Location = new System.Drawing.Point(465, 163);
+            this.btn_ErrSet.Location = new System.Drawing.Point(465, 180);
             this.btn_ErrSet.Name = "btn_ErrSet";
             this.btn_ErrSet.Size = new System.Drawing.Size(75, 22);
             this.btn_ErrSet.TabIndex = 40;
@@ -256,7 +256,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_ImgClear
             //
-            this.btn_ImgClear.Location = new System.Drawing.Point(543, 120);
+            this.btn_ImgClear.Location = new System.Drawing.Point(543, 131);
             this.btn_ImgClear.Name = "btn_ImgClear";
             this.btn_ImgClear.Size = new System.Drawing.Size(75, 22);
             this.btn_ImgClear.TabIndex = 38;
@@ -267,7 +267,7 @@ namespace ITM_Agent.ucPanel
             // 
             this.label9.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label9.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label9.Location = new System.Drawing.Point(253, 123);
+            this.label9.Location = new System.Drawing.Point(253, 134);
             this.label9.Name = "label9";
             this.label9.Size = new System.Drawing.Size(25, 22);
             this.label9.TabIndex = 37;
@@ -275,7 +275,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_PreAlignClear
             //
-            this.btn_PreAlignClear.Location = new System.Drawing.Point(543, 77);
+            this.btn_PreAlignClear.Location = new System.Drawing.Point(543, 82);
             this.btn_PreAlignClear.Name = "btn_PreAlignClear";
             this.btn_PreAlignClear.Size = new System.Drawing.Size(75, 22);
             this.btn_PreAlignClear.TabIndex = 36;
@@ -286,7 +286,7 @@ namespace ITM_Agent.ucPanel
             //
             this.label8.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
             this.label8.Font = new System.Drawing.Font("굴림", 11.25F, System.Drawing.FontStyle.Regular, System.Drawing.GraphicsUnit.Point, ((byte)(129)));
-            this.label8.Location = new System.Drawing.Point(253, 80);
+            this.label8.Location = new System.Drawing.Point(253, 85);
             this.label8.Name = "label8";
             this.label8.Size = new System.Drawing.Size(25, 22);
             this.label8.TabIndex = 35;
@@ -305,14 +305,14 @@ namespace ITM_Agent.ucPanel
             // cb_ImagePlugin
             //
             this.cb_ImagePlugin.FormattingEnabled = true;
-            this.cb_ImagePlugin.Location = new System.Drawing.Point(283, 121);
+            this.cb_ImagePlugin.Location = new System.Drawing.Point(283, 132);
             this.cb_ImagePlugin.Name = "cb_ImagePlugin";
             this.cb_ImagePlugin.Size = new System.Drawing.Size(175, 20);
             this.cb_ImagePlugin.TabIndex = 32;
             //
             // btn_PreAlignSet
             //
-            this.btn_PreAlignSet.Location = new System.Drawing.Point(465, 77);
+            this.btn_PreAlignSet.Location = new System.Drawing.Point(465, 82);
             this.btn_PreAlignSet.Name = "btn_PreAlignSet";
             this.btn_PreAlignSet.Size = new System.Drawing.Size(75, 22);
             this.btn_PreAlignSet.TabIndex = 31;
@@ -322,7 +322,7 @@ namespace ITM_Agent.ucPanel
             // cb_PreAlignPlugin
             //
             this.cb_PreAlignPlugin.FormattingEnabled = true;
-            this.cb_PreAlignPlugin.Location = new System.Drawing.Point(283, 78);
+            this.cb_PreAlignPlugin.Location = new System.Drawing.Point(283, 83);
             this.cb_PreAlignPlugin.Name = "cb_PreAlignPlugin";
             this.cb_PreAlignPlugin.Size = new System.Drawing.Size(175, 20);
             this.cb_PreAlignPlugin.TabIndex = 30;
@@ -330,7 +330,7 @@ namespace ITM_Agent.ucPanel
             // cb_ImgPath
             //
             this.cb_ImgPath.FormattingEnabled = true;
-            this.cb_ImgPath.Location = new System.Drawing.Point(30, 121);
+            this.cb_ImgPath.Location = new System.Drawing.Point(30, 132);
             this.cb_ImgPath.Name = "cb_ImgPath";
             this.cb_ImgPath.Size = new System.Drawing.Size(214, 20);
             this.cb_ImgPath.TabIndex = 13;
@@ -338,7 +338,7 @@ namespace ITM_Agent.ucPanel
             // cb_PreAlign_Path
             //
             this.cb_PreAlign_Path.FormattingEnabled = true;
-            this.cb_PreAlign_Path.Location = new System.Drawing.Point(30, 78);
+            this.cb_PreAlign_Path.Location = new System.Drawing.Point(30, 83);
             this.cb_PreAlign_Path.Name = "cb_PreAlign_Path";
             this.cb_PreAlign_Path.Size = new System.Drawing.Size(214, 20);
             this.cb_PreAlign_Path.TabIndex = 8;
@@ -361,7 +361,7 @@ namespace ITM_Agent.ucPanel
             //
             // btn_ImgSet
             //
-            this.btn_ImgSet.Location = new System.Drawing.Point(465, 120);
+            this.btn_ImgSet.Location = new System.Drawing.Point(465, 131);
             this.btn_ImgSet.Name = "btn_ImgSet";
             this.btn_ImgSet.Size = new System.Drawing.Size(75, 22);
             this.btn_ImgSet.TabIndex = 28;
@@ -371,7 +371,7 @@ namespace ITM_Agent.ucPanel
             // label7
             //
             this.label7.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label7.Location = new System.Drawing.Point(18, 233);
+            this.label7.Location = new System.Drawing.Point(18, 258);
             this.label7.Name = "label7";
             this.label7.Size = new System.Drawing.Size(146, 22);
             this.label7.TabIndex = 27;
@@ -380,7 +380,7 @@ namespace ITM_Agent.ucPanel
             // label6
             //
             this.label6.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label6.Location = new System.Drawing.Point(18, 191);
+            this.label6.Location = new System.Drawing.Point(18, 211);
             this.label6.Name = "label6";
             this.label6.Size = new System.Drawing.Size(146, 22);
             this.label6.TabIndex = 23;
@@ -389,7 +389,7 @@ namespace ITM_Agent.ucPanel
             // label5
             //
             this.label5.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label5.Location = new System.Drawing.Point(18, 148);
+            this.label5.Location = new System.Drawing.Point(18, 165);
             this.label5.Name = "label5";
             this.label5.Size = new System.Drawing.Size(146, 22);
             this.label5.TabIndex = 19;
@@ -398,7 +398,7 @@ namespace ITM_Agent.ucPanel
             // label2
             //
             this.label2.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label2.Location = new System.Drawing.Point(18, 104);
+            this.label2.Location = new System.Drawing.Point(18, 115);
             this.label2.Name = "label2";
             this.label2.Size = new System.Drawing.Size(146, 22);
             this.label2.TabIndex = 15;
@@ -425,7 +425,7 @@ namespace ITM_Agent.ucPanel
             // label1
             //
             this.label1.FlatStyle = System.Windows.Forms.FlatStyle.Flat;
-            this.label1.Location = new System.Drawing.Point(18, 62);
+            this.label1.Location = new System.Drawing.Point(18, 67);
             this.label1.Name = "label1";
             this.label1.Size = new System.Drawing.Size(146, 22);
             this.label1.TabIndex = 10;
@@ -446,7 +446,7 @@ namespace ITM_Agent.ucPanel
             this.AutoScaleMode = System.Windows.Forms.AutoScaleMode.Font;
             this.Controls.Add(this.groupBox1);
             this.Name = "ucUploadPanel";
-            this.Size = new System.Drawing.Size(676, 310);
+            this.Size = new System.Drawing.Size(676, 340);
             this.groupBox1.ResumeLayout(false);
             this.ResumeLayout(false);
         }
